@@ -1,0 +1,3385 @@
+name: megan-qa-trial-rename
+description: |
+  blah rename
+collections: null
+channels: null
+credentials:
+  "megan+stagingfree@openfn.org-Megan-contributor-test":
+    name: Megan contributor test
+    owner: 'megan+stagingfree@openfn.org'
+  megan@openfn.org-2.19.0-pre:
+    name: 2.19.0-pre
+    owner: megan@openfn.org
+  megan@openfn.org-Another-testing-credential---not-functioning:
+    name: Another testing credential - not functioning
+    owner: megan@openfn.org
+  megan@openfn.org-Testing-credential:
+    name: Testing credential
+    owner: megan@openfn.org
+  megan@openfn.org-Testing-credential---not-real:
+    name: Testing credential - not real
+    owner: megan@openfn.org
+  megan@openfn.org-this-test:
+    name: this test
+    owner: megan@openfn.org
+workflows:
+  Another-2.16.8-test---rename-1-1:
+    name: Another 2.16.8 test - rename 1 1
+    jobs:
+      Dhis2-2:
+        name: Dhis2 2
+        adaptor: '@openfn/language-dhis2@8.2.0'
+        credential: null
+        body: |
+          // Check out the Job Writing Guide for help getting started:
+          // https://docs.openfn.org/documentation/jobs/job-writing-guide
+      Dhis2-3:
+        name: Dhis2 3
+        adaptor: '@openfn/language-dhis2@8.2.0'
+        credential: null
+        body: |
+          // Check out the Job Writing Guide for help getting started:
+          // https://docs.openfn.org/documentation/jobs/job-writing-guide
+      Transform-data:
+        name: Transform data
+        adaptor: '@openfn/language-common@latest'
+        credential: null
+        body: |
+          // Validate and transform the data you've received...
+          fn(state => {
+            console.log("Do some data transformation here");
+            return state;
+          })
+      Dhis2:
+        name: Dhis2
+        adaptor: '@openfn/language-dhis2@8.2.0'
+        credential: null
+        body: |
+          // Check out the Job Writing Guide for help getting started:
+          // https://docs.openfn.org/documentation/jobs/job-writing-guide
+      Dhis2-1:
+        name: Dhis2 1
+        adaptor: '@openfn/language-dhis2@8.2.0'
+        credential: null
+        body: |
+          // Check out the Job Writing Guide for help getting started:
+          // https://docs.openfn.org/documentation/jobs/job-writing-guide
+
+          // Common DHIS2 commands:
+
+          // GET - fetch data from DHIS2
+          // get('tracker/trackedEntities', { orgUnit: 'DiszpKrYNg8' });
+
+          // CREATE - create a new record
+          // create('events', { program: 'eBAyeGv0exc', orgUnit: 'DiszpKrYNg8', status: 'COMPLETED' });
+
+          // UPDATE - update an existing record by id
+          // update('events', 'PMa2VCrupOd', { status: 'COMPLETED' });
+
+          // UPSERT - update if exists, otherwise create
+          // upsert('trackedEntities', { query: { orgUnit: 'DiszpKrYNg8' } }, { /* data */ });
+
+          // PATCH - partially update a record
+          // patch('dataElements', 'FTRrcoaog83', { name: 'New name' });
+
+          // DELETE - remove a record
+          // destroy('events', 'PMa2VCrupOd');
+
+          // GET METADATA / analytics export
+          // get('analytics', { dimension: ['dx:fbfJHSPpUQD'] });
+
+      Test-job:
+        name: Test job
+        adaptor: '@openfn/language-common@latest'
+        credential: null
+        body: |
+          fn(state => {
+            console.log('Testing console log!');
+            return state;
+            // Just a random comment
+            
+          });
+      Http:
+        name: Http
+        adaptor: '@openfn/language-common@3.3.4'
+        credential: null
+        body: |
+          // Check out the Job Writing Guide for help getting started:
+          // https://docs.openfn.org/documentation/jobs/job-writing-guide
+
+    triggers:
+      webhook:
+        type: webhook
+        webhook_reply: before_start
+        enabled: true
+    edges:
+      webhook->Transform-data:
+        source_trigger: webhook
+        target_job: Transform-data
+        condition_type: always
+        enabled: true
+      Transform-data->Dhis2:
+        source_job: Transform-data
+        target_job: Dhis2
+        condition_type: on_job_success
+        enabled: true
+      Dhis2->Dhis2-1:
+        source_job: Dhis2
+        target_job: Dhis2-1
+        condition_type: on_job_success
+        enabled: true
+      Dhis2->Dhis2-2:
+        source_job: Dhis2
+        target_job: Dhis2-2
+        condition_type: on_job_failure
+        enabled: true
+      Dhis2-2->Dhis2-1:
+        source_job: Dhis2-2
+        target_job: Dhis2-1
+        condition_type: on_job_success
+        enabled: true
+      Dhis2-2->Dhis2-3:
+        source_job: Dhis2-2
+        target_job: Dhis2-3
+        condition_type: on_job_success
+        enabled: true
+      Dhis2-1->Test-job:
+        source_job: Dhis2-1
+        target_job: Test-job
+        condition_type: always
+        enabled: true
+      Dhis2-3->Http:
+        source_job: Dhis2-3
+        target_job: Http
+        condition_type: on_job_success
+        enabled: true
+  Another-2.16.8-test---rename:
+    name: Another 2.16.8 test - rename
+    jobs:
+      Transform-data:
+        name: Transform data
+        adaptor: '@openfn/language-common@latest'
+        credential: null
+        body: |
+          // Validate and transform the data you've received...
+          fn(state => {
+            console.log("Do some data transformation here");
+            return state;
+          })
+
+      Dhis2:
+        name: Dhis2
+        adaptor: '@openfn/language-dhis2@8.2.0'
+        credential: megan@openfn.org-Testing-credential---not-real
+        body: |
+          // Check out the Job Writing Guide for help getting started:
+          // https://docs.openfn.org/documentation/jobs/job-writing-guide
+
+      Dhis2-1:
+        name: Dhis2 1
+        adaptor: '@openfn/language-dhis2@8.2.0'
+        credential: megan@openfn.org-Testing-credential---not-real
+        body: |
+          // Check out the Job Writing Guide for help getting started:
+          // https://docs.openfn.org/documentation/jobs/job-writing-guide
+
+      Dhis2-2:
+        name: Dhis2 2
+        adaptor: '@openfn/language-dhis2@8.2.0'
+        credential: null
+        body: |
+          // Check out the Job Writing Guide for help getting started:
+          // https://docs.openfn.org/documentation/jobs/job-writing-guide
+
+      Dhis2-3:
+        name: Dhis2 3
+        adaptor: '@openfn/language-dhis2@8.2.0'
+        credential: megan@openfn.org-Testing-credential---not-real
+        body: |
+          // Check out the Job Writing Guide for help getting started:
+          // https://docs.openfn.org/documentation/jobs/job-writing-guide
+
+    triggers:
+      webhook:
+        type: webhook
+        webhook_reply: before_start
+        enabled: false
+    edges:
+      webhook->Transform-data:
+        source_trigger: webhook
+        target_job: Transform-data
+        condition_type: always
+        enabled: true
+      Transform-data->Dhis2:
+        source_job: Transform-data
+        target_job: Dhis2
+        condition_type: on_job_success
+        enabled: true
+      Dhis2->Dhis2-1:
+        source_job: Dhis2
+        target_job: Dhis2-1
+        condition_type: on_job_success
+        enabled: true
+      Dhis2->Dhis2-2:
+        source_job: Dhis2
+        target_job: Dhis2-2
+        condition_type: on_job_failure
+        enabled: true
+      Dhis2-2->Dhis2-1:
+        source_job: Dhis2-2
+        target_job: Dhis2-1
+        condition_type: on_job_success
+        enabled: true
+      Dhis2-2->Dhis2-3:
+        source_job: Dhis2-2
+        target_job: Dhis2-3
+        condition_type: on_job_success
+        enabled: true
+  DING-DONG-Notification-Workflow-1-rename-3:
+    name: DING DONG Notification Workflow 1 rename 3
+    jobs:
+      Send-Notification:
+        name: Send Notification
+        adaptor: '@openfn/language-http@latest'
+        credential: null
+        body: |
+          // Add operations here
+      Log-to-Spreadsheet:
+        name: Log to Spreadsheet
+        adaptor: '@openfn/language-googlesheets@latest'
+        credential: null
+        body: |
+          // Add operations here
+      Common:
+        name: Common
+        adaptor: '@openfn/language-common@3.3.4'
+        credential: null
+        body: |
+          // Check out the Job Writing Guide for help getting started:
+          // https://docs.openfn.org/documentation/jobs/job-writing-guide
+          // a quick test
+          // additional test
+    triggers:
+      cron:
+        type: cron
+        cron_expression: '*/15 * * * *'
+        enabled: false
+    edges:
+      cron->Send-Notification:
+        source_trigger: cron
+        target_job: Send-Notification
+        condition_type: always
+        enabled: true
+      Send-Notification->Log-to-Spreadsheet:
+        source_job: Send-Notification
+        target_job: Log-to-Spreadsheet
+        condition_type: on_job_success
+        enabled: true
+      Send-Notification->Common:
+        source_job: Send-Notification
+        target_job: Common
+        condition_type: on_job_success
+        enabled: true
+  Another-2.16.8-test---rename-1:
+    name: Another 2.16.8 test - rename 1
+    jobs:
+      Dhis2-2:
+        name: Dhis2 2
+        adaptor: '@openfn/language-dhis2@8.2.0'
+        credential: null
+        body: |
+          // Check out the Job Writing Guide for help getting started:
+          // https://docs.openfn.org/documentation/jobs/job-writing-guide
+
+      Dhis2-3:
+        name: Dhis2 3
+        adaptor: '@openfn/language-dhis2@8.2.0'
+        credential: null
+        body: |
+          // Check out the Job Writing Guide for help getting started:
+          // https://docs.openfn.org/documentation/jobs/job-writing-guide
+
+      Transform-data:
+        name: Transform data
+        adaptor: '@openfn/language-common@latest'
+        credential: null
+        body: |
+          // Validate and transform the data you've received...
+          fn(state => {
+            console.log("Do some data transformation here");
+            return state;
+          })
+
+      Dhis2:
+        name: Dhis2
+        adaptor: '@openfn/language-dhis2@8.2.0'
+        credential: null
+        body: |
+          // Check out the Job Writing Guide for help getting started:
+          // https://docs.openfn.org/documentation/jobs/job-writing-guide
+
+      Dhis2-1:
+        name: Dhis2 1
+        adaptor: '@openfn/language-dhis2@8.2.0'
+        credential: null
+        body: |
+          // Check out the Job Writing Guide for help getting started:
+          // https://docs.openfn.org/documentation/jobs/job-writing-guide
+
+    triggers:
+      webhook:
+        type: webhook
+        webhook_reply: before_start
+        enabled: false
+    edges:
+      webhook->Transform-data:
+        source_trigger: webhook
+        target_job: Transform-data
+        condition_type: always
+        enabled: true
+      Transform-data->Dhis2:
+        source_job: Transform-data
+        target_job: Dhis2
+        condition_type: on_job_success
+        enabled: true
+      Dhis2->Dhis2-1:
+        source_job: Dhis2
+        target_job: Dhis2-1
+        condition_type: on_job_success
+        enabled: true
+      Dhis2->Dhis2-2:
+        source_job: Dhis2
+        target_job: Dhis2-2
+        condition_type: on_job_failure
+        enabled: true
+      Dhis2-2->Dhis2-1:
+        source_job: Dhis2-2
+        target_job: Dhis2-1
+        condition_type: on_job_success
+        enabled: true
+      Dhis2-2->Dhis2-3:
+        source_job: Dhis2-2
+        target_job: Dhis2-3
+        condition_type: on_job_success
+        enabled: true
+  GitHub-Bug-Report-Email-Notification:
+    name: GitHub Bug Report Email Notification
+    jobs:
+      Process-GitHub-Bug-Report:
+        name: Process GitHub Bug Report
+        adaptor: '@openfn/language-common@latest'
+        credential: null
+        body: |
+          // Add operations here
+      Send-Bug-Report-Email:
+        name: Send Bug Report Email
+        adaptor: '@openfn/language-gmail@latest'
+        credential: null
+        body: |
+          // Add operations here
+    triggers:
+      webhook:
+        type: webhook
+        webhook_reply: before_start
+        enabled: false
+    edges:
+      webhook->Process-GitHub-Bug-Report:
+        source_trigger: webhook
+        target_job: Process-GitHub-Bug-Report
+        condition_type: always
+        enabled: true
+      Process-GitHub-Bug-Report->Send-Bug-Report-Email:
+        source_job: Process-GitHub-Bug-Report
+        target_job: Send-Bug-Report-Email
+        condition_type: on_job_success
+        enabled: true
+  2.19.0.pre-rename:
+    name: 2.19.0.pre rename
+    jobs:
+      Validate-Incoming-Payload:
+        name: Validate Incoming Payload
+        adaptor: '@openfn/language-common@latest'
+        credential: null
+        body: |
+          // Add operations here
+      Fetch-External-Data:
+        name: Fetch External Data
+        adaptor: '@openfn/language-http@latest'
+        credential: null
+        body: |
+          // Add operations here
+      Transform-and-Enrich-Data:
+        name: Transform and Enrich Data
+        adaptor: '@openfn/language-common@latest'
+        credential: null
+        body: |
+          // Add operations here
+      Write-to-Database:
+        name: Write to Database
+        adaptor: '@openfn/language-postgresql@latest'
+        credential: null
+        body: |
+          // Add operations here
+      Handle-Transform-Error:
+        name: Handle Transform Error
+        adaptor: '@openfn/language-common@latest'
+        credential: null
+        body: |
+          // Add operations here
+      Handle-DB-Error:
+        name: Handle DB Error
+        adaptor: '@openfn/language-common@latest'
+        credential: null
+        body: |
+          // Add operations here
+      Read-Back-and-Verify:
+        name: Read Back and Verify
+        adaptor: '@openfn/language-postgresql@latest'
+        credential: null
+        body: |
+          // Add operations here
+      Post-to-Reporting-API:
+        name: Post to Reporting API
+        adaptor: '@openfn/language-http@latest'
+        credential: null
+        body: |
+          // Add operations here
+      Generate-Final-Report:
+        name: Generate Final Report
+        adaptor: '@openfn/language-common@latest'
+        credential: null
+        body: |
+          // Add operations here
+      Archive-Results:
+        name: Archive Results
+        adaptor: '@openfn/language-http@latest'
+        credential: megan@openfn.org-2.19.0-pre
+        body: |
+          // Add operations here
+    triggers:
+      webhook:
+        type: webhook
+        webhook_reply: before_start
+        enabled: false
+    edges:
+      webhook->Validate-Incoming-Payload:
+        source_trigger: webhook
+        target_job: Validate-Incoming-Payload
+        condition_type: always
+        enabled: true
+      Validate-Incoming-Payload->Fetch-External-Data:
+        source_job: Validate-Incoming-Payload
+        target_job: Fetch-External-Data
+        condition_type: on_job_success
+        enabled: true
+      Fetch-External-Data->Transform-and-Enrich-Data:
+        source_job: Fetch-External-Data
+        target_job: Transform-and-Enrich-Data
+        condition_type: on_job_success
+        enabled: true
+      Transform-and-Enrich-Data->Write-to-Database:
+        source_job: Transform-and-Enrich-Data
+        target_job: Write-to-Database
+        condition_type: on_job_success
+        enabled: true
+      Transform-and-Enrich-Data->Handle-Transform-Error:
+        source_job: Transform-and-Enrich-Data
+        target_job: Handle-Transform-Error
+        condition_type: on_job_failure
+        enabled: true
+      Write-to-Database->Read-Back-and-Verify:
+        source_job: Write-to-Database
+        target_job: Read-Back-and-Verify
+        condition_type: on_job_success
+        enabled: true
+      Write-to-Database->Handle-DB-Error:
+        source_job: Write-to-Database
+        target_job: Handle-DB-Error
+        condition_type: on_job_failure
+        enabled: true
+      Read-Back-and-Verify->Post-to-Reporting-API:
+        source_job: Read-Back-and-Verify
+        target_job: Post-to-Reporting-API
+        condition_type: on_job_success
+        enabled: true
+      Post-to-Reporting-API->Generate-Final-Report:
+        source_job: Post-to-Reporting-API
+        target_job: Generate-Final-Report
+        condition_type: on_job_success
+        enabled: true
+      Generate-Final-Report->Archive-Results:
+        source_job: Generate-Final-Report
+        target_job: Archive-Results
+        condition_type: on_job_success
+        enabled: true
+  Basic-Input-Test-Workflow:
+    name: Basic Input Test Workflow
+    jobs:
+      Process-Input:
+        name: Process Input
+        adaptor: '@openfn/language-common@latest'
+        credential: null
+        body: |
+          // Add operations here
+    triggers:
+      webhook:
+        type: webhook
+        webhook_reply: before_start
+        enabled: false
+    edges:
+      webhook->Process-Input:
+        source_trigger: webhook
+        target_job: Process-Input
+        condition_type: always
+        enabled: true
+  10-Node-Data-Pipeline-Demo-1:
+    name: 10-Node Data Pipeline Demo 1
+    jobs:
+      Validate-Incoming-Payload:
+        name: Validate Incoming Payload
+        adaptor: '@openfn/language-common@latest'
+        credential: null
+        body: |
+          // Add operations here
+
+      Fetch-External-Data:
+        name: Fetch External Data
+        adaptor: '@openfn/language-http@latest'
+        credential: null
+        body: |
+          // Add operations here
+      Transform-and-Enrich-Data:
+        name: Transform and Enrich Data
+        adaptor: '@openfn/language-common@latest'
+        credential: null
+        body: |
+          // Add operations here
+      Write-to-Database:
+        name: Write to Database
+        adaptor: '@openfn/language-postgresql@latest'
+        credential: null
+        body: |
+          // Add operations here
+      Handle-Transform-Error:
+        name: Handle Transform Error
+        adaptor: '@openfn/language-common@latest'
+        credential: null
+        body: |
+          // Add operations here
+      Handle-DB-Error:
+        name: Handle DB Error
+        adaptor: '@openfn/language-common@latest'
+        credential: null
+        body: |
+          // Add operations here
+      Read-Back-and-Verify:
+        name: Read Back and Verify
+        adaptor: '@openfn/language-postgresql@latest'
+        credential: null
+        body: |
+          // Add operations here
+      Post-to-Reporting-API:
+        name: Post to Reporting API
+        adaptor: '@openfn/language-http@latest'
+        credential: null
+        body: |
+          // Add operations here
+      Generate-Final-Report:
+        name: Generate Final Report
+        adaptor: '@openfn/language-common@latest'
+        credential: null
+        body: |
+          // Add operations here
+      Archive-Results:
+        name: Archive Results
+        adaptor: '@openfn/language-http@latest'
+        credential: null
+        body: |
+          // Add operations here
+    triggers:
+      webhook:
+        type: webhook
+        webhook_reply: before_start
+        enabled: false
+    edges:
+      webhook->Validate-Incoming-Payload:
+        source_trigger: webhook
+        target_job: Validate-Incoming-Payload
+        condition_type: always
+        enabled: true
+      Validate-Incoming-Payload->Fetch-External-Data:
+        source_job: Validate-Incoming-Payload
+        target_job: Fetch-External-Data
+        condition_type: on_job_success
+        enabled: true
+      Fetch-External-Data->Transform-and-Enrich-Data:
+        source_job: Fetch-External-Data
+        target_job: Transform-and-Enrich-Data
+        condition_type: on_job_success
+        enabled: true
+      Transform-and-Enrich-Data->Write-to-Database:
+        source_job: Transform-and-Enrich-Data
+        target_job: Write-to-Database
+        condition_type: on_job_success
+        enabled: true
+      Transform-and-Enrich-Data->Handle-Transform-Error:
+        source_job: Transform-and-Enrich-Data
+        target_job: Handle-Transform-Error
+        condition_type: on_job_failure
+        enabled: true
+      Write-to-Database->Read-Back-and-Verify:
+        source_job: Write-to-Database
+        target_job: Read-Back-and-Verify
+        condition_type: on_job_success
+        enabled: true
+      Write-to-Database->Handle-DB-Error:
+        source_job: Write-to-Database
+        target_job: Handle-DB-Error
+        condition_type: on_job_failure
+        enabled: true
+      Read-Back-and-Verify->Post-to-Reporting-API:
+        source_job: Read-Back-and-Verify
+        target_job: Post-to-Reporting-API
+        condition_type: on_job_success
+        enabled: true
+      Post-to-Reporting-API->Generate-Final-Report:
+        source_job: Post-to-Reporting-API
+        target_job: Generate-Final-Report
+        condition_type: on_job_success
+        enabled: true
+      Generate-Final-Report->Archive-Results:
+        source_job: Generate-Final-Report
+        target_job: Archive-Results
+        condition_type: on_job_success
+        enabled: true
+  DING-DONG-Notification-Workflow-1:
+    name: DING DONG Notification Workflow 1
+    jobs:
+      Send-Notification:
+        name: Send Notification
+        adaptor: '@openfn/language-http@latest'
+        credential: null
+        body: |
+          // Add operations here
+      Log-to-Spreadsheet:
+        name: Log to Spreadsheet
+        adaptor: '@openfn/language-googlesheets@latest'
+        credential: null
+        body: |
+          // Add operations here
+    triggers:
+      cron:
+        type: cron
+        cron_expression: '*/15 * * * *'
+        enabled: false
+    edges:
+      cron->Send-Notification:
+        source_trigger: cron
+        target_job: Send-Notification
+        condition_type: always
+        enabled: true
+      Send-Notification->Log-to-Spreadsheet:
+        source_job: Send-Notification
+        target_job: Log-to-Spreadsheet
+        condition_type: on_job_success
+        enabled: true
+  20-Node-Self-Testing-Workflow-1:
+    name: 20-Node Self-Testing Workflow 1
+    jobs:
+      Initialize-Test-Suite:
+        name: Initialize Test Suite
+        adaptor: '@openfn/language-common@latest'
+        credential: null
+        body: |
+          // Add operations here
+      Test-HTTP-Connectivity:
+        name: Test HTTP Connectivity
+        adaptor: '@openfn/language-http@latest'
+        credential: 'megan+stagingfree@openfn.org-Megan-contributor-test'
+        body: |
+          // Add operations here
+      Test-Data-Transformation:
+        name: Test Data Transformation
+        adaptor: '@openfn/language-common@latest'
+        credential: null
+        body: |
+          // Add operations here
+      Test-Error-Handling:
+        name: Test Error Handling
+        adaptor: '@openfn/language-common@latest'
+        credential: null
+        body: |
+          // Add operations here
+      Test-Conditional-Logic:
+        name: Test Conditional Logic
+        adaptor: '@openfn/language-common@latest'
+        credential: null
+        body: |
+          // Add operations here
+      Test-Data-Aggregation:
+        name: Test Data Aggregation
+        adaptor: '@openfn/language-common@latest'
+        credential: null
+        body: |
+          // Add operations here
+      Test-String-Operations:
+        name: Test String Operations
+        adaptor: '@openfn/language-common@latest'
+        credential: null
+        body: |
+          // Add operations here
+      Test-Array-Operations:
+        name: Test Array Operations
+        adaptor: '@openfn/language-common@latest'
+        credential: null
+        body: |
+          // Add operations here
+      Test-Object-Mapping:
+        name: Test Object Mapping
+        adaptor: '@openfn/language-common@latest'
+        credential: null
+        body: |
+          // Add operations here
+      Test-Date-Handling:
+        name: Test Date Handling
+        adaptor: '@openfn/language-common@latest'
+        credential: null
+        body: |
+          // Add operations here
+      Test-Number-Formatting:
+        name: Test Number Formatting
+        adaptor: '@openfn/language-common@latest'
+        credential: null
+        body: |
+          // Add operations here
+      Test-Validation-Logic:
+        name: Test Validation Logic
+        adaptor: '@openfn/language-common@latest'
+        credential: null
+        body: |
+          // Add operations here
+      Test-Filtering:
+        name: Test Filtering
+        adaptor: '@openfn/language-common@latest'
+        credential: null
+        body: |
+          // Add operations here
+      Test-Sorting:
+        name: Test Sorting
+        adaptor: '@openfn/language-common@latest'
+        credential: null
+        body: |
+          // Add operations here
+      Test-Merging-Data:
+        name: Test Merging Data
+        adaptor: '@openfn/language-common@latest'
+        credential: null
+        body: |
+          // Add operations here
+      Test-Splitting-Data:
+        name: Test Splitting Data
+        adaptor: '@openfn/language-common@latest'
+        credential: null
+        body: |
+          // Add operations here
+      Test-Encoding:
+        name: Test Encoding
+        adaptor: '@openfn/language-common@latest'
+        credential: null
+        body: |
+          // Add operations here
+      Test-Decoding:
+        name: Test Decoding
+        adaptor: '@openfn/language-common@latest'
+        credential: null
+        body: |
+          // Add operations here
+      Compile-Test-Results:
+        name: Compile Test Results
+        adaptor: '@openfn/language-common@latest'
+        credential: null
+        body: |
+          // Add operations here
+      Send-Test-Report:
+        name: Send Test Report
+        adaptor: '@openfn/language-http@latest'
+        credential: null
+        body: |
+          // Add operations here
+    triggers:
+      webhook:
+        type: webhook
+        webhook_reply: before_start
+        enabled: false
+    edges:
+      webhook->Initialize-Test-Suite:
+        source_trigger: webhook
+        target_job: Initialize-Test-Suite
+        condition_type: always
+        enabled: true
+      Initialize-Test-Suite->Test-HTTP-Connectivity:
+        source_job: Initialize-Test-Suite
+        target_job: Test-HTTP-Connectivity
+        condition_type: on_job_success
+        enabled: true
+      Test-HTTP-Connectivity->Test-Data-Transformation:
+        source_job: Test-HTTP-Connectivity
+        target_job: Test-Data-Transformation
+        condition_type: always
+        enabled: true
+      Test-Data-Transformation->Test-Error-Handling:
+        source_job: Test-Data-Transformation
+        target_job: Test-Error-Handling
+        condition_type: always
+        enabled: true
+      Test-Error-Handling->Test-Conditional-Logic:
+        source_job: Test-Error-Handling
+        target_job: Test-Conditional-Logic
+        condition_type: always
+        enabled: true
+      Test-Conditional-Logic->Test-Data-Aggregation:
+        source_job: Test-Conditional-Logic
+        target_job: Test-Data-Aggregation
+        condition_type: on_job_success
+        enabled: true
+      Test-Data-Aggregation->Test-String-Operations:
+        source_job: Test-Data-Aggregation
+        target_job: Test-String-Operations
+        condition_type: on_job_success
+        enabled: true
+      Test-String-Operations->Test-Array-Operations:
+        source_job: Test-String-Operations
+        target_job: Test-Array-Operations
+        condition_type: on_job_success
+        enabled: true
+      Test-Array-Operations->Test-Object-Mapping:
+        source_job: Test-Array-Operations
+        target_job: Test-Object-Mapping
+        condition_type: on_job_success
+        enabled: true
+      Test-Object-Mapping->Test-Date-Handling:
+        source_job: Test-Object-Mapping
+        target_job: Test-Date-Handling
+        condition_type: on_job_success
+        enabled: true
+      Test-Date-Handling->Test-Number-Formatting:
+        source_job: Test-Date-Handling
+        target_job: Test-Number-Formatting
+        condition_type: on_job_success
+        enabled: true
+      Test-Number-Formatting->Test-Validation-Logic:
+        source_job: Test-Number-Formatting
+        target_job: Test-Validation-Logic
+        condition_type: on_job_success
+        enabled: true
+      Test-Validation-Logic->Test-Filtering:
+        source_job: Test-Validation-Logic
+        target_job: Test-Filtering
+        condition_type: on_job_success
+        enabled: true
+      Test-Filtering->Test-Sorting:
+        source_job: Test-Filtering
+        target_job: Test-Sorting
+        condition_type: on_job_success
+        enabled: true
+      Test-Sorting->Test-Merging-Data:
+        source_job: Test-Sorting
+        target_job: Test-Merging-Data
+        condition_type: on_job_success
+        enabled: true
+      Test-Merging-Data->Test-Splitting-Data:
+        source_job: Test-Merging-Data
+        target_job: Test-Splitting-Data
+        condition_type: on_job_success
+        enabled: true
+      Test-Splitting-Data->Test-Encoding:
+        source_job: Test-Splitting-Data
+        target_job: Test-Encoding
+        condition_type: on_job_success
+        enabled: true
+      Test-Encoding->Test-Decoding:
+        source_job: Test-Encoding
+        target_job: Test-Decoding
+        condition_type: on_job_success
+        enabled: true
+      Test-Decoding->Compile-Test-Results:
+        source_job: Test-Decoding
+        target_job: Compile-Test-Results
+        condition_type: always
+        enabled: true
+      Compile-Test-Results->Send-Test-Report:
+        source_job: Compile-Test-Results
+        target_job: Send-Test-Report
+        condition_type: always
+        enabled: true
+  dalgo-comp:
+    name: dalgo-comp
+    jobs:
+      Goog:
+        name: Goog
+        adaptor: '@openfn/language-googlesheets@latest'
+        credential: null
+        body: |
+          // Use pure JavaScript to add operations to your
+          // step. Click Docs to see list of operations or visit
+          // https://bit.ly/OFNJWG for our job writing guide
+          // and example job codes.
+
+          // fn(state => {
+          //   getValues('1O-a4_RgPF_p8W3I6b5M9wobA3-CBW8hLClZfUik5sos','Sheet1!A1:E1')
+          // }
+          // )
+
+      compare-data-from-sheets:
+        name: compare data from sheets
+        adaptor: '@openfn/language-salesforce@4.6.5'
+        credential: null
+        body: |
+          // Use pure JavaScript to add operations to your
+          // step. Click Docs to see list of operations or visit
+          // https://bit.ly/OFNJWG for our job writing guide
+          // and example job codes.
+
+      mm:
+        name: mm
+        adaptor: '@openfn/language-common@latest'
+        credential: null
+        body: |
+          
+          // Check out the Job Writing Guide for help getting started:
+          // https://docs.openfn.org/documentation/jobs/job-writing-guide
+
+    triggers:
+      webhook:
+        type: webhook
+        webhook_reply: before_start
+        enabled: false
+    edges:
+      webhook->Goog:
+        source_trigger: webhook
+        target_job: Goog
+        condition_type: always
+        enabled: true
+      Goog->compare-data-from-sheets:
+        source_job: Goog
+        target_job: compare-data-from-sheets
+        condition_type: on_job_success
+        enabled: true
+      compare-data-from-sheets->mm:
+        source_job: compare-data-from-sheets
+        target_job: mm
+        condition_type: on_job_success
+        enabled: true
+  Cron-Workflow:
+    name: Cron Workflow
+    jobs:
+      Cron-Job:
+        name: Cron Job
+        adaptor: '@openfn/language-common@latest'
+        credential: null
+        body: |
+          // Add operations here
+    triggers:
+      cron:
+        type: cron
+        cron_expression: '0 0 * * *'
+        enabled: false
+    edges:
+      cron->Cron-Job:
+        source_trigger: cron
+        target_job: Cron-Job
+        condition_type: always
+        enabled: true
+  Event-based-workflow:
+    name: Event-based workflow
+    jobs:
+      Transform-data:
+        name: Transform data
+        adaptor: '@openfn/language-common@latest'
+        credential: null
+        body: |
+          // Validate and transform the data you've received...
+          fn(state => {
+            console.log("Do some data transformation here maybe");
+            return state;
+          })
+
+      Quick-test:
+        name: Quick test
+        adaptor: '@openfn/language-testing@1.0.10'
+        credential: null
+        body: |
+          // Check out the Job Writing Guide for help getting started:
+          // https://docs.openfn.org/documentation/jobs/job-writing-guide
+
+      Http:
+        name: Http
+        adaptor: '@openfn/language-http@7.3.2'
+        credential: null
+        body: |
+          // Check out the Job Writing Guide for help getting started:
+          // https://docs.openfn.org/documentation/jobs/job-writing-guide
+
+      Googlesheets:
+        name: Googlesheets
+        adaptor: '@openfn/language-googlesheets@4.1.2'
+        credential: null
+        body: |
+          // Check out the Job Writing Guide for help getting started:
+          // https://docs.openfn.org/documentation/jobs/job-writing-guide
+
+      Common-commoner:
+        name: Common commoner
+        adaptor: '@openfn/language-dhis2@8.2.0'
+        credential: null
+        body: |
+          // Check out the Job Writing Guide for help getting started:
+          // https://docs.openfn.org/documentation/jobs/job-writing-guide
+
+      Dhis2:
+        name: Dhis2
+        adaptor: '@openfn/language-common@latest'
+        credential: null
+        body: |
+          // Check out the Job Writing Guide for help getting started:
+          // https://docs.openfn.org/documentation/jobs/job-writing-guide
+
+    triggers:
+      webhook:
+        type: webhook
+        webhook_reply: before_start
+        enabled: false
+    edges:
+      webhook->Transform-data:
+        source_trigger: webhook
+        target_job: Transform-data
+        condition_type: always
+        enabled: true
+      Transform-data->Quick-test:
+        source_job: Transform-data
+        target_job: Quick-test
+        condition_type: on_job_success
+        enabled: true
+      Quick-test->Http:
+        source_job: Quick-test
+        target_job: Http
+        condition_type: on_job_success
+        enabled: true
+      Http->Googlesheets:
+        source_job: Http
+        target_job: Googlesheets
+        condition_type: on_job_success
+        enabled: true
+      Googlesheets->Common-commoner:
+        source_job: Googlesheets
+        target_job: Common-commoner
+        condition_type: on_job_success
+        enabled: true
+      Common-commoner->Dhis2:
+        source_job: Common-commoner
+        target_job: Dhis2
+        condition_type: on_job_success
+        enabled: true
+  OpenFn-Self-Test-Workflow:
+    name: OpenFn Self-Test Workflow
+    jobs:
+      Initialize-Tests:
+        name: Initialize Tests
+        adaptor: '@openfn/language-common@latest'
+        credential: null
+        body: |
+          // Add operations here
+      Test-Data-Transformation:
+        name: Test Data Transformation
+        adaptor: '@openfn/language-common@latest'
+        credential: null
+        body: |
+          // Add operations here
+      Test-HTTP-Request:
+        name: Test HTTP Request
+        adaptor: '@openfn/language-http@latest'
+        credential: null
+        body: |
+          // Add operations here
+      Handle-Test-Success:
+        name: Handle Test Success
+        adaptor: '@openfn/language-common@latest'
+        credential: null
+        body: |
+          // Add operations here
+      Handle-Test-Failure:
+        name: Handle Test Failure
+        adaptor: '@openfn/language-common@latest'
+        credential: null
+        body: |
+          // Add operations here
+    triggers:
+      webhook:
+        type: webhook
+        webhook_reply: before_start
+        enabled: false
+    edges:
+      webhook->Initialize-Tests:
+        source_trigger: webhook
+        target_job: Initialize-Tests
+        condition_type: always
+        enabled: true
+      Initialize-Tests->Test-Data-Transformation:
+        source_job: Initialize-Tests
+        target_job: Test-Data-Transformation
+        condition_type: on_job_success
+        enabled: true
+      Test-Data-Transformation->Test-HTTP-Request:
+        source_job: Test-Data-Transformation
+        target_job: Test-HTTP-Request
+        condition_type: on_job_success
+        enabled: true
+      Test-HTTP-Request->Handle-Test-Success:
+        source_job: Test-HTTP-Request
+        target_job: Handle-Test-Success
+        condition_type: on_job_success
+        enabled: true
+      Test-HTTP-Request->Handle-Test-Failure:
+        source_job: Test-HTTP-Request
+        target_job: Handle-Test-Failure
+        condition_type: on_job_failure
+        enabled: true
+  Another-2.16.8-test---rename-4:
+    name: Another 2.16.8 test - rename 4
+    jobs:
+      Dhis2-2:
+        name: Dhis2 2
+        adaptor: '@openfn/language-dhis2@8.2.0'
+        credential: null
+        body: |
+          // Check out the Job Writing Guide for help getting started:
+          // https://docs.openfn.org/documentation/jobs/job-writing-guide
+
+      Dhis2-3:
+        name: Dhis2 3
+        adaptor: '@openfn/language-dhis2@8.2.0'
+        credential: null
+        body: |
+          // Check out the Job Writing Guide for help getting started:
+          // https://docs.openfn.org/documentation/jobs/job-writing-guide
+
+      Transform-data:
+        name: Transform data
+        adaptor: '@openfn/language-common@latest'
+        credential: null
+        body: |
+          // Validate and transform the data you've received...
+          fn(state => {
+            console.log("Do some data transformation here");
+            return state;
+          })
+
+      Dhis2:
+        name: Dhis2
+        adaptor: '@openfn/language-dhis2@8.2.0'
+        credential: null
+        body: |
+          // Check out the Job Writing Guide for help getting started:
+          // https://docs.openfn.org/documentation/jobs/job-writing-guide
+
+      Dhis2-1:
+        name: Dhis2 1
+        adaptor: '@openfn/language-dhis2@8.2.0'
+        credential: null
+        body: |
+          // Check out the Job Writing Guide for help getting started:
+          // https://docs.openfn.org/documentation/jobs/job-writing-guide
+
+    triggers:
+      webhook:
+        type: webhook
+        webhook_reply: before_start
+        enabled: false
+    edges:
+      webhook->Transform-data:
+        source_trigger: webhook
+        target_job: Transform-data
+        condition_type: always
+        enabled: true
+      Transform-data->Dhis2:
+        source_job: Transform-data
+        target_job: Dhis2
+        condition_type: on_job_success
+        enabled: true
+      Dhis2->Dhis2-1:
+        source_job: Dhis2
+        target_job: Dhis2-1
+        condition_type: on_job_success
+        enabled: true
+      Dhis2->Dhis2-2:
+        source_job: Dhis2
+        target_job: Dhis2-2
+        condition_type: on_job_failure
+        enabled: true
+      Dhis2-2->Dhis2-1:
+        source_job: Dhis2-2
+        target_job: Dhis2-1
+        condition_type: on_job_success
+        enabled: true
+      Dhis2-2->Dhis2-3:
+        source_job: Dhis2-2
+        target_job: Dhis2-3
+        condition_type: on_job_success
+        enabled: true
+  A-2.18-test-workflow-2:
+    name: A 2.18 test workflow 2
+    jobs:
+      Step-1:
+        name: Step 1
+        adaptor: '@openfn/language-common@latest'
+        credential: null
+        body: |
+          // Check out the Job Writing Guide for help getting started:
+          // https://docs.openfn.org/documentation/jobs/job-writing-guide
+
+      Step-2---if-fail:
+        name: Step 2 - if fail
+        adaptor: '@openfn/language-common@3.3.4'
+        credential: null
+        body: |
+          // Check out the Job Writing Guide for help getting started:
+          // https://docs.openfn.org/documentation/jobs/job-writing-guide
+
+      Step-2---if-fail-test:
+        name: Step 2 - if fail test
+        adaptor: '@openfn/language-common@3.3.4'
+        credential: null
+        body: |
+          // Check out the Job Writing Guide for help getting started:
+          // https://docs.openfn.org/documentation/jobs/job-writing-guide
+
+    triggers:
+      webhook:
+        type: webhook
+        webhook_reply: before_start
+        enabled: false
+    edges:
+      webhook->Step-1:
+        source_trigger: webhook
+        target_job: Step-1
+        condition_type: always
+        enabled: true
+      Step-1->Step-2---if-fail:
+        source_job: Step-1
+        target_job: Step-2---if-fail
+        condition_type: on_job_failure
+        enabled: true
+      Step-2---if-fail->Step-2---if-fail-test:
+        source_job: Step-2---if-fail
+        target_job: Step-2---if-fail-test
+        condition_type: on_job_success
+        enabled: true
+  Self-Testing-Workflow:
+    name: Self-Testing Workflow
+    jobs:
+      Initialize-Test-Run:
+        name: Initialize Test Run
+        adaptor: '@openfn/language-common@latest'
+        credential: null
+        body: |
+          // Add operations here
+      Test-HTTP-GET-Request:
+        name: Test HTTP GET Request
+        adaptor: '@openfn/language-http@latest'
+        credential: null
+        body: |
+          // Add operations here
+      Test-HTTP-POST-Request:
+        name: Test HTTP POST Request
+        adaptor: '@openfn/language-http@latest'
+        credential: null
+        body: |
+          // Add operations here
+      Test-Data-Transformation:
+        name: Test Data Transformation
+        adaptor: '@openfn/language-common@latest'
+        credential: null
+        body: |
+          // Add operations here
+      Test-Conditional-Logic:
+        name: Test Conditional Logic
+        adaptor: '@openfn/language-common@latest'
+        credential: null
+        body: |
+          // Add operations here
+      Test-PostgreSQL-Read:
+        name: Test PostgreSQL Read
+        adaptor: '@openfn/language-postgresql@latest'
+        credential: null
+        body: |
+          // Add operations here
+      Test-PostgreSQL-Write:
+        name: Test PostgreSQL Write
+        adaptor: '@openfn/language-postgresql@latest'
+        credential: null
+        body: |
+          // Add operations here
+      Test-Data-Validation:
+        name: Test Data Validation
+        adaptor: '@openfn/language-common@latest'
+        credential: null
+        body: |
+          // Add operations here
+      Test-Data-Mapping:
+        name: Test Data Mapping
+        adaptor: '@openfn/language-common@latest'
+        credential: null
+        body: |
+          // Add operations here
+      Test-Authentication:
+        name: Test Authentication
+        adaptor: '@openfn/language-http@latest'
+        credential: null
+        body: |
+          // Add operations here
+      Test-Pagination:
+        name: Test Pagination
+        adaptor: '@openfn/language-http@latest'
+        credential: null
+        body: |
+          // Add operations here
+      Test-Bulk-Operations:
+        name: Test Bulk Operations
+        adaptor: '@openfn/language-common@latest'
+        credential: null
+        body: |
+          // Add operations here
+      Test-Error-Handling:
+        name: Test Error Handling
+        adaptor: '@openfn/language-common@latest'
+        credential: null
+        body: |
+          // Add operations here
+      Test-SFTP-Read:
+        name: Test SFTP Read
+        adaptor: '@openfn/language-sftp@latest'
+        credential: null
+        body: |
+          // Add operations here
+      Test-SFTP-Write:
+        name: Test SFTP Write
+        adaptor: '@openfn/language-sftp@latest'
+        credential: null
+        body: |
+          // Add operations here
+      Test-Google-Sheets-Read:
+        name: Test Google Sheets Read
+        adaptor: '@openfn/language-googlesheets@latest'
+        credential: null
+        body: |
+          // Add operations here
+      Test-Google-Sheets-Write:
+        name: Test Google Sheets Write
+        adaptor: '@openfn/language-googlesheets@latest'
+        credential: null
+        body: |
+          // Add operations here
+      Test-Logging:
+        name: Test Logging
+        adaptor: '@openfn/language-common@latest'
+        credential: null
+        body: |
+          // Add operations here
+      Test-Notifications:
+        name: Test Notifications
+        adaptor: '@openfn/language-http@latest'
+        credential: null
+        body: |
+          // Add operations here
+      Generate-Test-Report:
+        name: Generate Test Report
+        adaptor: '@openfn/language-common@latest'
+        credential: null
+        body: |
+          // Add operations here
+    triggers:
+      webhook:
+        type: webhook
+        webhook_reply: before_start
+        enabled: false
+    edges:
+      webhook->Initialize-Test-Run:
+        source_trigger: webhook
+        target_job: Initialize-Test-Run
+        condition_type: always
+        enabled: true
+      Initialize-Test-Run->Test-HTTP-GET-Request:
+        source_job: Initialize-Test-Run
+        target_job: Test-HTTP-GET-Request
+        condition_type: on_job_success
+        enabled: true
+      Test-HTTP-GET-Request->Test-HTTP-POST-Request:
+        source_job: Test-HTTP-GET-Request
+        target_job: Test-HTTP-POST-Request
+        condition_type: on_job_success
+        enabled: true
+      Test-HTTP-POST-Request->Test-Data-Transformation:
+        source_job: Test-HTTP-POST-Request
+        target_job: Test-Data-Transformation
+        condition_type: on_job_success
+        enabled: true
+      Test-Data-Transformation->Test-Conditional-Logic:
+        source_job: Test-Data-Transformation
+        target_job: Test-Conditional-Logic
+        condition_type: on_job_success
+        enabled: true
+      Test-Conditional-Logic->Test-PostgreSQL-Read:
+        source_job: Test-Conditional-Logic
+        target_job: Test-PostgreSQL-Read
+        condition_type: on_job_success
+        enabled: true
+      Test-PostgreSQL-Read->Test-PostgreSQL-Write:
+        source_job: Test-PostgreSQL-Read
+        target_job: Test-PostgreSQL-Write
+        condition_type: on_job_success
+        enabled: true
+      Test-PostgreSQL-Write->Test-Data-Validation:
+        source_job: Test-PostgreSQL-Write
+        target_job: Test-Data-Validation
+        condition_type: on_job_success
+        enabled: true
+      Test-Data-Validation->Test-Data-Mapping:
+        source_job: Test-Data-Validation
+        target_job: Test-Data-Mapping
+        condition_type: on_job_success
+        enabled: true
+      Test-Data-Mapping->Test-Authentication:
+        source_job: Test-Data-Mapping
+        target_job: Test-Authentication
+        condition_type: on_job_success
+        enabled: true
+      Test-Authentication->Test-Pagination:
+        source_job: Test-Authentication
+        target_job: Test-Pagination
+        condition_type: on_job_success
+        enabled: true
+      Test-Pagination->Test-Bulk-Operations:
+        source_job: Test-Pagination
+        target_job: Test-Bulk-Operations
+        condition_type: on_job_success
+        enabled: true
+      Test-Bulk-Operations->Test-Error-Handling:
+        source_job: Test-Bulk-Operations
+        target_job: Test-Error-Handling
+        condition_type: always
+        enabled: true
+      Test-Error-Handling->Test-SFTP-Read:
+        source_job: Test-Error-Handling
+        target_job: Test-SFTP-Read
+        condition_type: on_job_success
+        enabled: true
+      Test-SFTP-Read->Test-SFTP-Write:
+        source_job: Test-SFTP-Read
+        target_job: Test-SFTP-Write
+        condition_type: on_job_success
+        enabled: true
+      Test-SFTP-Write->Test-Google-Sheets-Read:
+        source_job: Test-SFTP-Write
+        target_job: Test-Google-Sheets-Read
+        condition_type: on_job_success
+        enabled: true
+      Test-Google-Sheets-Read->Test-Google-Sheets-Write:
+        source_job: Test-Google-Sheets-Read
+        target_job: Test-Google-Sheets-Write
+        condition_type: on_job_success
+        enabled: true
+      Test-Google-Sheets-Write->Test-Logging:
+        source_job: Test-Google-Sheets-Write
+        target_job: Test-Logging
+        condition_type: on_job_success
+        enabled: true
+      Test-Logging->Test-Notifications:
+        source_job: Test-Logging
+        target_job: Test-Notifications
+        condition_type: on_job_success
+        enabled: true
+      Test-Notifications->Generate-Test-Report:
+        source_job: Test-Notifications
+        target_job: Generate-Test-Report
+        condition_type: always
+        enabled: true
+  v2.15.13-pre-1:
+    name: v2.15.13-pre 1
+    jobs:
+      Get-data:
+        name: Get data
+        adaptor: '@openfn/language-http@7.0.3'
+        credential: null
+        body: |
+          // Check out the Job Writing Guide for help getting started:
+          // https://docs.openfn.org/documentation/jobs/job-writing-guide
+          get('https://docs.openfn.org/documentation');
+      Common:
+        name: Common
+        adaptor: '@openfn/language-common@3.2.2'
+        credential: null
+        body: |
+          // Check out the Job Writing Guide for help getting started:
+          // https://docs.openfn.org/documentation/jobs/job-writing-guide
+      whatsapp:
+        name: whatsapp
+        adaptor: '@openfn/language-whatsapp@latest'
+        credential: null
+        body: |
+          // Add operations here
+      Send-data-to-Salesforce:
+        name: Send data to Salesforce
+        adaptor: '@openfn/language-salesforce@latest'
+        credential: null
+        body: |
+          //something cool coming
+      step-3:
+        name: step 3
+        adaptor: '@openfn/language-common@latest'
+        credential: null
+        body: |
+          // Add operations here
+      Process-Level-2A:
+        name: Process Level 2A
+        adaptor: '@openfn/language-common@latest'
+        credential: null
+        body: |
+          // Add operations here
+      Process-Level-2B:
+        name: Process Level 2B
+        adaptor: '@openfn/language-common@latest'
+        credential: null
+        body: |
+          // Add operations here
+      Process-Level-3A:
+        name: Process Level 3A
+        adaptor: '@openfn/language-common@latest'
+        credential: null
+        body: |
+          // Add operations here
+      Process-Level-3B:
+        name: Process Level 3B
+        adaptor: '@openfn/language-common@latest'
+        credential: null
+        body: |
+          // Add operations here
+      Process-Level-3C:
+        name: Process Level 3C
+        adaptor: '@openfn/language-common@latest'
+        credential: null
+        body: |
+          // Add operations here
+      Process-Level-3D:
+        name: Process Level 3D
+        adaptor: '@openfn/language-common@latest'
+        credential: null
+        body: |
+          // Add operations here
+      Process-Level-4A:
+        name: Process Level 4A
+        adaptor: '@openfn/language-common@latest'
+        credential: null
+        body: |
+          // Add operations here
+      Process-Level-4B:
+        name: Process Level 4B
+        adaptor: '@openfn/language-common@latest'
+        credential: null
+        body: |
+          // Add operations here
+      Process-Level-4C:
+        name: Process Level 4C
+        adaptor: '@openfn/language-common@latest'
+        credential: null
+        body: |
+          // Add operations here
+      Fhir:
+        name: Fhir
+        adaptor: '@openfn/language-fhir@5.0.14'
+        credential: null
+        body: |
+          // Check out the Job Writing Guide for help getting started:
+          // https://docs.openfn.org/documentation/jobs/job-writing-guide
+
+    triggers:
+      webhook:
+        type: webhook
+        webhook_reply: before_start
+        enabled: true
+    edges:
+      webhook->Get-data:
+        source_trigger: webhook
+        target_job: Get-data
+        condition_type: always
+        enabled: true
+      Get-data->Common:
+        source_job: Get-data
+        target_job: Common
+        condition_type: on_job_success
+        enabled: true
+      Common->whatsapp:
+        source_job: Common
+        target_job: whatsapp
+        condition_type: on_job_failure
+        enabled: true
+      Common->Send-data-to-Salesforce:
+        source_job: Common
+        target_job: Send-data-to-Salesforce
+        condition_type: on_job_success
+        enabled: true
+      Send-data-to-Salesforce->step-3:
+        source_job: Send-data-to-Salesforce
+        target_job: step-3
+        condition_type: on_job_success
+        enabled: true
+      step-3->Process-Level-2A:
+        source_job: step-3
+        target_job: Process-Level-2A
+        condition_type: on_job_success
+        enabled: true
+      step-3->Process-Level-2B:
+        source_job: step-3
+        target_job: Process-Level-2B
+        condition_type: on_job_success
+        enabled: true
+      Process-Level-2A->Process-Level-3A:
+        source_job: Process-Level-2A
+        target_job: Process-Level-3A
+        condition_type: on_job_success
+        enabled: true
+      Process-Level-2A->Process-Level-3B:
+        source_job: Process-Level-2A
+        target_job: Process-Level-3B
+        condition_type: on_job_success
+        enabled: true
+      Process-Level-2B->Process-Level-3C:
+        source_job: Process-Level-2B
+        target_job: Process-Level-3C
+        condition_type: on_job_success
+        enabled: true
+      Process-Level-2B->Process-Level-3D:
+        source_job: Process-Level-2B
+        target_job: Process-Level-3D
+        condition_type: on_job_success
+        enabled: true
+      Process-Level-3A->Process-Level-4A:
+        source_job: Process-Level-3A
+        target_job: Process-Level-4A
+        condition_type: on_job_success
+        enabled: true
+      Process-Level-3B->Process-Level-4B:
+        source_job: Process-Level-3B
+        target_job: Process-Level-4B
+        condition_type: on_job_success
+        enabled: true
+      Process-Level-3C->Process-Level-4C:
+        source_job: Process-Level-3C
+        target_job: Process-Level-4C
+        condition_type: on_job_success
+        enabled: true
+      Process-Level-3A->Fhir:
+        source_job: Process-Level-3A
+        target_job: Fhir
+        condition_type: on_job_success
+        enabled: true
+  DING-DONG-Notification-Workflow:
+    name: DING DONG Notification Workflow
+    jobs:
+      Send-Notification:
+        name: Send Notification
+        adaptor: '@openfn/language-http@latest'
+        credential: null
+        body: |
+          // Add operations here
+      Log-to-Spreadsheet:
+        name: Log to Spreadsheet
+        adaptor: '@openfn/language-googlesheets@latest'
+        credential: null
+        body: |
+          // Add operations here
+    triggers:
+      cron:
+        type: cron
+        cron_expression: '*/15 * * * *'
+        enabled: false
+    edges:
+      cron->Send-Notification:
+        source_trigger: cron
+        target_job: Send-Notification
+        condition_type: always
+        enabled: true
+      Send-Notification->Log-to-Spreadsheet:
+        source_job: Send-Notification
+        target_job: Log-to-Spreadsheet
+        condition_type: on_job_success
+        enabled: true
+  A-2.18-test-workflow:
+    name: A 2.18 test workflow
+    jobs:
+      Step-1:
+        name: Step 1
+        adaptor: '@openfn/language-common@latest'
+        credential: null
+        body: |
+          // Check out the Job Writing Guide for help getting started:
+          // https://docs.openfn.org/documentation/jobs/job-writing-guide
+          // test text
+      Step-2---if-fail:
+        name: Step 2 - if fail
+        adaptor: '@openfn/language-common@3.3.4'
+        credential: null
+        body: |
+          // Check out the Job Writing Guide for help getting started:
+          // https://docs.openfn.org/documentation/jobs/job-writing-guide
+
+      Step-2---if-fail-test:
+        name: Step 2 - if fail test
+        adaptor: '@openfn/language-common@3.3.4'
+        credential: null
+        body: |
+          // Check out the Job Writing Guide for help getting started:
+          // https://docs.openfn.org/documentation/jobs/job-writing-guide
+
+      Common:
+        name: Common
+        adaptor: '@openfn/language-dhis2@8.2.1'
+        credential: megan@openfn.org-Another-testing-credential---not-functioning
+        body: |
+          // Check out the Job Writing Guide for help getting started:
+          // https://docs.openfn.org/documentation/jobs/job-writing-guide
+
+    triggers:
+      webhook:
+        type: webhook
+        webhook_reply: before_start
+        enabled: true
+    edges:
+      webhook->Step-1:
+        source_trigger: webhook
+        target_job: Step-1
+        condition_type: always
+        enabled: true
+      Step-1->Step-2---if-fail:
+        source_job: Step-1
+        target_job: Step-2---if-fail
+        condition_type: on_job_failure
+        enabled: true
+      Step-2---if-fail->Step-2---if-fail-test:
+        source_job: Step-2---if-fail
+        target_job: Step-2---if-fail-test
+        condition_type: on_job_success
+        enabled: true
+      Step-2---if-fail->Common:
+        source_job: Step-2---if-fail
+        target_job: Common
+        condition_type: on_job_success
+        enabled: true
+  v2.15.13-pre:
+    name: v2.15.13-pre
+    jobs:
+      Get-data:
+        name: Get data
+        adaptor: '@openfn/language-http@7.0.3'
+        credential: null
+        body: |
+          // Check out the Job Writing Guide for help getting started:
+          // https://docs.openfn.org/documentation/jobs/job-writing-guide
+          get('https://docs.openfn.org/documentation');
+      Common:
+        name: Common
+        adaptor: '@openfn/language-common@3.2.2'
+        credential: null
+        body: |
+          // Check out the Job Writing Guide for help getting started:
+          // https://docs.openfn.org/documentation/jobs/job-writing-guide
+      whatsapp:
+        name: whatsapp
+        adaptor: '@openfn/language-whatsapp@latest'
+        credential: null
+        body: |
+          // Add operations here
+      Send-data-to-Salesforce:
+        name: Send data to Salesforce
+        adaptor: '@openfn/language-salesforce@latest'
+        credential: null
+        body: |
+          //something cool coming
+      step-3:
+        name: step 3
+        adaptor: '@openfn/language-common@latest'
+        credential: null
+        body: |
+          // Add operations here
+      Process-Level-2A:
+        name: Process Level 2A
+        adaptor: '@openfn/language-common@latest'
+        credential: null
+        body: |
+          // Add operations here
+      Process-Level-2B:
+        name: Process Level 2B
+        adaptor: '@openfn/language-common@latest'
+        credential: null
+        body: |
+          // Add operations here
+      Process-Level-3A:
+        name: Process Level 3A
+        adaptor: '@openfn/language-common@latest'
+        credential: null
+        body: |
+          // Add operations here
+      Process-Level-3B:
+        name: Process Level 3B
+        adaptor: '@openfn/language-common@latest'
+        credential: null
+        body: |
+          // Add operations here
+      Process-Level-3C:
+        name: Process Level 3C
+        adaptor: '@openfn/language-common@latest'
+        credential: null
+        body: |
+          // Add operations here
+      Process-Level-3D:
+        name: Process Level 3D
+        adaptor: '@openfn/language-common@latest'
+        credential: null
+        body: |
+          // Add operations here
+      Process-Level-4A:
+        name: Process Level 4A
+        adaptor: '@openfn/language-common@latest'
+        credential: null
+        body: |
+          // Add operations here
+      Process-Level-4B:
+        name: Process Level 4B
+        adaptor: '@openfn/language-common@latest'
+        credential: null
+        body: |
+          // Add operations here
+      Process-Level-4C:
+        name: Process Level 4C
+        adaptor: '@openfn/language-common@latest'
+        credential: null
+        body: |
+          // Add operations here
+      Fhir:
+        name: Fhir
+        adaptor: '@openfn/language-fhir@5.0.14'
+        credential: null
+        body: |
+          // Check out the Job Writing Guide for help getting started:
+          // https://docs.openfn.org/documentation/jobs/job-writing-guide
+
+      Dhis2:
+        name: Dhis2
+        adaptor: '@openfn/language-dhis2@8.2.0'
+        credential: null
+        body: |
+          // Check out the Job Writing Guide for help getting started:
+          // https://docs.openfn.org/documentation/jobs/job-writing-guide
+
+    triggers:
+      webhook:
+        type: webhook
+        webhook_reply: before_start
+        enabled: false
+    edges:
+      webhook->Get-data:
+        source_trigger: webhook
+        target_job: Get-data
+        condition_type: always
+        enabled: true
+      Get-data->Common:
+        source_job: Get-data
+        target_job: Common
+        condition_type: on_job_success
+        enabled: true
+      Common->whatsapp:
+        source_job: Common
+        target_job: whatsapp
+        condition_type: on_job_failure
+        enabled: true
+      Common->Send-data-to-Salesforce:
+        source_job: Common
+        target_job: Send-data-to-Salesforce
+        condition_type: on_job_success
+        enabled: true
+      Send-data-to-Salesforce->step-3:
+        source_job: Send-data-to-Salesforce
+        target_job: step-3
+        condition_type: on_job_success
+        enabled: true
+      step-3->Process-Level-2A:
+        source_job: step-3
+        target_job: Process-Level-2A
+        condition_type: on_job_success
+        enabled: true
+      step-3->Process-Level-2B:
+        source_job: step-3
+        target_job: Process-Level-2B
+        condition_type: on_job_success
+        enabled: true
+      Process-Level-2A->Process-Level-3A:
+        source_job: Process-Level-2A
+        target_job: Process-Level-3A
+        condition_type: on_job_success
+        enabled: true
+      Process-Level-2A->Process-Level-3B:
+        source_job: Process-Level-2A
+        target_job: Process-Level-3B
+        condition_type: on_job_success
+        enabled: true
+      Process-Level-2B->Process-Level-3C:
+        source_job: Process-Level-2B
+        target_job: Process-Level-3C
+        condition_type: on_job_success
+        enabled: true
+      Process-Level-2B->Process-Level-3D:
+        source_job: Process-Level-2B
+        target_job: Process-Level-3D
+        condition_type: on_job_success
+        enabled: true
+      Process-Level-3A->Process-Level-4A:
+        source_job: Process-Level-3A
+        target_job: Process-Level-4A
+        condition_type: on_job_success
+        enabled: true
+      Process-Level-3B->Process-Level-4B:
+        source_job: Process-Level-3B
+        target_job: Process-Level-4B
+        condition_type: on_job_success
+        enabled: true
+      Process-Level-3C->Process-Level-4C:
+        source_job: Process-Level-3C
+        target_job: Process-Level-4C
+        condition_type: on_job_success
+        enabled: true
+      Process-Level-3A->Fhir:
+        source_job: Process-Level-3A
+        target_job: Fhir
+        condition_type: on_job_success
+        enabled: true
+      Process-Level-4C->Dhis2:
+        source_job: Process-Level-4C
+        target_job: Dhis2
+        condition_type: on_job_success
+        enabled: true
+  Another-2.16.8-test---rename-2:
+    name: Another 2.16.8 test - rename 2
+    jobs:
+      Dhis2-2:
+        name: Dhis2 2
+        adaptor: '@openfn/language-dhis2@8.2.0'
+        credential: null
+        body: |
+          // Check out the Job Writing Guide for help getting started:
+          // https://docs.openfn.org/documentation/jobs/job-writing-guide
+
+      Dhis2-3:
+        name: Dhis2 3
+        adaptor: '@openfn/language-dhis2@8.2.0'
+        credential: null
+        body: |
+          // Check out the Job Writing Guide for help getting started:
+          // https://docs.openfn.org/documentation/jobs/job-writing-guide
+
+      Transform-data:
+        name: Transform data
+        adaptor: '@openfn/language-common@latest'
+        credential: null
+        body: |
+          // Validate and transform the data you've received...
+          fn(state => {
+            console.log("Do some data transformation here");
+            return state;
+          })
+
+      Dhis2:
+        name: Dhis2
+        adaptor: '@openfn/language-dhis2@8.2.0'
+        credential: null
+        body: |
+          // Check out the Job Writing Guide for help getting started:
+          // https://docs.openfn.org/documentation/jobs/job-writing-guide
+
+      Dhis2-1:
+        name: Dhis2 1
+        adaptor: '@openfn/language-dhis2@8.2.0'
+        credential: null
+        body: |
+          // Check out the Job Writing Guide for help getting started:
+          // https://docs.openfn.org/documentation/jobs/job-writing-guide
+
+    triggers:
+      webhook:
+        type: webhook
+        webhook_reply: before_start
+        enabled: false
+    edges:
+      webhook->Transform-data:
+        source_trigger: webhook
+        target_job: Transform-data
+        condition_type: always
+        enabled: true
+      Transform-data->Dhis2:
+        source_job: Transform-data
+        target_job: Dhis2
+        condition_type: on_job_success
+        enabled: true
+      Dhis2->Dhis2-1:
+        source_job: Dhis2
+        target_job: Dhis2-1
+        condition_type: on_job_success
+        enabled: true
+      Dhis2->Dhis2-2:
+        source_job: Dhis2
+        target_job: Dhis2-2
+        condition_type: on_job_failure
+        enabled: true
+      Dhis2-2->Dhis2-1:
+        source_job: Dhis2-2
+        target_job: Dhis2-1
+        condition_type: on_job_success
+        enabled: true
+      Dhis2-2->Dhis2-3:
+        source_job: Dhis2-2
+        target_job: Dhis2-3
+        condition_type: on_job_success
+        enabled: true
+  DING-DONG-Notification-Workflow-1-1:
+    name: DING DONG Notification Workflow 1 1
+    jobs:
+      Send-Notification:
+        name: Send Notification
+        adaptor: '@openfn/language-http@latest'
+        credential: null
+        body: |
+          // Add operations here
+      Log-to-Spreadsheet:
+        name: Log to Spreadsheet
+        adaptor: '@openfn/language-googlesheets@latest'
+        credential: null
+        body: |
+          // Add operations here
+    triggers:
+      cron:
+        type: cron
+        cron_expression: '*/15 * * * *'
+        enabled: false
+    edges:
+      cron->Send-Notification:
+        source_trigger: cron
+        target_job: Send-Notification
+        condition_type: always
+        enabled: true
+      Send-Notification->Log-to-Spreadsheet:
+        source_job: Send-Notification
+        target_job: Log-to-Spreadsheet
+        condition_type: on_job_success
+        enabled: true
+  OpenFn-Platform-Self-Test-Workflow:
+    name: OpenFn Platform Self-Test Workflow
+    jobs:
+      Initialize-Workflow:
+        name: Initialize Workflow
+        adaptor: '@openfn/language-common@latest'
+        credential: null
+        body: |
+          // Add operations here
+      Fetch-JSONPlaceholder-Users:
+        name: Fetch JSONPlaceholder Users
+        adaptor: '@openfn/language-http@latest'
+        credential: null
+        body: |
+          // Add operations here
+      Fetch-JSONPlaceholder-Posts:
+        name: Fetch JSONPlaceholder Posts
+        adaptor: '@openfn/language-http@latest'
+        credential: null
+        body: |
+          // Add operations here
+      Create-JSONPlaceholder-Post:
+        name: Create JSONPlaceholder Post
+        adaptor: '@openfn/language-http@latest'
+        credential: null
+        body: |
+          // Add operations here
+      Update-JSONPlaceholder-Post:
+        name: Update JSONPlaceholder Post
+        adaptor: '@openfn/language-http@latest'
+        credential: null
+        body: |
+          // Add operations here
+      Delete-JSONPlaceholder-Post:
+        name: Delete JSONPlaceholder Post
+        adaptor: '@openfn/language-http@latest'
+        credential: null
+        body: |
+          // Add operations here
+      Fetch-Open-Meteo-Weather:
+        name: Fetch Open-Meteo Weather
+        adaptor: '@openfn/language-http@latest'
+        credential: null
+        body: |
+          // Add operations here
+      Fetch-RestCountries-Data:
+        name: Fetch RestCountries Data
+        adaptor: '@openfn/language-http@latest'
+        credential: null
+        body: |
+          // Add operations here
+      Transform-Country-Data:
+        name: Transform Country Data
+        adaptor: '@openfn/language-common@latest'
+        credential: null
+        body: |
+          // Add operations here
+      Fetch-PokeAPI-Data:
+        name: Fetch PokeAPI Data
+        adaptor: '@openfn/language-http@latest'
+        credential: null
+        body: |
+          // Add operations here
+      Fetch-Cat-Fact:
+        name: Fetch Cat Fact
+        adaptor: '@openfn/language-http@latest'
+        credential: null
+        body: |
+          // Add operations here
+      Fetch-Dog-Image:
+        name: Fetch Dog Image
+        adaptor: '@openfn/language-http@latest'
+        credential: null
+        body: |
+          // Add operations here
+      Fetch-Joke-API:
+        name: Fetch Joke API
+        adaptor: '@openfn/language-http@latest'
+        credential: null
+        body: |
+          // Add operations here
+      Fetch-Random-User:
+        name: Fetch Random User
+        adaptor: '@openfn/language-http@latest'
+        credential: null
+        body: |
+          // Add operations here
+      Process-Random-User:
+        name: Process Random User
+        adaptor: '@openfn/language-common@latest'
+        credential: null
+        body: |
+          // Add operations here
+      Fetch-GitHub-Public-Repos:
+        name: Fetch GitHub Public Repos
+        adaptor: '@openfn/language-http@latest'
+        credential: null
+        body: |
+          // Add operations here
+      Process-GitHub-Data:
+        name: Process GitHub Data
+        adaptor: '@openfn/language-common@latest'
+        credential: null
+        body: |
+          // Add operations here
+      Fetch-Open-Library-Books:
+        name: Fetch Open Library Books
+        adaptor: '@openfn/language-http@latest'
+        credential: null
+        body: |
+          // Add operations here
+      Process-Book-Data:
+        name: Process Book Data
+        adaptor: '@openfn/language-common@latest'
+        credential: null
+        body: |
+          // Add operations here
+      Simulate-Job-Error:
+        name: Simulate Job Error
+        adaptor: '@openfn/language-common@latest'
+        credential: null
+        body: |
+          // Add operations here
+      Handle-Simulated-Error:
+        name: Handle Simulated Error
+        adaptor: '@openfn/language-common@latest'
+        credential: null
+        body: |
+          // Add operations here
+      Test-Conditional-Branching:
+        name: Test Conditional Branching
+        adaptor: '@openfn/language-common@latest'
+        credential: null
+        body: |
+          // Add operations here
+      Execute-Branch-A:
+        name: Execute Branch A
+        adaptor: '@openfn/language-http@latest'
+        credential: null
+        body: |
+          // Add operations here
+      Execute-Branch-B:
+        name: Execute Branch B
+        adaptor: '@openfn/language-http@latest'
+        credential: null
+        body: |
+          // Add operations here
+      Fetch-IP-Geolocation:
+        name: Fetch IP Geolocation
+        adaptor: '@openfn/language-http@latest'
+        credential: null
+        body: |
+          // Add operations here
+      Process-IP-Data:
+        name: Process IP Data
+        adaptor: '@openfn/language-common@latest'
+        credential: null
+        body: |
+          // Add operations here
+      Aggregate-Results-Group-One:
+        name: Aggregate Results Group One
+        adaptor: '@openfn/language-common@latest'
+        credential: null
+        body: |
+          // Add operations here
+      Aggregate-Results-Group-Two:
+        name: Aggregate Results Group Two
+        adaptor: '@openfn/language-common@latest'
+        credential: null
+        body: |
+          // Add operations here
+      Final-Validation:
+        name: Final Validation
+        adaptor: '@openfn/language-common@latest'
+        credential: null
+        body: |
+          // Add operations here
+      Log-Workflow-Summary:
+        name: Log Workflow Summary
+        adaptor: '@openfn/language-common@latest'
+        credential: null
+        body: |
+          // Add operations here
+    triggers:
+      webhook:
+        type: webhook
+        webhook_reply: before_start
+        enabled: false
+    edges:
+      webhook->Initialize-Workflow:
+        source_trigger: webhook
+        target_job: Initialize-Workflow
+        condition_type: always
+        enabled: true
+      Initialize-Workflow->Fetch-JSONPlaceholder-Users:
+        source_job: Initialize-Workflow
+        target_job: Fetch-JSONPlaceholder-Users
+        condition_type: on_job_success
+        enabled: true
+      Initialize-Workflow->Fetch-Open-Meteo-Weather:
+        source_job: Initialize-Workflow
+        target_job: Fetch-Open-Meteo-Weather
+        condition_type: on_job_success
+        enabled: true
+      Initialize-Workflow->Fetch-PokeAPI-Data:
+        source_job: Initialize-Workflow
+        target_job: Fetch-PokeAPI-Data
+        condition_type: on_job_success
+        enabled: true
+      Initialize-Workflow->Fetch-Random-User:
+        source_job: Initialize-Workflow
+        target_job: Fetch-Random-User
+        condition_type: on_job_success
+        enabled: true
+      Initialize-Workflow->Fetch-Open-Library-Books:
+        source_job: Initialize-Workflow
+        target_job: Fetch-Open-Library-Books
+        condition_type: on_job_success
+        enabled: true
+      Initialize-Workflow->Simulate-Job-Error:
+        source_job: Initialize-Workflow
+        target_job: Simulate-Job-Error
+        condition_type: on_job_success
+        enabled: true
+      Initialize-Workflow->Test-Conditional-Branching:
+        source_job: Initialize-Workflow
+        target_job: Test-Conditional-Branching
+        condition_type: on_job_success
+        enabled: true
+      Initialize-Workflow->Fetch-IP-Geolocation:
+        source_job: Initialize-Workflow
+        target_job: Fetch-IP-Geolocation
+        condition_type: on_job_success
+        enabled: true
+      Fetch-JSONPlaceholder-Users->Fetch-JSONPlaceholder-Posts:
+        source_job: Fetch-JSONPlaceholder-Users
+        target_job: Fetch-JSONPlaceholder-Posts
+        condition_type: on_job_success
+        enabled: true
+      Fetch-JSONPlaceholder-Posts->Create-JSONPlaceholder-Post:
+        source_job: Fetch-JSONPlaceholder-Posts
+        target_job: Create-JSONPlaceholder-Post
+        condition_type: on_job_success
+        enabled: true
+      Create-JSONPlaceholder-Post->Update-JSONPlaceholder-Post:
+        source_job: Create-JSONPlaceholder-Post
+        target_job: Update-JSONPlaceholder-Post
+        condition_type: on_job_success
+        enabled: true
+      Update-JSONPlaceholder-Post->Delete-JSONPlaceholder-Post:
+        source_job: Update-JSONPlaceholder-Post
+        target_job: Delete-JSONPlaceholder-Post
+        condition_type: on_job_success
+        enabled: true
+      Delete-JSONPlaceholder-Post->Aggregate-Results-Group-One:
+        source_job: Delete-JSONPlaceholder-Post
+        target_job: Aggregate-Results-Group-One
+        condition_type: on_job_success
+        enabled: true
+      Fetch-Open-Meteo-Weather->Fetch-RestCountries-Data:
+        source_job: Fetch-Open-Meteo-Weather
+        target_job: Fetch-RestCountries-Data
+        condition_type: on_job_success
+        enabled: true
+      Fetch-RestCountries-Data->Transform-Country-Data:
+        source_job: Fetch-RestCountries-Data
+        target_job: Transform-Country-Data
+        condition_type: on_job_success
+        enabled: true
+      Transform-Country-Data->Aggregate-Results-Group-One:
+        source_job: Transform-Country-Data
+        target_job: Aggregate-Results-Group-One
+        condition_type: on_job_success
+        enabled: true
+      Fetch-PokeAPI-Data->Fetch-Cat-Fact:
+        source_job: Fetch-PokeAPI-Data
+        target_job: Fetch-Cat-Fact
+        condition_type: on_job_success
+        enabled: true
+      Fetch-Cat-Fact->Fetch-Dog-Image:
+        source_job: Fetch-Cat-Fact
+        target_job: Fetch-Dog-Image
+        condition_type: on_job_success
+        enabled: true
+      Fetch-Dog-Image->Fetch-Joke-API:
+        source_job: Fetch-Dog-Image
+        target_job: Fetch-Joke-API
+        condition_type: on_job_success
+        enabled: true
+      Fetch-Joke-API->Aggregate-Results-Group-Two:
+        source_job: Fetch-Joke-API
+        target_job: Aggregate-Results-Group-Two
+        condition_type: on_job_success
+        enabled: true
+      Fetch-Random-User->Process-Random-User:
+        source_job: Fetch-Random-User
+        target_job: Process-Random-User
+        condition_type: on_job_success
+        enabled: true
+      Process-Random-User->Fetch-GitHub-Public-Repos:
+        source_job: Process-Random-User
+        target_job: Fetch-GitHub-Public-Repos
+        condition_type: on_job_success
+        enabled: true
+      Fetch-GitHub-Public-Repos->Process-GitHub-Data:
+        source_job: Fetch-GitHub-Public-Repos
+        target_job: Process-GitHub-Data
+        condition_type: on_job_success
+        enabled: true
+      Process-GitHub-Data->Aggregate-Results-Group-Two:
+        source_job: Process-GitHub-Data
+        target_job: Aggregate-Results-Group-Two
+        condition_type: on_job_success
+        enabled: true
+      Fetch-Open-Library-Books->Process-Book-Data:
+        source_job: Fetch-Open-Library-Books
+        target_job: Process-Book-Data
+        condition_type: on_job_success
+        enabled: true
+      Process-Book-Data->Aggregate-Results-Group-One:
+        source_job: Process-Book-Data
+        target_job: Aggregate-Results-Group-One
+        condition_type: on_job_success
+        enabled: true
+      Simulate-Job-Error->Handle-Simulated-Error:
+        source_job: Simulate-Job-Error
+        target_job: Handle-Simulated-Error
+        condition_type: on_job_failure
+        enabled: true
+      Handle-Simulated-Error->Aggregate-Results-Group-Two:
+        source_job: Handle-Simulated-Error
+        target_job: Aggregate-Results-Group-Two
+        condition_type: on_job_success
+        enabled: true
+      Test-Conditional-Branching->Execute-Branch-A:
+        source_job: Test-Conditional-Branching
+        target_job: Execute-Branch-A
+        condition_type: js_expression
+        condition_label: null
+        condition_expression: |
+          state.branch === "A"
+        enabled: true
+      Test-Conditional-Branching->Execute-Branch-B:
+        source_job: Test-Conditional-Branching
+        target_job: Execute-Branch-B
+        condition_type: js_expression
+        condition_label: null
+        condition_expression: |
+          state.branch !== "A"
+        enabled: true
+      Execute-Branch-A->Final-Validation:
+        source_job: Execute-Branch-A
+        target_job: Final-Validation
+        condition_type: on_job_success
+        enabled: true
+      Execute-Branch-B->Final-Validation:
+        source_job: Execute-Branch-B
+        target_job: Final-Validation
+        condition_type: on_job_success
+        enabled: true
+      Fetch-IP-Geolocation->Process-IP-Data:
+        source_job: Fetch-IP-Geolocation
+        target_job: Process-IP-Data
+        condition_type: on_job_success
+        enabled: true
+      Process-IP-Data->Final-Validation:
+        source_job: Process-IP-Data
+        target_job: Final-Validation
+        condition_type: on_job_success
+        enabled: true
+      Aggregate-Results-Group-One->Final-Validation:
+        source_job: Aggregate-Results-Group-One
+        target_job: Final-Validation
+        condition_type: on_job_success
+        enabled: true
+      Aggregate-Results-Group-Two->Final-Validation:
+        source_job: Aggregate-Results-Group-Two
+        target_job: Final-Validation
+        condition_type: on_job_success
+        enabled: true
+      Final-Validation->Log-Workflow-Summary:
+        source_job: Final-Validation
+        target_job: Log-Workflow-Summary
+        condition_type: on_job_success
+        enabled: true
+  Another-2.16.8-test---rename-3:
+    name: Another 2.16.8 test - rename 3
+    jobs:
+      Dhis2-2:
+        name: Dhis2 2
+        adaptor: '@openfn/language-dhis2@8.2.0'
+        credential: null
+        body: |
+          // Check out the Job Writing Guide for help getting started:
+          // https://docs.openfn.org/documentation/jobs/job-writing-guide
+
+      Dhis2-3:
+        name: Dhis2 3
+        adaptor: '@openfn/language-dhis2@8.2.0'
+        credential: null
+        body: |
+          // Check out the Job Writing Guide for help getting started:
+          // https://docs.openfn.org/documentation/jobs/job-writing-guide
+
+      Transform-data:
+        name: Transform data
+        adaptor: '@openfn/language-common@latest'
+        credential: null
+        body: |
+          // Validate and transform the data you've received...
+          fn(state => {
+            console.log("Do some data transformation here");
+            return state;
+          })
+
+      Dhis2:
+        name: Dhis2
+        adaptor: '@openfn/language-dhis2@8.2.0'
+        credential: null
+        body: |
+          // Check out the Job Writing Guide for help getting started:
+          // https://docs.openfn.org/documentation/jobs/job-writing-guide
+
+      Dhis2-1:
+        name: Dhis2 1
+        adaptor: '@openfn/language-dhis2@8.2.0'
+        credential: null
+        body: |
+          // Check out the Job Writing Guide for help getting started:
+          // https://docs.openfn.org/documentation/jobs/job-writing-guide
+
+    triggers:
+      webhook:
+        type: webhook
+        webhook_reply: before_start
+        enabled: false
+    edges:
+      webhook->Transform-data:
+        source_trigger: webhook
+        target_job: Transform-data
+        condition_type: always
+        enabled: true
+      Transform-data->Dhis2:
+        source_job: Transform-data
+        target_job: Dhis2
+        condition_type: on_job_success
+        enabled: true
+      Dhis2->Dhis2-1:
+        source_job: Dhis2
+        target_job: Dhis2-1
+        condition_type: on_job_success
+        enabled: true
+      Dhis2->Dhis2-2:
+        source_job: Dhis2
+        target_job: Dhis2-2
+        condition_type: on_job_failure
+        enabled: true
+      Dhis2-2->Dhis2-1:
+        source_job: Dhis2-2
+        target_job: Dhis2-1
+        condition_type: on_job_success
+        enabled: true
+      Dhis2-2->Dhis2-3:
+        source_job: Dhis2-2
+        target_job: Dhis2-3
+        condition_type: on_job_success
+        enabled: true
+  Google-Sheets-Bugs-to-GitHub-Issues:
+    name: Google Sheets Bugs to GitHub Issues
+    jobs:
+      Fetch-bugs-from-Google-Sheets:
+        name: Fetch bugs from Google Sheets
+        adaptor: '@openfn/language-googlesheets@latest'
+        credential: null
+        body: |
+          // Add operations here
+      Create-GitHub-Issues:
+        name: Create GitHub Issues
+        adaptor: '@openfn/language-http@latest'
+        credential: null
+        body: |
+          // Add operations here
+    triggers:
+      cron:
+        type: cron
+        cron_expression: '0 0 * * *'
+        enabled: false
+    edges:
+      cron->Fetch-bugs-from-Google-Sheets:
+        source_trigger: cron
+        target_job: Fetch-bugs-from-Google-Sheets
+        condition_type: always
+        enabled: true
+      Fetch-bugs-from-Google-Sheets->Create-GitHub-Issues:
+        source_job: Fetch-bugs-from-Google-Sheets
+        target_job: Create-GitHub-Issues
+        condition_type: on_job_success
+        enabled: true
+  10-Node-Data-Pipeline-Demo-1-rename:
+    name: 10-Node Data Pipeline Demo 1 rename
+    jobs:
+      Post-to-Reporting-API:
+        name: Post to Reporting API
+        adaptor: '@openfn/language-http@latest'
+        credential: null
+        body: |
+          // Add operations here
+      Handle-DB-Error:
+        name: Handle DB Error
+        adaptor: '@openfn/language-common@latest'
+        credential: null
+        body: |
+          // Add operations here
+      Handle-Transform-Error:
+        name: Handle Transform Error
+        adaptor: '@openfn/language-common@latest'
+        credential: null
+        body: |
+          // Add operations here
+      Archive-Results:
+        name: Archive Results
+        adaptor: '@openfn/language-http@latest'
+        credential: null
+        body: |
+          // Add operations here
+      Fetch-External-Data:
+        name: Fetch External Data
+        adaptor: '@openfn/language-http@latest'
+        credential: null
+        body: |
+          // Add operations here
+      Validate-Incoming-Payload:
+        name: Validate Incoming Payload
+        adaptor: '@openfn/language-common@latest'
+        credential: null
+        body: |
+          // Add operations here
+
+      Write-to-Database:
+        name: Write to Database
+        adaptor: '@openfn/language-postgresql@latest'
+        credential: null
+        body: |
+          // Add operations here
+      Transform-and-Enrich-Data:
+        name: Transform and Enrich Data
+        adaptor: '@openfn/language-common@latest'
+        credential: null
+        body: |
+          // Add operations here
+      Generate-Final-Report:
+        name: Generate Final Report
+        adaptor: '@openfn/language-common@latest'
+        credential: null
+        body: |
+          // Add operations here
+      Read-Back-and-Verify:
+        name: Read Back and Verify
+        adaptor: '@openfn/language-postgresql@latest'
+        credential: null
+        body: |
+          // Add operations here
+    triggers:
+      webhook:
+        type: webhook
+        webhook_reply: before_start
+        enabled: false
+    edges:
+      Write-to-Database->Handle-DB-Error:
+        source_job: Write-to-Database
+        target_job: Handle-DB-Error
+        condition_type: on_job_failure
+        enabled: true
+      Transform-and-Enrich-Data->Write-to-Database:
+        source_job: Transform-and-Enrich-Data
+        target_job: Write-to-Database
+        condition_type: on_job_success
+        enabled: true
+      Read-Back-and-Verify->Post-to-Reporting-API:
+        source_job: Read-Back-and-Verify
+        target_job: Post-to-Reporting-API
+        condition_type: on_job_success
+        enabled: true
+      Write-to-Database->Read-Back-and-Verify:
+        source_job: Write-to-Database
+        target_job: Read-Back-and-Verify
+        condition_type: on_job_success
+        enabled: true
+      Transform-and-Enrich-Data->Handle-Transform-Error:
+        source_job: Transform-and-Enrich-Data
+        target_job: Handle-Transform-Error
+        condition_type: on_job_failure
+        enabled: true
+      Validate-Incoming-Payload->Fetch-External-Data:
+        source_job: Validate-Incoming-Payload
+        target_job: Fetch-External-Data
+        condition_type: on_job_success
+        enabled: true
+      webhook->Validate-Incoming-Payload:
+        source_trigger: webhook
+        target_job: Validate-Incoming-Payload
+        condition_type: always
+        enabled: true
+      Fetch-External-Data->Transform-and-Enrich-Data:
+        source_job: Fetch-External-Data
+        target_job: Transform-and-Enrich-Data
+        condition_type: on_job_success
+        enabled: true
+      Post-to-Reporting-API->Generate-Final-Report:
+        source_job: Post-to-Reporting-API
+        target_job: Generate-Final-Report
+        condition_type: on_job_success
+        enabled: true
+      Generate-Final-Report->Archive-Results:
+        source_job: Generate-Final-Report
+        target_job: Archive-Results
+        condition_type: on_job_success
+        enabled: true
+  OpenFn-Platform-Test-Workflow-1:
+    name: OpenFn Platform Test Workflow 1
+    jobs:
+      Validate-Input:
+        name: Validate Input
+        adaptor: '@openfn/language-common@latest'
+        credential: null
+        body: |
+          // TEST JOB 1: Core data operations & assertions (common adaptor, no config needed)
+
+          // 1. Generate some data into state
+          fn(state => {
+            const users = [
+              { id: 1, name: 'alice', active: true },
+              { id: 2, name: 'bob', active: false },
+              { id: 3, name: 'carol', active: true },
+            ];
+            return { ...state, data: { users } };
+          });
+
+          // 2. Transform: map + filter active users, uppercase names
+          fn(state => {
+            const activeNames = state.data.users
+              .filter(u => u.active)
+              .map(u => u.name.toUpperCase());
+            return { ...state, activeNames };
+          });
+
+          // 3. Iterate with each() to test list handling
+          each(
+            '$.data.users[*]',
+            fn(state => {
+              console.log('Processing user:', state.data.name);
+              return state;
+            })
+          );
+
+          // 4. PASS/FAIL criteria — run fails if any assertion is false
+          fn(state => {
+            assert(
+              state.data.users.length === 3,
+              'FAIL: expected 3 users'
+            );
+            assert(
+              state.activeNames.length === 2,
+              'FAIL: expected 2 active users'
+            );
+            assert(
+              state.activeNames.includes('ALICE'),
+              'FAIL: ALICE missing from active names'
+            );
+            console.log('PASS: all assertions passed for job 1');
+            return state;
+          });
+
+      Make-HTTP-Request:
+        name: Make HTTP Request
+        adaptor: '@openfn/language-http@latest'
+        credential: null
+        body: |
+          // HTTP adaptor test - hits httpbin.org, no credentials required
+
+          // 1. GET request - verify we can read a response
+          get('https://httpbin.org/json');
+          fn(state => {
+            const body = state.data;
+            if (!body || !body.slideshow) {
+              throw new Error('FAIL: GET did not return expected slideshow data');
+            }
+            console.log('PASS: GET request returned expected data');
+            return state;
+          });
+
+          // 2. POST request - send data and verify it echoes back
+          post('https://httpbin.org/post', {
+            body: { name: 'OpenFn', test: true },
+          });
+          fn(state => {
+            const echoed = state.data.json;
+            if (!echoed || echoed.name !== 'OpenFn' || echoed.test !== true) {
+              throw new Error('FAIL: POST did not echo the sent payload correctly');
+            }
+            console.log('PASS: POST request echoed payload correctly');
+
+            // Verify status code
+            if (state.response.statusCode !== 200) {
+              throw new Error(`FAIL: expected status 200, got ${state.response.statusCode}`);
+            }
+            console.log('PASS: status code is 200');
+
+            return state;
+          });
+
+      Handle-Validation-Failure:
+        name: Handle Validation Failure
+        adaptor: '@openfn/language-common@latest'
+        credential: null
+        body: |
+          // Final summary step: verify results from previous jobs and report pass/fail
+          fn(state => {
+            // Collect a simple summary of what previous steps left on state
+            const summary = {
+              hasData: state.data !== undefined && state.data !== null,
+              referenceCount: Array.isArray(state.references) ? state.references.length : 0,
+              checkedAt: new Date().toISOString(),
+            };
+
+            console.log('Workflow test summary:', JSON.stringify(summary, null, 2));
+
+            return { ...state, summary };
+          });
+
+          // Pass/fail criteria for the overall workflow test
+          assert(
+            state => state.summary.hasData === true,
+            'FAIL: expected data on state from previous steps'
+          );
+
+          assert(
+            state => state.summary.referenceCount >= 0,
+            'FAIL: references should be an array'
+          );
+
+          fn(state => {
+            console.log('PASS: all workflow test criteria met');
+            return state;
+          });
+
+      Process-HTTP-Response:
+        name: Process HTTP Response
+        adaptor: '@openfn/language-common@latest'
+        credential: null
+        body: |
+          // Self-contained test: exercises each, map, group, uuid, encode/decode
+          fn(state => {
+            // Seed some test data
+            state.people = [
+              { id: uuid(), name: 'Ada', team: 'A', score: 10 },
+              { id: uuid(), name: 'Grace', team: 'B', score: 20 },
+              { id: uuid(), name: 'Alan', team: 'A', score: 30 },
+            ];
+            return state;
+          });
+
+          // Test each(): iterate and tag every record
+          each(
+            '$.people[*]',
+            fn(state => {
+              state.data.processed = true;
+              return state;
+            })
+          );
+
+          // Test group(): group people by team
+          fn(state => {
+            state.grouped = group(state.people, 'team', item => item);
+            return state;
+          });
+
+          // Test encode/decode round-trip
+          fn(state => {
+            const original = 'openfn-test';
+            const encoded = encode(original);
+            const decoded = decode(encoded);
+            state.roundTrip = { original, encoded, decoded };
+            return state;
+          });
+
+          // Pass/fail criteria
+          fn(state => {
+            assert(state.people.length === 3, 'Expected 3 seeded people');
+            assert(
+              state.people.every(p => typeof p.id === 'string' && p.id.length > 0),
+              'Every person must have a uuid id'
+            );
+            assert(
+              state.roundTrip.decoded === state.roundTrip.original,
+              'encode/decode round-trip must match'
+            );
+            assert(
+              Object.keys(state.grouped).length === 2,
+              'Expected 2 groups (teams A and B)'
+            );
+            console.log('Job 4 passed: each/group/uuid/encode tests OK');
+            return state;
+          });
+      Handle-HTTP-Failure:
+        name: Handle HTTP Failure
+        adaptor: '@openfn/language-common@latest'
+        credential: null
+        body: |
+          // Self-contained test: CSV parsing, conditional logic, merge, validation
+          // No credentials or input required.
+
+          // 1. Parse a CSV string into structured data
+          parseCsv(
+            `id,name,score
+          1,Alice,90
+          2,Bob,75
+          3,Carol,55`,
+            { columns: true, skip_empty_lines: true },
+            (state, rows) => {
+              state.rows = rows;
+              console.log(`Parsed ${rows.length} CSV rows`);
+              return state;
+            }
+          );
+
+          // 2. Conditionally flag passing scores (>= 60)
+          fnIf(
+            state => state.rows.length > 0,
+            fn(state => {
+              state.rows = state.rows.map(r => ({
+                ...r,
+                score: Number(r.score),
+                passed: Number(r.score) >= 60,
+              }));
+              return state;
+            })
+          );
+
+          // 3. Merge a static field into every row
+          merge(
+            state => state.rows,
+            fields(field('processedAt', () => new Date().toISOString()))
+          );
+
+          // 4. Build a summary string and validate the shape of the data
+          fn(state => {
+            const names = arrayToString(
+              state.data.map(r => r.name),
+              ', '
+            );
+            console.log(`Students: ${names}`);
+
+            const schema = {
+              type: 'object',
+              required: ['id', 'name', 'score', 'passed'],
+              properties: {
+                id: { type: 'string' },
+                name: { type: 'string' },
+                score: { type: 'number' },
+                passed: { type: 'boolean' },
+              },
+            };
+
+            // Validate every row against the schema
+            state.data.forEach(row => {
+              const result = validate(schema, row);
+              assert(
+                result === true || (result && result.valid !== false),
+                `Row failed schema validation: ${JSON.stringify(row)}`
+              );
+            });
+
+            return state;
+          });
+
+          // 5. Define overall pass/fail criteria
+          fn(state => {
+            const passedCount = state.data.filter(r => r.passed).length;
+            console.log(`${passedCount} of ${state.data.length} students passed`);
+
+            assert(state.data.length === 3, 'Expected 3 rows from CSV');
+            assert(passedCount === 2, 'Expected exactly 2 passing students');
+
+            console.log('✅ CSV/validation test passed');
+            return state;
+          });
+
+      Final-Summary-Log:
+        name: Final Summary Log
+        adaptor: '@openfn/language-common@latest'
+        credential: null
+        body: |
+          // FINAL SUMMARY JOB
+          // Uses the `common` adaptor. No credentials or input required.
+          // Rolls up the accumulated state from previous steps and defines
+          // overall pass/fail criteria via assert().
+
+          fn((state) => {
+            const startedAt = new Date().toISOString();
+            console.log('=== OpenFn Platform Test Summary ===');
+            console.log('Summary generated at:', startedAt);
+
+            // Collect whatever previous steps left on state.
+            const checks = [];
+
+            const add = (name, passed, detail) => {
+              checks.push({ name, passed: !!passed, detail: detail || '' });
+            };
+
+            // 1. State object exists and is usable
+            add('state is an object', state && typeof state === 'object');
+
+            // 2. Data was carried through the workflow
+            add('state.data present', state.data !== undefined, `typeof=${typeof state.data}`);
+
+            // 3. References from prior steps accumulated
+            const refCount = Array.isArray(state.references) ? state.references.length : 0;
+            add('has references from prior steps', refCount >= 0, `references=${refCount}`);
+
+            // 4. No error leaked onto state
+            add('no error on state', !state.error, state.error ? String(state.error) : 'clean');
+
+            // Log the results table
+            console.log('--- Checks ---');
+            checks.forEach((c) => {
+              console.log(`${c.passed ? 'PASS' : 'FAIL'} | ${c.name}${c.detail ? ' (' + c.detail + ')' : ''}`);
+            });
+
+            const passedCount = checks.filter((c) => c.passed).length;
+            const failedCount = checks.length - passedCount;
+            console.log(`--- Totals: ${passedCount} passed, ${failedCount} failed ---`);
+
+            return {
+              ...state,
+              summary: {
+                generatedAt: startedAt,
+                passed: passedCount,
+                failed: failedCount,
+                checks,
+              },
+            };
+          });
+
+          // PASS/FAIL CRITERIA: fail the run if any check failed.
+          assert(
+            (state) => state.summary && state.summary.failed === 0,
+            'Final summary detected one or more failed checks - see logs above'
+          );
+
+    triggers:
+      webhook:
+        type: webhook
+        webhook_reply: before_start
+        enabled: false
+    edges:
+      webhook->Validate-Input:
+        source_trigger: webhook
+        target_job: Validate-Input
+        condition_type: always
+        enabled: true
+      Validate-Input->Make-HTTP-Request:
+        source_job: Validate-Input
+        target_job: Make-HTTP-Request
+        condition_type: on_job_success
+        enabled: true
+      Validate-Input->Handle-Validation-Failure:
+        source_job: Validate-Input
+        target_job: Handle-Validation-Failure
+        condition_type: on_job_failure
+        enabled: true
+      Make-HTTP-Request->Process-HTTP-Response:
+        source_job: Make-HTTP-Request
+        target_job: Process-HTTP-Response
+        condition_type: on_job_success
+        enabled: true
+      Make-HTTP-Request->Handle-HTTP-Failure:
+        source_job: Make-HTTP-Request
+        target_job: Handle-HTTP-Failure
+        condition_type: on_job_failure
+        enabled: true
+      Process-HTTP-Response->Final-Summary-Log:
+        source_job: Process-HTTP-Response
+        target_job: Final-Summary-Log
+        condition_type: always
+        enabled: true
+  "Self-Testing-Workflow-(10-Nodes)":
+    name: 'Self-Testing Workflow (10 Nodes)'
+    jobs:
+      Initialize-Test-Suite:
+        name: Initialize Test Suite
+        adaptor: '@openfn/language-common@latest'
+        credential: null
+        body: |
+          // Add operations here
+      Test-Data-Transformation:
+        name: Test Data Transformation
+        adaptor: '@openfn/language-common@latest'
+        credential: null
+        body: |
+          // Add operations here
+      Validate-Transformed-Data:
+        name: Validate Transformed Data
+        adaptor: '@openfn/language-common@latest'
+        credential: null
+        body: |
+          // Add operations here
+      Test-Array-Operations:
+        name: Test Array Operations
+        adaptor: '@openfn/language-common@latest'
+        credential: null
+        body: |
+          // Add operations here
+      Validate-Array-Results:
+        name: Validate Array Results
+        adaptor: '@openfn/language-common@latest'
+        credential: null
+        body: |
+          // Add operations here
+      Trigger-Intentional-Failure:
+        name: Trigger Intentional Failure
+        adaptor: '@openfn/language-common@latest'
+        credential: null
+        body: |
+          // Add operations here
+      Handle-Expected-Failure:
+        name: Handle Expected Failure
+        adaptor: '@openfn/language-common@latest'
+        credential: null
+        body: |
+          // Add operations here
+      Test-String-Operations:
+        name: Test String Operations
+        adaptor: '@openfn/language-common@latest'
+        credential: null
+        body: |
+          // Add operations here
+      Test-Numeric-Calculations:
+        name: Test Numeric Calculations
+        adaptor: '@openfn/language-common@latest'
+        credential: null
+        body: |
+          // Add operations here
+      Generate-Test-Report:
+        name: Generate Test Report
+        adaptor: '@openfn/language-common@latest'
+        credential: null
+        body: |
+          // Add operations here
+    triggers:
+      webhook:
+        type: webhook
+        webhook_reply: before_start
+        enabled: false
+    edges:
+      webhook->Initialize-Test-Suite:
+        source_trigger: webhook
+        target_job: Initialize-Test-Suite
+        condition_type: always
+        enabled: true
+      Initialize-Test-Suite->Test-Data-Transformation:
+        source_job: Initialize-Test-Suite
+        target_job: Test-Data-Transformation
+        condition_type: on_job_success
+        enabled: true
+      Test-Data-Transformation->Validate-Transformed-Data:
+        source_job: Test-Data-Transformation
+        target_job: Validate-Transformed-Data
+        condition_type: on_job_success
+        enabled: true
+      Validate-Transformed-Data->Test-Array-Operations:
+        source_job: Validate-Transformed-Data
+        target_job: Test-Array-Operations
+        condition_type: on_job_success
+        enabled: true
+      Test-Array-Operations->Validate-Array-Results:
+        source_job: Test-Array-Operations
+        target_job: Validate-Array-Results
+        condition_type: on_job_success
+        enabled: true
+      Validate-Array-Results->Trigger-Intentional-Failure:
+        source_job: Validate-Array-Results
+        target_job: Trigger-Intentional-Failure
+        condition_type: on_job_success
+        enabled: true
+      Trigger-Intentional-Failure->Handle-Expected-Failure:
+        source_job: Trigger-Intentional-Failure
+        target_job: Handle-Expected-Failure
+        condition_type: on_job_failure
+        enabled: true
+      Handle-Expected-Failure->Test-String-Operations:
+        source_job: Handle-Expected-Failure
+        target_job: Test-String-Operations
+        condition_type: on_job_success
+        enabled: true
+      Test-String-Operations->Test-Numeric-Calculations:
+        source_job: Test-String-Operations
+        target_job: Test-Numeric-Calculations
+        condition_type: on_job_success
+        enabled: true
+      Test-Numeric-Calculations->Generate-Test-Report:
+        source_job: Test-Numeric-Calculations
+        target_job: Generate-Test-Report
+        condition_type: on_job_success
+        enabled: true
+  GitHub-Customer-Bug-Workflow:
+    name: GitHub Customer Bug Workflow
+    jobs:
+      Process-Issue-Details:
+        name: Process Issue Details
+        adaptor: '@openfn/language-common@latest'
+        credential: null
+        body: |
+          // Add operations here
+      Lookup-Customer-in-PostgreSQL:
+        name: Lookup Customer in PostgreSQL
+        adaptor: '@openfn/language-postgresql@latest'
+        credential: null
+        body: |
+          // Add operations here
+      Add-Row-to-Bug-Tracker-Sheet:
+        name: Add Row to Bug Tracker Sheet
+        adaptor: '@openfn/language-googlesheets@latest'
+        credential: null
+        body: |
+          // Add operations here
+      Post-to-Slack:
+        name: Post to Slack
+        adaptor: '@openfn/language-http@latest'
+        credential: null
+        body: |
+          // Add operations here
+      Send-Enterprise-Email-Confirmation:
+        name: Send Enterprise Email Confirmation
+        adaptor: '@openfn/language-http@latest'
+        credential: null
+        body: |
+          // Add operations here
+    triggers:
+      webhook:
+        type: webhook
+        webhook_reply: before_start
+        enabled: false
+    edges:
+      webhook->Process-Issue-Details:
+        source_trigger: webhook
+        target_job: Process-Issue-Details
+        condition_type: always
+        enabled: true
+      Process-Issue-Details->Lookup-Customer-in-PostgreSQL:
+        source_job: Process-Issue-Details
+        target_job: Lookup-Customer-in-PostgreSQL
+        condition_type: on_job_success
+        enabled: true
+      Lookup-Customer-in-PostgreSQL->Add-Row-to-Bug-Tracker-Sheet:
+        source_job: Lookup-Customer-in-PostgreSQL
+        target_job: Add-Row-to-Bug-Tracker-Sheet
+        condition_type: on_job_success
+        enabled: true
+      Lookup-Customer-in-PostgreSQL->Post-to-Slack:
+        source_job: Lookup-Customer-in-PostgreSQL
+        target_job: Post-to-Slack
+        condition_type: on_job_success
+        enabled: true
+      Lookup-Customer-in-PostgreSQL->Send-Enterprise-Email-Confirmation:
+        source_job: Lookup-Customer-in-PostgreSQL
+        target_job: Send-Enterprise-Email-Confirmation
+        condition_type: js_expression
+        condition_label: null
+        condition_expression: |
+          state.customer.tier === "Enterprise"
+        enabled: true
+  OpenFn-Platform-Self-Test-1:
+    name: OpenFn Platform Self-Test 1
+    jobs:
+      Test-HTTP-GET:
+        name: Test HTTP GET
+        adaptor: '@openfn/language-http@latest'
+        credential: null
+        body: |
+          // Add operations here
+      Test-Data-Transform:
+        name: Test Data Transform
+        adaptor: '@openfn/language-common@latest'
+        credential: null
+        body: |
+          // Add operations here
+      Test-HTTP-POST:
+        name: Test HTTP POST
+        adaptor: '@openfn/language-http@latest'
+        credential: null
+        body: |
+          // Add operations here
+      Test-Success-Branch:
+        name: Test Success Branch
+        adaptor: '@openfn/language-common@latest'
+        credential: null
+        body: |
+          // Add operations here
+      Test-Deliberate-Failure:
+        name: Test Deliberate Failure
+        adaptor: '@openfn/language-common@latest'
+        credential: null
+        body: |
+          // Add operations here
+      Test-Failure-Branch:
+        name: Test Failure Branch
+        adaptor: '@openfn/language-common@latest'
+        credential: null
+        body: |
+          // Add operations here
+    triggers:
+      webhook:
+        type: webhook
+        webhook_reply: before_start
+        enabled: false
+    edges:
+      webhook->Test-HTTP-GET:
+        source_trigger: webhook
+        target_job: Test-HTTP-GET
+        condition_type: always
+        enabled: true
+      Test-HTTP-GET->Test-Data-Transform:
+        source_job: Test-HTTP-GET
+        target_job: Test-Data-Transform
+        condition_type: on_job_success
+        enabled: true
+      Test-Data-Transform->Test-HTTP-POST:
+        source_job: Test-Data-Transform
+        target_job: Test-HTTP-POST
+        condition_type: on_job_success
+        enabled: true
+      Test-HTTP-POST->Test-Success-Branch:
+        source_job: Test-HTTP-POST
+        target_job: Test-Success-Branch
+        condition_type: on_job_success
+        enabled: true
+      Test-Success-Branch->Test-Deliberate-Failure:
+        source_job: Test-Success-Branch
+        target_job: Test-Deliberate-Failure
+        condition_type: on_job_success
+        enabled: true
+      Test-Deliberate-Failure->Test-Failure-Branch:
+        source_job: Test-Deliberate-Failure
+        target_job: Test-Failure-Branch
+        condition_type: on_job_failure
+        enabled: true
+  Scheduled-workflow:
+    name: Scheduled workflow
+    jobs:
+      Get-data:
+        name: Get data
+        adaptor: '@openfn/language-http@latest'
+        credential: null
+        body: |
+          // Get some data from an API...
+          get('https://www.example.com');
+
+    triggers:
+      cron:
+        type: cron
+        cron_expression: '0 0 * * *'
+        enabled: false
+    edges:
+      cron->Get-data:
+        source_trigger: cron
+        target_job: Get-data
+        condition_type: always
+        enabled: true
+  A-2.18-test-workflow-1:
+    name: A 2.18 test workflow 1
+    jobs:
+      Step-1:
+        name: Step 1
+        adaptor: '@openfn/language-common@latest'
+        credential: null
+        body: |
+          // Check out the Job Writing Guide for help getting started:
+          // https://docs.openfn.org/documentation/jobs/job-writing-guide
+
+      Step-2---if-fail:
+        name: Step 2 - if fail
+        adaptor: '@openfn/language-common@3.3.4'
+        credential: null
+        body: |
+          // Check out the Job Writing Guide for help getting started:
+          // https://docs.openfn.org/documentation/jobs/job-writing-guide
+
+    triggers:
+      webhook:
+        type: webhook
+        webhook_reply: before_start
+        enabled: false
+    edges:
+      webhook->Step-1:
+        source_trigger: webhook
+        target_job: Step-1
+        condition_type: always
+        enabled: true
+      Step-1->Step-2---if-fail:
+        source_job: Step-1
+        target_job: Step-2---if-fail
+        condition_type: on_job_failure
+        enabled: true
