@@ -652,6 +652,867 @@ workflows:
         target_job: Archive-Results
         condition_type: on_job_success
         enabled: true
+  Self-Testing-QA-Health-Check:
+    name: Self-Testing QA Health Check
+    jobs:
+      httpbin-get:
+        name: httpbin-get
+        adaptor: '@openfn/language-http@latest'
+        credential: null
+        body: |
+          // QA health-check node: httpbin-get
+          // - Sends a GET request to https://httpbin.org/get?qa=openfn
+          // - Verifies the response echoes back the request (args + url present)
+          // - Appends a result object to the shared state.qaResults array
+          // - Never throws on failure: records passed:false so later checks still run
+
+          get('https://httpbin.org/get?qa=openfn');
+
+          fn(state => {
+            const name = 'httpbin-get';
+            const endpoint = 'https://httpbin.org/get?qa=openfn';
+
+            // Ensure the shared results array exists without overwriting entries
+            const qaResults = state.qaResults || [];
+
+            let passed = false;
+            let detail = '';
+
+            try {
+              const body = state.data || {};
+              const echoedQa = body.args && body.args.qa === 'openfn';
+              const echoedUrl = typeof body.url === 'string' && body.url.includes('httpbin.org/get');
+              passed = Boolean(echoedQa && echoedUrl);
+              detail = passed
+                ? 'Response echoed args.qa=openfn and url as expected.'
+                : `Echo check failed. args=${JSON.stringify(body.args)}, url=${body.url}`;
+            } catch (e) {
+              passed = false;
+              detail = `Assertion error: ${e.message}`;
+            }
+
+            return {
+              ...state,
+              qaResults: [...qaResults, { name, endpoint, passed, detail }],
+            };
+          });
+
+      httpbin-post:
+        name: httpbin-post
+        adaptor: '@openfn/language-http@latest'
+        credential: null
+        body: |
+          // Node: httpbin-post
+          // Sends a POST to https://httpbin.org/post with a small JSON body.
+          // Verifies the response's `json` field echoes back the body we sent.
+          // Appends a QA result to the shared state.qaResults array (never overwrites).
+          // Records passed:false on failure instead of throwing.
+
+          const endpoint = 'https://httpbin.org/post';
+          const body = { qa: 'openfn', ts: Date.now() };
+
+          post(endpoint, { body })(state => state); // keep body available below
+
+          post(endpoint, state => ({
+            body: { qa: 'openfn', ts: Date.now() },
+          }));
+
+          fn(state => {
+            // ensure the shared array exists without overwriting existing entries
+            const qaResults = state.qaResults || [];
+
+            const sent = { qa: 'openfn' };
+            const echoed = state.data && state.data.json;
+
+            const passed = !!echoed && echoed.qa === 'openfn' && typeof echoed.ts !== 'undefined';
+
+            const result = {
+              name: 'httpbin-post',
+              endpoint: 'https://httpbin.org/post',
+              passed,
+              detail: passed
+                ? 'Response json echoed the posted body.'
+                : `Echo mismatch: ${JSON.stringify(echoed)}`,
+            };
+
+            return { ...state, qaResults: [...qaResults, result] };
+          });
+
+      httpbin-status:
+        name: httpbin-status
+        adaptor: '@openfn/language-http@latest'
+        credential: null
+        body: |
+          // httpbin-status: QA health-check node
+          // Sends a GET request to https://httpbin.org/status/200
+          // Verifies the returned status code is 200
+          // Appends a result object to the shared state.qaResults array (never overwrites existing entries)
+
+          get('https://httpbin.org/status/200', {
+            // don't throw on non-2xx responses so we can record the failure instead
+            parseAs: 'text',
+          });
+
+          fn(state => {
+            const endpoint = 'https://httpbin.org/status/200';
+            const status = state.response?.status;
+            const passed = status === 200;
+
+            const result = {
+              name: 'httpbin-status',
+              endpoint,
+              passed,
+              detail: passed
+                ? 'Returned expected status 200'
+                : `Expected status 200 but got ${status}`,
+            };
+
+            const qaResults = state.qaResults || [];
+
+            return { ...state, qaResults: [...qaResults, result] };
+          });
+
+      httpbin-headers:
+        name: httpbin-headers
+        adaptor: '@openfn/language-http@latest'
+        credential: null
+        body: |
+          // httpbin-headers QA health check
+          // Sends a GET request to https://httpbin.org/headers
+          // Verifies the response contains a headers object that includes a Host header
+          // Appends a result to the shared state.qaResults array (never overwrites existing entries)
+          // Does not throw on failure - records passed:false with detail instead
+
+          get('https://httpbin.org/headers');
+
+          fn(state => {
+            const endpoint = 'https://httpbin.org/headers';
+            const qaResults = state.qaResults || [];
+
+            let passed = false;
+            let detail = '';
+
+            try {
+              const headers = state.data && state.data.headers;
+              if (headers && typeof headers === 'object' && headers.Host) {
+                passed = true;
+                detail = `Host header present: ${headers.Host}`;
+              } else if (headers && typeof headers === 'object') {
+                detail = 'headers object found but no Host header';
+              } else {
+                detail = 'no headers object in response';
+              }
+            } catch (e) {
+              detail = `assertion error: ${e.message}`;
+            }
+
+            const result = {
+              name: 'httpbin-headers',
+              endpoint,
+              passed,
+              detail,
+            };
+
+            return { ...state, qaResults: [...qaResults, result] };
+          });
+      jsonplaceholder-list:
+        name: jsonplaceholder-list
+        adaptor: '@openfn/language-http@latest'
+        credential: null
+        body: |
+          // jsonplaceholder-list
+          // QA health-check node: GETs https://jsonplaceholder.typicode.com/posts
+          // Verifies the response is a non-empty array whose first item has an id and title.
+          // Appends a { name, endpoint, passed, detail } record to the shared state.qaResults array.
+          // Never throws on failure and never overwrites existing qaResults entries.
+
+          get('https://jsonplaceholder.typicode.com/posts');
+
+          fn(state => {
+            const endpoint = 'https://jsonplaceholder.typicode.com/posts';
+            const qaResults = Array.isArray(state.qaResults) ? state.qaResults : [];
+
+            const posts = state.data;
+            const isArray = Array.isArray(posts);
+            const count = isArray ? posts.length : 0;
+            const first = isArray ? posts[0] : undefined;
+
+            const passed = Boolean(
+              isArray &&
+              count > 0 &&
+              first &&
+              first.id !== undefined &&
+              first.title !== undefined
+            );
+
+            const detail = passed
+              ? `Received ${count} posts`
+              : `Verification failed (isArray: ${isArray}, count: ${count})`;
+
+            return {
+              ...state,
+              qaResults: [
+                ...qaResults,
+                { name: 'jsonplaceholder-list', endpoint, passed, detail },
+              ],
+            };
+          });
+
+      jsonplaceholder-create:
+        name: jsonplaceholder-create
+        adaptor: '@openfn/language-http@latest'
+        credential: null
+        body: |
+          // jsonplaceholder-create
+          // QA health-check node: POSTs a sample post to the JSONPlaceholder mock API.
+          // Verifies the response returns a created resource with an id (mock returns 101).
+          // Appends a pass/fail result to the shared state.qaResults array (never overwrites).
+
+          post('https://jsonplaceholder.typicode.com/posts', {
+            title: 'qa',
+            body: 'openfn health check',
+            userId: 1,
+          });
+
+          fn(state => {
+            const endpoint = 'https://jsonplaceholder.typicode.com/posts';
+            const qaResults = state.qaResults || [];
+
+            const id = state.data && state.data.id;
+            const passed = id != null;
+
+            const result = {
+              name: 'jsonplaceholder-create',
+              endpoint,
+              passed,
+              detail: passed
+                ? `Created resource with id ${id}`
+                : 'No id returned in response',
+            };
+
+            return { ...state, qaResults: [...qaResults, result] };
+          });
+
+      restcountries-lookup:
+        name: restcountries-lookup
+        adaptor: '@openfn/language-http@latest'
+        credential: null
+        body: |
+          // Node: restcountries-lookup
+          // Sends a GET request to https://restcountries.com/v3.1/name/kenya
+          // Verifies the response is an array containing a country whose common
+          // name is 'Kenya' and capital is 'Nairobi'.
+          // Appends a pass/fail result object to the shared state.qaResults array.
+          // Never throws on assertion failure - records passed:false instead.
+
+          get('https://restcountries.com/v3.1/name/kenya');
+
+          fn(state => {
+            const endpoint = 'https://restcountries.com/v3.1/name/kenya';
+            const qaResults = state.qaResults || [];
+
+            let passed = false;
+            let detail = '';
+
+            try {
+              const data = state.data;
+              if (!Array.isArray(data)) {
+                throw new Error('Response is not an array');
+              }
+
+              const kenya = data.find(
+                c =>
+                  c.name &&
+                  c.name.common === 'Kenya' &&
+                  Array.isArray(c.capital) &&
+                  c.capital.includes('Nairobi')
+              );
+
+              if (kenya) {
+                passed = true;
+                detail = 'Found Kenya with capital Nairobi';
+              } else {
+                detail = 'No country with common name Kenya and capital Nairobi found';
+              }
+            } catch (e) {
+              detail = `Assertion error: ${e.message}`;
+            }
+
+            const result = {
+              name: 'restcountries-lookup',
+              endpoint,
+              passed,
+              detail,
+            };
+
+            return { ...state, qaResults: [...qaResults, result] };
+          });
+      github-repo:
+        name: github-repo
+        adaptor: '@openfn/language-http@latest'
+        credential: null
+        body: |
+          // github-repo: QA health-check node
+          // GETs https://api.github.com/repos/OpenFn/kit with a required User-Agent header.
+          // Verifies the response full_name equals 'OpenFn/kit'.
+          // Appends a pass/fail result to the shared state.qaResults array without throwing.
+
+          get('https://api.github.com/repos/OpenFn/kit', {
+            headers: { 'User-Agent': 'openfn-qa' },
+          });
+
+          fn(state => {
+            const endpoint = 'https://api.github.com/repos/OpenFn/kit';
+            const qaResults = state.qaResults || [];
+
+            const body = state.data || {};
+            const passed = body.full_name === 'OpenFn/kit';
+
+            qaResults.push({
+              name: 'github-repo',
+              endpoint,
+              passed,
+              detail: passed
+                ? `stargazers_count: ${body.stargazers_count}`
+                : `Expected full_name 'OpenFn/kit', got '${body.full_name}'`,
+            });
+
+            return { ...state, qaResults };
+          });
+
+      random-user:
+        name: random-user
+        adaptor: '@openfn/language-http@latest'
+        credential: null
+        body: |
+          // random-user: QA health-check node
+          // - Sends a GET request to https://randomuser.me/api/
+          // - Verifies the response has a results array with one user having a name and email
+          // - Appends a result object to the shared state.qaResults array (never overwrites existing entries)
+          // - Records passed:false on failure instead of throwing
+
+          get('https://randomuser.me/api/');
+
+          fn(state => {
+            const endpoint = 'https://randomuser.me/api/';
+            let passed = false;
+            let detail = '';
+
+            try {
+              const results = state.data && state.data.results;
+              if (!Array.isArray(results)) {
+                detail = 'Response has no results array';
+              } else if (results.length !== 1) {
+                detail = `Expected 1 user, got ${results.length}`;
+              } else {
+                const user = results[0];
+                const hasName = !!(user.name && (user.name.first || user.name.last));
+                const hasEmail = !!user.email;
+                if (hasName && hasEmail) {
+                  passed = true;
+                  detail = `Found user ${user.name.first} ${user.name.last} <${user.email}>`;
+                } else {
+                  detail = `Missing ${!hasName ? 'name' : ''}${!hasName && !hasEmail ? ' and ' : ''}${!hasEmail ? 'email' : ''}`;
+                }
+              }
+            } catch (e) {
+              detail = `Assertion error: ${e.message}`;
+            }
+
+            const qaResults = state.qaResults || [];
+            qaResults.push({ name: 'random-user', endpoint, passed, detail });
+
+            return { ...state, qaResults };
+          });
+
+      dog-image:
+        name: dog-image
+        adaptor: '@openfn/language-http@latest'
+        credential: null
+        body: |
+          // Node: dog-image
+          // QA health-check for the Dog CEO random image API.
+          // Sends GET https://dog.ceo/api/breeds/image/random
+          // Verifies the response status is 'success' and message is a URL string.
+          // Appends a result to state.qaResults without overwriting existing entries.
+
+          get('https://dog.ceo/api/breeds/image/random');
+
+          fn(state => {
+            const endpoint = 'https://dog.ceo/api/breeds/image/random';
+            const qaResults = state.qaResults || [];
+
+            const body = state.data || {};
+            const url = body.message;
+            const isUrl = typeof url === 'string' && /^https?:\/\//.test(url);
+            const passed = body.status === 'success' && isUrl;
+
+            qaResults.push({
+              name: 'dog-image',
+              endpoint,
+              passed,
+              detail: isUrl ? url : null,
+            });
+
+            return { ...state, qaResults };
+          });
+
+      cat-fact:
+        name: cat-fact
+        adaptor: '@openfn/language-http@latest'
+        credential: null
+        body: |
+          // QA health-check: cat-fact
+          // GET https://catfact.ninja/fact
+          // Verifies the response contains a non-empty 'fact' string.
+          // Appends a result object to state.qaResults (never overwrites existing entries).
+          // Records passed:false on failure instead of throwing.
+
+          get('https://catfact.ninja/fact');
+
+          fn(state => {
+            const endpoint = 'https://catfact.ninja/fact';
+            const fact = state.data && state.data.fact;
+            const passed = typeof fact === 'string' && fact.trim().length > 0;
+
+            const result = {
+              name: 'cat-fact',
+              endpoint,
+              passed,
+              detail: passed ? fact.slice(0, 200) : 'No valid fact returned',
+            };
+
+            const qaResults = state.qaResults || [];
+
+            return { ...state, qaResults: [...qaResults, result] };
+          });
+
+      numbers-trivia:
+        name: numbers-trivia
+        adaptor: '@openfn/language-http@latest'
+        credential: null
+        body: |
+          // numbers-trivia QA health-check node
+          // - Sends a GET request to http://numbersapi.com/random/trivia
+          // - Verifies the response body is a non-empty text string of trivia
+          // - Appends a result object to the shared state.qaResults array
+          // - Never overwrites existing results; never throws on failure
+
+          get('http://numbersapi.com/random/trivia', { parseAs: 'text' });
+
+          fn(state => {
+            const endpoint = 'http://numbersapi.com/random/trivia';
+            const trivia = typeof state.data === 'string' ? state.data.trim() : '';
+            const passed = trivia.length > 0;
+
+            const qaResults = state.qaResults || [];
+
+            return {
+              ...state,
+              qaResults: [
+                ...qaResults,
+                {
+                  name: 'numbers-trivia',
+                  endpoint,
+                  passed,
+                  detail: trivia,
+                },
+              ],
+            };
+          });
+      iss-location:
+        name: iss-location
+        adaptor: '@openfn/language-http@latest'
+        credential: null
+        body: |
+          // iss-location: QA health-check node
+          // Sends a GET request to the Open Notify ISS location API
+          // Verifies the response message is 'success' and includes an iss_position with latitude/longitude
+          // Appends a pass/fail result to the shared state.qaResults array (never overwrites existing entries)
+
+          get('http://api.open-notify.org/iss-now.json');
+
+          fn(state => {
+            const endpoint = 'http://api.open-notify.org/iss-now.json';
+            const qaResults = state.qaResults || [];
+
+            const body = state.data || {};
+            const pos = body.iss_position || {};
+
+            const passed =
+              body.message === 'success' &&
+              pos.latitude != null &&
+              pos.longitude != null;
+
+            const result = {
+              name: 'iss-location',
+              endpoint,
+              passed,
+              detail: { latitude: pos.latitude, longitude: pos.longitude },
+            };
+
+            return { ...state, qaResults: [...qaResults, result] };
+          });
+
+      crypto-price:
+        name: crypto-price
+        adaptor: '@openfn/language-http@latest'
+        credential: null
+        body: |
+          // crypto-price QA health-check node
+          // Fetches the current Bitcoin price in USD from CoinGecko
+          // Verifies bitcoin.usd is a positive number
+          // Appends a result object to the shared state.qaResults array (never overwrites existing entries)
+
+          get('https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd');
+
+          fn(state => {
+            const endpoint =
+              'https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd';
+
+            const price = state.data?.bitcoin?.usd;
+            const passed = typeof price === 'number' && price > 0;
+
+            const qaResults = state.qaResults || [];
+
+            return {
+              ...state,
+              qaResults: [
+                ...qaResults,
+                {
+                  name: 'crypto-price',
+                  endpoint,
+                  passed,
+                  detail: price,
+                },
+              ],
+            };
+          });
+
+      bored-activity:
+        name: bored-activity
+        adaptor: '@openfn/language-http@latest'
+        credential: null
+        body: |
+          // QA health-check node: bored-activity
+          // - Sends a GET request to the Bored API activity endpoint
+          // - Verifies the response contains a non-empty 'activity' string
+          // - Appends a pass/fail result object to the shared state.qaResults array
+          // - Never throws on assertion failure; records passed:false instead
+
+          get('https://www.boredapi.com/api/activity');
+
+          fn(state => {
+            const endpoint = 'https://www.boredapi.com/api/activity';
+            const activity = state.data && state.data.activity;
+            const passed = typeof activity === 'string' && activity.trim().length > 0;
+
+            const qaResults = state.qaResults || [];
+
+            return {
+              ...state,
+              qaResults: [
+                ...qaResults,
+                {
+                  name: 'bored-activity',
+                  endpoint,
+                  passed,
+                  detail: activity,
+                },
+              ],
+            };
+          });
+
+      public-holidays:
+        name: public-holidays
+        adaptor: '@openfn/language-http@latest'
+        credential: null
+        body: |
+          // QA health-check node: public-holidays
+          // Sends a GET request to the Nager.Date public holidays API for US 2024.
+          // Verifies the response is a non-empty array where each holiday has a date and name.
+          // Appends a pass/fail result to the shared state.qaResults array without overwriting existing entries.
+
+          get('https://date.nager.at/api/v3/PublicHolidays/2024/US');
+
+          fn(state => {
+            const endpoint = 'https://date.nager.at/api/v3/PublicHolidays/2024/US';
+            const holidays = state.data;
+
+            const passed =
+              Array.isArray(holidays) &&
+              holidays.length > 0 &&
+              holidays.every(h => h && h.date && h.name);
+
+            const result = {
+              name: 'public-holidays',
+              endpoint,
+              passed,
+              detail: Array.isArray(holidays) ? holidays.length : 0,
+            };
+
+            const qaResults = state.qaResults || [];
+
+            return { ...state, qaResults: [...qaResults, result] };
+          });
+
+      ip-geolocation:
+        name: ip-geolocation
+        adaptor: '@openfn/language-http@latest'
+        credential: null
+        body: |
+          // Node: ip-geolocation
+          // Sends a GET request to https://ipapi.co/8.8.8.8/json/
+          // Verifies the response has ip === '8.8.8.8' and a country_name.
+          // Appends a pass/fail result object to the shared state.qaResults array.
+
+          get('https://ipapi.co/8.8.8.8/json/');
+
+          fn(state => {
+            const endpoint = 'https://ipapi.co/8.8.8.8/json/';
+            const data = state.data || {};
+
+            const passed = data.ip === '8.8.8.8' && !!data.country_name;
+
+            const result = {
+              name: 'ip-geolocation',
+              endpoint,
+              passed,
+              detail: data.country_name,
+            };
+
+            const qaResults = state.qaResults || [];
+
+            return { ...state, qaResults: [...qaResults, result] };
+          });
+
+      advice-slip:
+        name: advice-slip
+        adaptor: '@openfn/language-http@latest'
+        credential: null
+        body: |
+          // Node: advice-slip
+          // Sends a GET request to https://api.adviceslip.com/advice
+          // Verifies the response has a `slip` object with a non-empty `advice` string.
+          // The API sometimes returns a JSON string, so parsing is handled gracefully.
+          // Appends a QA result { name, endpoint, passed, detail } to state.qaResults
+          // without overwriting existing entries and without throwing on failure.
+
+          get('https://api.adviceslip.com/advice');
+
+          fn(state => {
+            const endpoint = 'https://api.adviceslip.com/advice';
+            const qaResults = state.qaResults || [];
+
+            let passed = false;
+            let detail = null;
+
+            try {
+              let body = state.data;
+
+              // Handle case where the API returns text that needs JSON parsing
+              if (typeof body === 'string') {
+                body = JSON.parse(body);
+              }
+
+              const advice = body && body.slip && body.slip.advice;
+
+              if (typeof advice === 'string' && advice.trim().length > 0) {
+                passed = true;
+                detail = advice;
+              } else {
+                detail = 'Missing or empty slip.advice';
+              }
+            } catch (e) {
+              passed = false;
+              detail = `Failed to parse response: ${e.message}`;
+            }
+
+            return {
+              ...state,
+              qaResults: [...qaResults, { name: 'advice-slip', endpoint, passed, detail }],
+            };
+          });
+
+      universities-search:
+        name: universities-search
+        adaptor: '@openfn/language-http@latest'
+        credential: null
+        body: |
+          // QA health-check node: universities-search
+          // Sends a GET request to the Hipolabs universities API for Kenya.
+          // Verifies the response is a non-empty array where each university has a name and country.
+          // Appends a pass/fail result object to the shared state.qaResults array.
+          // Does not throw on failure - records passed:false instead.
+
+          get('http://universities.hipolabs.com/search?country=Kenya');
+
+          fn(state => {
+            const endpoint = 'http://universities.hipolabs.com/search?country=Kenya';
+            const qaResults = state.qaResults || [];
+
+            const data = state.data;
+            const isArray = Array.isArray(data);
+            const nonEmpty = isArray && data.length > 0;
+            const allValid =
+              nonEmpty && data.every(u => u && u.name && u.country);
+            const passed = Boolean(nonEmpty && allValid);
+
+            qaResults.push({
+              name: 'universities-search',
+              endpoint,
+              passed,
+              detail: isArray ? data.length : 0,
+            });
+
+            return { ...state, qaResults };
+          });
+
+      qa-summary:
+        name: qa-summary
+        adaptor: '@openfn/language-http@latest'
+        credential: null
+        body: |
+          // qa-summary: Final QA reporting node.
+          // - Does NOT make any HTTP request.
+          // - Reads accumulated results from state.qaResults (each: name, endpoint, passed, detail).
+          // - Builds a summary (total, passed, failed, failed names, timestamp) at state.qaSummary.
+          // - Logs a readable line per check plus the totals.
+
+          fn(state => {
+            const results = state.qaResults || [];
+
+            const passed = results.filter(r => r.passed);
+            const failed = results.filter(r => !r.passed);
+
+            const summary = {
+              total: results.length,
+              passed: passed.length,
+              failed: failed.length,
+              failedChecks: failed.map(r => r.name),
+              timestamp: new Date().toISOString(),
+            };
+
+            // Log a readable line per check
+            results.forEach(r => {
+              console.log(`${r.passed ? 'PASS' : 'FAIL'} - ${r.name} (${r.endpoint})${r.detail ? ' :: ' + r.detail : ''}`);
+            });
+
+            // Log the totals
+            console.log(`QA Summary: ${summary.passed}/${summary.total} passed, ${summary.failed} failed`);
+            if (summary.failed > 0) {
+              console.log(`Failed checks: ${summary.failedChecks.join(', ')}`);
+            }
+
+            return { ...state, qaSummary: summary };
+          });
+
+    triggers:
+      cron:
+        type: cron
+        cron_expression: '0 * * * *'
+        enabled: false
+    edges:
+      cron->httpbin-get:
+        source_trigger: cron
+        target_job: httpbin-get
+        condition_type: always
+        enabled: true
+      httpbin-get->httpbin-post:
+        source_job: httpbin-get
+        target_job: httpbin-post
+        condition_type: on_job_success
+        enabled: true
+      httpbin-post->httpbin-status:
+        source_job: httpbin-post
+        target_job: httpbin-status
+        condition_type: on_job_success
+        enabled: true
+      httpbin-status->httpbin-headers:
+        source_job: httpbin-status
+        target_job: httpbin-headers
+        condition_type: on_job_success
+        enabled: true
+      httpbin-headers->jsonplaceholder-list:
+        source_job: httpbin-headers
+        target_job: jsonplaceholder-list
+        condition_type: on_job_success
+        enabled: true
+      jsonplaceholder-list->jsonplaceholder-create:
+        source_job: jsonplaceholder-list
+        target_job: jsonplaceholder-create
+        condition_type: on_job_success
+        enabled: true
+      jsonplaceholder-create->restcountries-lookup:
+        source_job: jsonplaceholder-create
+        target_job: restcountries-lookup
+        condition_type: on_job_success
+        enabled: true
+      restcountries-lookup->github-repo:
+        source_job: restcountries-lookup
+        target_job: github-repo
+        condition_type: on_job_success
+        enabled: true
+      github-repo->random-user:
+        source_job: github-repo
+        target_job: random-user
+        condition_type: on_job_success
+        enabled: true
+      random-user->dog-image:
+        source_job: random-user
+        target_job: dog-image
+        condition_type: on_job_success
+        enabled: true
+      dog-image->cat-fact:
+        source_job: dog-image
+        target_job: cat-fact
+        condition_type: on_job_success
+        enabled: true
+      cat-fact->numbers-trivia:
+        source_job: cat-fact
+        target_job: numbers-trivia
+        condition_type: on_job_success
+        enabled: true
+      numbers-trivia->iss-location:
+        source_job: numbers-trivia
+        target_job: iss-location
+        condition_type: on_job_success
+        enabled: true
+      iss-location->crypto-price:
+        source_job: iss-location
+        target_job: crypto-price
+        condition_type: on_job_success
+        enabled: true
+      crypto-price->bored-activity:
+        source_job: crypto-price
+        target_job: bored-activity
+        condition_type: on_job_success
+        enabled: true
+      bored-activity->public-holidays:
+        source_job: bored-activity
+        target_job: public-holidays
+        condition_type: on_job_success
+        enabled: true
+      public-holidays->ip-geolocation:
+        source_job: public-holidays
+        target_job: ip-geolocation
+        condition_type: on_job_success
+        enabled: true
+      ip-geolocation->advice-slip:
+        source_job: ip-geolocation
+        target_job: advice-slip
+        condition_type: on_job_success
+        enabled: true
+      advice-slip->universities-search:
+        source_job: advice-slip
+        target_job: universities-search
+        condition_type: on_job_success
+        enabled: true
+      universities-search->qa-summary:
+        source_job: universities-search
+        target_job: qa-summary
+        condition_type: on_job_success
+        enabled: true
   DING-DONG-Notification-Workflow-1:
     name: DING DONG Notification Workflow 1
     jobs:

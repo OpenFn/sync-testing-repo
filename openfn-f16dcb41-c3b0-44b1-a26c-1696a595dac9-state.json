@@ -3968,6 +3968,304 @@
           "condition_type": "on_job_success"
         }
       }
+    },
+    "Self-Testing-QA-Health-Check": {
+      "id": "878a2dee-5d52-47f6-bd3a-8eee1ebdc3e9",
+      "name": "Self-Testing QA Health Check",
+      "inserted_at": "2026-09-16T14:35:41.740406Z",
+      "lock_version": 2,
+      "triggers": {
+        "cron": {
+          "enabled": false,
+          "id": "44bc0829-9d77-4321-a9c9-67df22ede488",
+          "type": "cron",
+          "cron_expression": "0 * * * *"
+        }
+      },
+      "jobs": {
+        "httpbin-get": {
+          "id": "2770a363-cb40-458a-b6ba-39284ad8b35f",
+          "name": "httpbin-get",
+          "body": "// QA health-check node: httpbin-get\n// - Sends a GET request to https://httpbin.org/get?qa=openfn\n// - Verifies the response echoes back the request (args + url present)\n// - Appends a result object to the shared state.qaResults array\n// - Never throws on failure: records passed:false so later checks still run\n\nget('https://httpbin.org/get?qa=openfn');\n\nfn(state => {\n  const name = 'httpbin-get';\n  const endpoint = 'https://httpbin.org/get?qa=openfn';\n\n  // Ensure the shared results array exists without overwriting entries\n  const qaResults = state.qaResults || [];\n\n  let passed = false;\n  let detail = '';\n\n  try {\n    const body = state.data || {};\n    const echoedQa = body.args && body.args.qa === 'openfn';\n    const echoedUrl = typeof body.url === 'string' && body.url.includes('httpbin.org/get');\n    passed = Boolean(echoedQa && echoedUrl);\n    detail = passed\n      ? 'Response echoed args.qa=openfn and url as expected.'\n      : `Echo check failed. args=${JSON.stringify(body.args)}, url=${body.url}`;\n  } catch (e) {\n    passed = false;\n    detail = `Assertion error: ${e.message}`;\n  }\n\n  return {\n    ...state,\n    qaResults: [...qaResults, { name, endpoint, passed, detail }],\n  };\n});\n",
+          "project_credential_id": null,
+          "adaptor": "@openfn/language-http@latest"
+        },
+        "httpbin-post": {
+          "id": "350912e8-2707-473a-94c5-97b636c5877f",
+          "name": "httpbin-post",
+          "body": "// Node: httpbin-post\n// Sends a POST to https://httpbin.org/post with a small JSON body.\n// Verifies the response's `json` field echoes back the body we sent.\n// Appends a QA result to the shared state.qaResults array (never overwrites).\n// Records passed:false on failure instead of throwing.\n\nconst endpoint = 'https://httpbin.org/post';\nconst body = { qa: 'openfn', ts: Date.now() };\n\npost(endpoint, { body })(state => state); // keep body available below\n\npost(endpoint, state => ({\n  body: { qa: 'openfn', ts: Date.now() },\n}));\n\nfn(state => {\n  // ensure the shared array exists without overwriting existing entries\n  const qaResults = state.qaResults || [];\n\n  const sent = { qa: 'openfn' };\n  const echoed = state.data && state.data.json;\n\n  const passed = !!echoed && echoed.qa === 'openfn' && typeof echoed.ts !== 'undefined';\n\n  const result = {\n    name: 'httpbin-post',\n    endpoint: 'https://httpbin.org/post',\n    passed,\n    detail: passed\n      ? 'Response json echoed the posted body.'\n      : `Echo mismatch: ${JSON.stringify(echoed)}`,\n  };\n\n  return { ...state, qaResults: [...qaResults, result] };\n});\n",
+          "project_credential_id": null,
+          "adaptor": "@openfn/language-http@latest"
+        },
+        "httpbin-status": {
+          "id": "a8a82268-9cb5-4524-9c3d-ce2c6db5f1ac",
+          "name": "httpbin-status",
+          "body": "// httpbin-status: QA health-check node\n// Sends a GET request to https://httpbin.org/status/200\n// Verifies the returned status code is 200\n// Appends a result object to the shared state.qaResults array (never overwrites existing entries)\n\nget('https://httpbin.org/status/200', {\n  // don't throw on non-2xx responses so we can record the failure instead\n  parseAs: 'text',\n});\n\nfn(state => {\n  const endpoint = 'https://httpbin.org/status/200';\n  const status = state.response?.status;\n  const passed = status === 200;\n\n  const result = {\n    name: 'httpbin-status',\n    endpoint,\n    passed,\n    detail: passed\n      ? 'Returned expected status 200'\n      : `Expected status 200 but got ${status}`,\n  };\n\n  const qaResults = state.qaResults || [];\n\n  return { ...state, qaResults: [...qaResults, result] };\n});\n",
+          "project_credential_id": null,
+          "adaptor": "@openfn/language-http@latest"
+        },
+        "httpbin-headers": {
+          "id": "558985bb-7755-44c7-a69e-037c30534eb0",
+          "name": "httpbin-headers",
+          "body": "// httpbin-headers QA health check\n// Sends a GET request to https://httpbin.org/headers\n// Verifies the response contains a headers object that includes a Host header\n// Appends a result to the shared state.qaResults array (never overwrites existing entries)\n// Does not throw on failure - records passed:false with detail instead\n\nget('https://httpbin.org/headers');\n\nfn(state => {\n  const endpoint = 'https://httpbin.org/headers';\n  const qaResults = state.qaResults || [];\n\n  let passed = false;\n  let detail = '';\n\n  try {\n    const headers = state.data && state.data.headers;\n    if (headers && typeof headers === 'object' && headers.Host) {\n      passed = true;\n      detail = `Host header present: ${headers.Host}`;\n    } else if (headers && typeof headers === 'object') {\n      detail = 'headers object found but no Host header';\n    } else {\n      detail = 'no headers object in response';\n    }\n  } catch (e) {\n    detail = `assertion error: ${e.message}`;\n  }\n\n  const result = {\n    name: 'httpbin-headers',\n    endpoint,\n    passed,\n    detail,\n  };\n\n  return { ...state, qaResults: [...qaResults, result] };\n});",
+          "project_credential_id": null,
+          "adaptor": "@openfn/language-http@latest"
+        },
+        "jsonplaceholder-list": {
+          "id": "2b4ff3c3-7fc8-4793-85cd-b43462574b31",
+          "name": "jsonplaceholder-list",
+          "body": "// jsonplaceholder-list\n// QA health-check node: GETs https://jsonplaceholder.typicode.com/posts\n// Verifies the response is a non-empty array whose first item has an id and title.\n// Appends a { name, endpoint, passed, detail } record to the shared state.qaResults array.\n// Never throws on failure and never overwrites existing qaResults entries.\n\nget('https://jsonplaceholder.typicode.com/posts');\n\nfn(state => {\n  const endpoint = 'https://jsonplaceholder.typicode.com/posts';\n  const qaResults = Array.isArray(state.qaResults) ? state.qaResults : [];\n\n  const posts = state.data;\n  const isArray = Array.isArray(posts);\n  const count = isArray ? posts.length : 0;\n  const first = isArray ? posts[0] : undefined;\n\n  const passed = Boolean(\n    isArray &&\n    count > 0 &&\n    first &&\n    first.id !== undefined &&\n    first.title !== undefined\n  );\n\n  const detail = passed\n    ? `Received ${count} posts`\n    : `Verification failed (isArray: ${isArray}, count: ${count})`;\n\n  return {\n    ...state,\n    qaResults: [\n      ...qaResults,\n      { name: 'jsonplaceholder-list', endpoint, passed, detail },\n    ],\n  };\n});\n",
+          "project_credential_id": null,
+          "adaptor": "@openfn/language-http@latest"
+        },
+        "jsonplaceholder-create": {
+          "id": "a2be7973-0307-4fd3-a86c-f57aab917ace",
+          "name": "jsonplaceholder-create",
+          "body": "// jsonplaceholder-create\n// QA health-check node: POSTs a sample post to the JSONPlaceholder mock API.\n// Verifies the response returns a created resource with an id (mock returns 101).\n// Appends a pass/fail result to the shared state.qaResults array (never overwrites).\n\npost('https://jsonplaceholder.typicode.com/posts', {\n  title: 'qa',\n  body: 'openfn health check',\n  userId: 1,\n});\n\nfn(state => {\n  const endpoint = 'https://jsonplaceholder.typicode.com/posts';\n  const qaResults = state.qaResults || [];\n\n  const id = state.data && state.data.id;\n  const passed = id != null;\n\n  const result = {\n    name: 'jsonplaceholder-create',\n    endpoint,\n    passed,\n    detail: passed\n      ? `Created resource with id ${id}`\n      : 'No id returned in response',\n  };\n\n  return { ...state, qaResults: [...qaResults, result] };\n});\n",
+          "project_credential_id": null,
+          "adaptor": "@openfn/language-http@latest"
+        },
+        "restcountries-lookup": {
+          "id": "0cc384bb-8d76-4c13-841d-1a80289846fb",
+          "name": "restcountries-lookup",
+          "body": "// Node: restcountries-lookup\n// Sends a GET request to https://restcountries.com/v3.1/name/kenya\n// Verifies the response is an array containing a country whose common\n// name is 'Kenya' and capital is 'Nairobi'.\n// Appends a pass/fail result object to the shared state.qaResults array.\n// Never throws on assertion failure - records passed:false instead.\n\nget('https://restcountries.com/v3.1/name/kenya');\n\nfn(state => {\n  const endpoint = 'https://restcountries.com/v3.1/name/kenya';\n  const qaResults = state.qaResults || [];\n\n  let passed = false;\n  let detail = '';\n\n  try {\n    const data = state.data;\n    if (!Array.isArray(data)) {\n      throw new Error('Response is not an array');\n    }\n\n    const kenya = data.find(\n      c =>\n        c.name &&\n        c.name.common === 'Kenya' &&\n        Array.isArray(c.capital) &&\n        c.capital.includes('Nairobi')\n    );\n\n    if (kenya) {\n      passed = true;\n      detail = 'Found Kenya with capital Nairobi';\n    } else {\n      detail = 'No country with common name Kenya and capital Nairobi found';\n    }\n  } catch (e) {\n    detail = `Assertion error: ${e.message}`;\n  }\n\n  const result = {\n    name: 'restcountries-lookup',\n    endpoint,\n    passed,\n    detail,\n  };\n\n  return { ...state, qaResults: [...qaResults, result] };\n});",
+          "project_credential_id": null,
+          "adaptor": "@openfn/language-http@latest"
+        },
+        "github-repo": {
+          "id": "42eb018f-35ab-4302-a5b4-49bf95f806ef",
+          "name": "github-repo",
+          "body": "// github-repo: QA health-check node\n// GETs https://api.github.com/repos/OpenFn/kit with a required User-Agent header.\n// Verifies the response full_name equals 'OpenFn/kit'.\n// Appends a pass/fail result to the shared state.qaResults array without throwing.\n\nget('https://api.github.com/repos/OpenFn/kit', {\n  headers: { 'User-Agent': 'openfn-qa' },\n});\n\nfn(state => {\n  const endpoint = 'https://api.github.com/repos/OpenFn/kit';\n  const qaResults = state.qaResults || [];\n\n  const body = state.data || {};\n  const passed = body.full_name === 'OpenFn/kit';\n\n  qaResults.push({\n    name: 'github-repo',\n    endpoint,\n    passed,\n    detail: passed\n      ? `stargazers_count: ${body.stargazers_count}`\n      : `Expected full_name 'OpenFn/kit', got '${body.full_name}'`,\n  });\n\n  return { ...state, qaResults };\n});\n",
+          "project_credential_id": null,
+          "adaptor": "@openfn/language-http@latest"
+        },
+        "random-user": {
+          "id": "84367875-3b37-4066-96f4-5c34f7d6987e",
+          "name": "random-user",
+          "body": "// random-user: QA health-check node\n// - Sends a GET request to https://randomuser.me/api/\n// - Verifies the response has a results array with one user having a name and email\n// - Appends a result object to the shared state.qaResults array (never overwrites existing entries)\n// - Records passed:false on failure instead of throwing\n\nget('https://randomuser.me/api/');\n\nfn(state => {\n  const endpoint = 'https://randomuser.me/api/';\n  let passed = false;\n  let detail = '';\n\n  try {\n    const results = state.data && state.data.results;\n    if (!Array.isArray(results)) {\n      detail = 'Response has no results array';\n    } else if (results.length !== 1) {\n      detail = `Expected 1 user, got ${results.length}`;\n    } else {\n      const user = results[0];\n      const hasName = !!(user.name && (user.name.first || user.name.last));\n      const hasEmail = !!user.email;\n      if (hasName && hasEmail) {\n        passed = true;\n        detail = `Found user ${user.name.first} ${user.name.last} <${user.email}>`;\n      } else {\n        detail = `Missing ${!hasName ? 'name' : ''}${!hasName && !hasEmail ? ' and ' : ''}${!hasEmail ? 'email' : ''}`;\n      }\n    }\n  } catch (e) {\n    detail = `Assertion error: ${e.message}`;\n  }\n\n  const qaResults = state.qaResults || [];\n  qaResults.push({ name: 'random-user', endpoint, passed, detail });\n\n  return { ...state, qaResults };\n});\n",
+          "project_credential_id": null,
+          "adaptor": "@openfn/language-http@latest"
+        },
+        "dog-image": {
+          "id": "2fcd6461-c77d-4c3e-a84a-d821e9e96099",
+          "name": "dog-image",
+          "body": "// Node: dog-image\n// QA health-check for the Dog CEO random image API.\n// Sends GET https://dog.ceo/api/breeds/image/random\n// Verifies the response status is 'success' and message is a URL string.\n// Appends a result to state.qaResults without overwriting existing entries.\n\nget('https://dog.ceo/api/breeds/image/random');\n\nfn(state => {\n  const endpoint = 'https://dog.ceo/api/breeds/image/random';\n  const qaResults = state.qaResults || [];\n\n  const body = state.data || {};\n  const url = body.message;\n  const isUrl = typeof url === 'string' && /^https?:\\/\\//.test(url);\n  const passed = body.status === 'success' && isUrl;\n\n  qaResults.push({\n    name: 'dog-image',\n    endpoint,\n    passed,\n    detail: isUrl ? url : null,\n  });\n\n  return { ...state, qaResults };\n});\n",
+          "project_credential_id": null,
+          "adaptor": "@openfn/language-http@latest"
+        },
+        "cat-fact": {
+          "id": "59ebb4f6-3ac9-4952-a7b0-bc5d988d203c",
+          "name": "cat-fact",
+          "body": "// QA health-check: cat-fact\n// GET https://catfact.ninja/fact\n// Verifies the response contains a non-empty 'fact' string.\n// Appends a result object to state.qaResults (never overwrites existing entries).\n// Records passed:false on failure instead of throwing.\n\nget('https://catfact.ninja/fact');\n\nfn(state => {\n  const endpoint = 'https://catfact.ninja/fact';\n  const fact = state.data && state.data.fact;\n  const passed = typeof fact === 'string' && fact.trim().length > 0;\n\n  const result = {\n    name: 'cat-fact',\n    endpoint,\n    passed,\n    detail: passed ? fact.slice(0, 200) : 'No valid fact returned',\n  };\n\n  const qaResults = state.qaResults || [];\n\n  return { ...state, qaResults: [...qaResults, result] };\n});\n",
+          "project_credential_id": null,
+          "adaptor": "@openfn/language-http@latest"
+        },
+        "numbers-trivia": {
+          "id": "ccd98cdd-5d58-4fd4-b934-5ec1af776f06",
+          "name": "numbers-trivia",
+          "body": "// numbers-trivia QA health-check node\n// - Sends a GET request to http://numbersapi.com/random/trivia\n// - Verifies the response body is a non-empty text string of trivia\n// - Appends a result object to the shared state.qaResults array\n// - Never overwrites existing results; never throws on failure\n\nget('http://numbersapi.com/random/trivia', { parseAs: 'text' });\n\nfn(state => {\n  const endpoint = 'http://numbersapi.com/random/trivia';\n  const trivia = typeof state.data === 'string' ? state.data.trim() : '';\n  const passed = trivia.length > 0;\n\n  const qaResults = state.qaResults || [];\n\n  return {\n    ...state,\n    qaResults: [\n      ...qaResults,\n      {\n        name: 'numbers-trivia',\n        endpoint,\n        passed,\n        detail: trivia,\n      },\n    ],\n  };\n});",
+          "project_credential_id": null,
+          "adaptor": "@openfn/language-http@latest"
+        },
+        "iss-location": {
+          "id": "e781c954-7267-4340-b966-bfeb8a7d80c0",
+          "name": "iss-location",
+          "body": "// iss-location: QA health-check node\n// Sends a GET request to the Open Notify ISS location API\n// Verifies the response message is 'success' and includes an iss_position with latitude/longitude\n// Appends a pass/fail result to the shared state.qaResults array (never overwrites existing entries)\n\nget('http://api.open-notify.org/iss-now.json');\n\nfn(state => {\n  const endpoint = 'http://api.open-notify.org/iss-now.json';\n  const qaResults = state.qaResults || [];\n\n  const body = state.data || {};\n  const pos = body.iss_position || {};\n\n  const passed =\n    body.message === 'success' &&\n    pos.latitude != null &&\n    pos.longitude != null;\n\n  const result = {\n    name: 'iss-location',\n    endpoint,\n    passed,\n    detail: { latitude: pos.latitude, longitude: pos.longitude },\n  };\n\n  return { ...state, qaResults: [...qaResults, result] };\n});\n",
+          "project_credential_id": null,
+          "adaptor": "@openfn/language-http@latest"
+        },
+        "crypto-price": {
+          "id": "0e4beb23-8585-4a36-bced-31984f48ba10",
+          "name": "crypto-price",
+          "body": "// crypto-price QA health-check node\n// Fetches the current Bitcoin price in USD from CoinGecko\n// Verifies bitcoin.usd is a positive number\n// Appends a result object to the shared state.qaResults array (never overwrites existing entries)\n\nget('https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd');\n\nfn(state => {\n  const endpoint =\n    'https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd';\n\n  const price = state.data?.bitcoin?.usd;\n  const passed = typeof price === 'number' && price > 0;\n\n  const qaResults = state.qaResults || [];\n\n  return {\n    ...state,\n    qaResults: [\n      ...qaResults,\n      {\n        name: 'crypto-price',\n        endpoint,\n        passed,\n        detail: price,\n      },\n    ],\n  };\n});\n",
+          "project_credential_id": null,
+          "adaptor": "@openfn/language-http@latest"
+        },
+        "bored-activity": {
+          "id": "9b699ce2-92fb-4c94-9541-9908b9a8bbe0",
+          "name": "bored-activity",
+          "body": "// QA health-check node: bored-activity\n// - Sends a GET request to the Bored API activity endpoint\n// - Verifies the response contains a non-empty 'activity' string\n// - Appends a pass/fail result object to the shared state.qaResults array\n// - Never throws on assertion failure; records passed:false instead\n\nget('https://www.boredapi.com/api/activity');\n\nfn(state => {\n  const endpoint = 'https://www.boredapi.com/api/activity';\n  const activity = state.data && state.data.activity;\n  const passed = typeof activity === 'string' && activity.trim().length > 0;\n\n  const qaResults = state.qaResults || [];\n\n  return {\n    ...state,\n    qaResults: [\n      ...qaResults,\n      {\n        name: 'bored-activity',\n        endpoint,\n        passed,\n        detail: activity,\n      },\n    ],\n  };\n});\n",
+          "project_credential_id": null,
+          "adaptor": "@openfn/language-http@latest"
+        },
+        "public-holidays": {
+          "id": "6686d7f2-8465-489e-b322-81befb59c1b7",
+          "name": "public-holidays",
+          "body": "// QA health-check node: public-holidays\n// Sends a GET request to the Nager.Date public holidays API for US 2024.\n// Verifies the response is a non-empty array where each holiday has a date and name.\n// Appends a pass/fail result to the shared state.qaResults array without overwriting existing entries.\n\nget('https://date.nager.at/api/v3/PublicHolidays/2024/US');\n\nfn(state => {\n  const endpoint = 'https://date.nager.at/api/v3/PublicHolidays/2024/US';\n  const holidays = state.data;\n\n  const passed =\n    Array.isArray(holidays) &&\n    holidays.length > 0 &&\n    holidays.every(h => h && h.date && h.name);\n\n  const result = {\n    name: 'public-holidays',\n    endpoint,\n    passed,\n    detail: Array.isArray(holidays) ? holidays.length : 0,\n  };\n\n  const qaResults = state.qaResults || [];\n\n  return { ...state, qaResults: [...qaResults, result] };\n});\n",
+          "project_credential_id": null,
+          "adaptor": "@openfn/language-http@latest"
+        },
+        "ip-geolocation": {
+          "id": "023125c5-d8ef-41c8-ae07-902b6d69c072",
+          "name": "ip-geolocation",
+          "body": "// Node: ip-geolocation\n// Sends a GET request to https://ipapi.co/8.8.8.8/json/\n// Verifies the response has ip === '8.8.8.8' and a country_name.\n// Appends a pass/fail result object to the shared state.qaResults array.\n\nget('https://ipapi.co/8.8.8.8/json/');\n\nfn(state => {\n  const endpoint = 'https://ipapi.co/8.8.8.8/json/';\n  const data = state.data || {};\n\n  const passed = data.ip === '8.8.8.8' && !!data.country_name;\n\n  const result = {\n    name: 'ip-geolocation',\n    endpoint,\n    passed,\n    detail: data.country_name,\n  };\n\n  const qaResults = state.qaResults || [];\n\n  return { ...state, qaResults: [...qaResults, result] };\n});\n",
+          "project_credential_id": null,
+          "adaptor": "@openfn/language-http@latest"
+        },
+        "advice-slip": {
+          "id": "f1d2350f-e6fd-42f0-af68-079ae1f1c524",
+          "name": "advice-slip",
+          "body": "// Node: advice-slip\n// Sends a GET request to https://api.adviceslip.com/advice\n// Verifies the response has a `slip` object with a non-empty `advice` string.\n// The API sometimes returns a JSON string, so parsing is handled gracefully.\n// Appends a QA result { name, endpoint, passed, detail } to state.qaResults\n// without overwriting existing entries and without throwing on failure.\n\nget('https://api.adviceslip.com/advice');\n\nfn(state => {\n  const endpoint = 'https://api.adviceslip.com/advice';\n  const qaResults = state.qaResults || [];\n\n  let passed = false;\n  let detail = null;\n\n  try {\n    let body = state.data;\n\n    // Handle case where the API returns text that needs JSON parsing\n    if (typeof body === 'string') {\n      body = JSON.parse(body);\n    }\n\n    const advice = body && body.slip && body.slip.advice;\n\n    if (typeof advice === 'string' && advice.trim().length > 0) {\n      passed = true;\n      detail = advice;\n    } else {\n      detail = 'Missing or empty slip.advice';\n    }\n  } catch (e) {\n    passed = false;\n    detail = `Failed to parse response: ${e.message}`;\n  }\n\n  return {\n    ...state,\n    qaResults: [...qaResults, { name: 'advice-slip', endpoint, passed, detail }],\n  };\n});\n",
+          "project_credential_id": null,
+          "adaptor": "@openfn/language-http@latest"
+        },
+        "universities-search": {
+          "id": "6c84c4d1-5b96-4cb0-9c08-58fc081a7235",
+          "name": "universities-search",
+          "body": "// QA health-check node: universities-search\n// Sends a GET request to the Hipolabs universities API for Kenya.\n// Verifies the response is a non-empty array where each university has a name and country.\n// Appends a pass/fail result object to the shared state.qaResults array.\n// Does not throw on failure - records passed:false instead.\n\nget('http://universities.hipolabs.com/search?country=Kenya');\n\nfn(state => {\n  const endpoint = 'http://universities.hipolabs.com/search?country=Kenya';\n  const qaResults = state.qaResults || [];\n\n  const data = state.data;\n  const isArray = Array.isArray(data);\n  const nonEmpty = isArray && data.length > 0;\n  const allValid =\n    nonEmpty && data.every(u => u && u.name && u.country);\n  const passed = Boolean(nonEmpty && allValid);\n\n  qaResults.push({\n    name: 'universities-search',\n    endpoint,\n    passed,\n    detail: isArray ? data.length : 0,\n  });\n\n  return { ...state, qaResults };\n});\n",
+          "project_credential_id": null,
+          "adaptor": "@openfn/language-http@latest"
+        },
+        "qa-summary": {
+          "id": "371aa2e7-44b4-441b-b197-e7e009f7e726",
+          "name": "qa-summary",
+          "body": "// qa-summary: Final QA reporting node.\n// - Does NOT make any HTTP request.\n// - Reads accumulated results from state.qaResults (each: name, endpoint, passed, detail).\n// - Builds a summary (total, passed, failed, failed names, timestamp) at state.qaSummary.\n// - Logs a readable line per check plus the totals.\n\nfn(state => {\n  const results = state.qaResults || [];\n\n  const passed = results.filter(r => r.passed);\n  const failed = results.filter(r => !r.passed);\n\n  const summary = {\n    total: results.length,\n    passed: passed.length,\n    failed: failed.length,\n    failedChecks: failed.map(r => r.name),\n    timestamp: new Date().toISOString(),\n  };\n\n  // Log a readable line per check\n  results.forEach(r => {\n    console.log(`${r.passed ? 'PASS' : 'FAIL'} - ${r.name} (${r.endpoint})${r.detail ? ' :: ' + r.detail : ''}`);\n  });\n\n  // Log the totals\n  console.log(`QA Summary: ${summary.passed}/${summary.total} passed, ${summary.failed} failed`);\n  if (summary.failed > 0) {\n    console.log(`Failed checks: ${summary.failedChecks.join(', ')}`);\n  }\n\n  return { ...state, qaSummary: summary };\n});\n",
+          "project_credential_id": null,
+          "adaptor": "@openfn/language-http@latest"
+        }
+      },
+      "edges": {
+        "cron->httpbin-get": {
+          "enabled": true,
+          "id": "e19a60dc-3156-4cf8-a4d6-39c786732401",
+          "target_job_id": "2770a363-cb40-458a-b6ba-39284ad8b35f",
+          "source_trigger_id": "44bc0829-9d77-4321-a9c9-67df22ede488",
+          "condition_type": "always"
+        },
+        "httpbin-get->httpbin-post": {
+          "enabled": true,
+          "id": "5791587f-9983-42b0-b1a7-a853bc74b66c",
+          "target_job_id": "350912e8-2707-473a-94c5-97b636c5877f",
+          "source_job_id": "2770a363-cb40-458a-b6ba-39284ad8b35f",
+          "condition_type": "on_job_success"
+        },
+        "httpbin-post->httpbin-status": {
+          "enabled": true,
+          "id": "aef73562-fad5-437d-92e9-a4a729dec632",
+          "target_job_id": "a8a82268-9cb5-4524-9c3d-ce2c6db5f1ac",
+          "source_job_id": "350912e8-2707-473a-94c5-97b636c5877f",
+          "condition_type": "on_job_success"
+        },
+        "httpbin-status->httpbin-headers": {
+          "enabled": true,
+          "id": "b6bdd25e-b790-42a9-bb1f-f1959add0723",
+          "target_job_id": "558985bb-7755-44c7-a69e-037c30534eb0",
+          "source_job_id": "a8a82268-9cb5-4524-9c3d-ce2c6db5f1ac",
+          "condition_type": "on_job_success"
+        },
+        "httpbin-headers->jsonplaceholder-list": {
+          "enabled": true,
+          "id": "12ac3431-505f-45bf-8811-9ece78bf33b7",
+          "target_job_id": "2b4ff3c3-7fc8-4793-85cd-b43462574b31",
+          "source_job_id": "558985bb-7755-44c7-a69e-037c30534eb0",
+          "condition_type": "on_job_success"
+        },
+        "jsonplaceholder-list->jsonplaceholder-create": {
+          "enabled": true,
+          "id": "e40442b7-bbd1-4ef4-86b2-78d7a0c495d3",
+          "target_job_id": "a2be7973-0307-4fd3-a86c-f57aab917ace",
+          "source_job_id": "2b4ff3c3-7fc8-4793-85cd-b43462574b31",
+          "condition_type": "on_job_success"
+        },
+        "jsonplaceholder-create->restcountries-lookup": {
+          "enabled": true,
+          "id": "7103b620-3a99-499f-b70f-aa7db1974da0",
+          "target_job_id": "0cc384bb-8d76-4c13-841d-1a80289846fb",
+          "source_job_id": "a2be7973-0307-4fd3-a86c-f57aab917ace",
+          "condition_type": "on_job_success"
+        },
+        "restcountries-lookup->github-repo": {
+          "enabled": true,
+          "id": "2147b290-9470-4ce2-a925-1b4d4d036327",
+          "target_job_id": "42eb018f-35ab-4302-a5b4-49bf95f806ef",
+          "source_job_id": "0cc384bb-8d76-4c13-841d-1a80289846fb",
+          "condition_type": "on_job_success"
+        },
+        "github-repo->random-user": {
+          "enabled": true,
+          "id": "4d89f734-ce24-45e7-b4ac-3726aa6e6483",
+          "target_job_id": "84367875-3b37-4066-96f4-5c34f7d6987e",
+          "source_job_id": "42eb018f-35ab-4302-a5b4-49bf95f806ef",
+          "condition_type": "on_job_success"
+        },
+        "random-user->dog-image": {
+          "enabled": true,
+          "id": "c91a9189-611e-4a89-86a3-01a6a5b6f59f",
+          "target_job_id": "2fcd6461-c77d-4c3e-a84a-d821e9e96099",
+          "source_job_id": "84367875-3b37-4066-96f4-5c34f7d6987e",
+          "condition_type": "on_job_success"
+        },
+        "dog-image->cat-fact": {
+          "enabled": true,
+          "id": "d7feb5f0-333f-45ee-973c-bffbd32163d0",
+          "target_job_id": "59ebb4f6-3ac9-4952-a7b0-bc5d988d203c",
+          "source_job_id": "2fcd6461-c77d-4c3e-a84a-d821e9e96099",
+          "condition_type": "on_job_success"
+        },
+        "cat-fact->numbers-trivia": {
+          "enabled": true,
+          "id": "26d5d23f-6002-4dea-94e6-432d9553de61",
+          "target_job_id": "ccd98cdd-5d58-4fd4-b934-5ec1af776f06",
+          "source_job_id": "59ebb4f6-3ac9-4952-a7b0-bc5d988d203c",
+          "condition_type": "on_job_success"
+        },
+        "numbers-trivia->iss-location": {
+          "enabled": true,
+          "id": "734380a7-d01f-4aae-ae08-60009d46316c",
+          "target_job_id": "e781c954-7267-4340-b966-bfeb8a7d80c0",
+          "source_job_id": "ccd98cdd-5d58-4fd4-b934-5ec1af776f06",
+          "condition_type": "on_job_success"
+        },
+        "iss-location->crypto-price": {
+          "enabled": true,
+          "id": "bdc38f53-8233-4f70-ad86-d803a459eebc",
+          "target_job_id": "0e4beb23-8585-4a36-bced-31984f48ba10",
+          "source_job_id": "e781c954-7267-4340-b966-bfeb8a7d80c0",
+          "condition_type": "on_job_success"
+        },
+        "crypto-price->bored-activity": {
+          "enabled": true,
+          "id": "0eac85f2-f404-4729-9340-4ec4d36cd862",
+          "target_job_id": "9b699ce2-92fb-4c94-9541-9908b9a8bbe0",
+          "source_job_id": "0e4beb23-8585-4a36-bced-31984f48ba10",
+          "condition_type": "on_job_success"
+        },
+        "bored-activity->public-holidays": {
+          "enabled": true,
+          "id": "537deb3f-21ae-4f2b-8d68-971d74dd51d8",
+          "target_job_id": "6686d7f2-8465-489e-b322-81befb59c1b7",
+          "source_job_id": "9b699ce2-92fb-4c94-9541-9908b9a8bbe0",
+          "condition_type": "on_job_success"
+        },
+        "public-holidays->ip-geolocation": {
+          "enabled": true,
+          "id": "5e357b87-d1e4-41bc-bc94-6b448282ad73",
+          "target_job_id": "023125c5-d8ef-41c8-ae07-902b6d69c072",
+          "source_job_id": "6686d7f2-8465-489e-b322-81befb59c1b7",
+          "condition_type": "on_job_success"
+        },
+        "ip-geolocation->advice-slip": {
+          "enabled": true,
+          "id": "ce9cf624-522b-4cc3-a402-3c0572c6e67d",
+          "target_job_id": "f1d2350f-e6fd-42f0-af68-079ae1f1c524",
+          "source_job_id": "023125c5-d8ef-41c8-ae07-902b6d69c072",
+          "condition_type": "on_job_success"
+        },
+        "advice-slip->universities-search": {
+          "enabled": true,
+          "id": "e0852a1f-2f72-46fb-8948-b927a153fc29",
+          "target_job_id": "6c84c4d1-5b96-4cb0-9c08-58fc081a7235",
+          "source_job_id": "f1d2350f-e6fd-42f0-af68-079ae1f1c524",
+          "condition_type": "on_job_success"
+        },
+        "universities-search->qa-summary": {
+          "enabled": true,
+          "id": "26b70bbc-c107-4f6b-b09c-7d8832e421cc",
+          "target_job_id": "371aa2e7-44b4-441b-b197-e7e009f7e726",
+          "source_job_id": "6c84c4d1-5b96-4cb0-9c08-58fc081a7235",
+          "condition_type": "on_job_success"
+        }
+      }
     }
   }
 }
