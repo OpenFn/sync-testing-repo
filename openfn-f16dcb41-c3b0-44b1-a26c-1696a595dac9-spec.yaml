@@ -19,6 +19,9 @@ credentials:
   megan@openfn.org-Testing-credential---not-real:
     name: Testing credential - not real
     owner: megan@openfn.org
+  megan@openfn.org-megan-gmail:
+    name: megan gmail
+    owner: megan@openfn.org
   megan@openfn.org-this-test:
     name: this test
     owner: megan@openfn.org
@@ -666,8 +669,6 @@ workflows:
           // - Appends a result object to the shared state.qaResults array
           // - Never throws on failure: records passed:false so later checks still run
 
-          get('https://httpbin.org/get?qa=openfn');
-
           fn(state => {
             const name = 'httpbin-get';
             const endpoint = 'https://httpbin.org/get?qa=openfn';
@@ -675,28 +676,50 @@ workflows:
             // Ensure the shared results array exists without overwriting entries
             const qaResults = state.qaResults || [];
 
-            let passed = false;
-            let detail = '';
+            // Run the request inside the callback so any failure (non-2xx or network
+            // error) is caught here and never aborts the workflow.
+            return get(endpoint)(state)
+              .then(nextState => {
+                let passed = false;
+                let detail = '';
 
-            try {
-              const body = state.data || {};
-              const echoedQa = body.args && body.args.qa === 'openfn';
-              const echoedUrl = typeof body.url === 'string' && body.url.includes('httpbin.org/get');
-              passed = Boolean(echoedQa && echoedUrl);
-              detail = passed
-                ? 'Response echoed args.qa=openfn and url as expected.'
-                : `Echo check failed. args=${JSON.stringify(body.args)}, url=${body.url}`;
-            } catch (e) {
-              passed = false;
-              detail = `Assertion error: ${e.message}`;
-            }
+                const body = nextState.data || {};
+                const echoedQa = body.args && body.args.qa === 'openfn';
+                const echoedUrl =
+                  typeof body.url === 'string' && body.url.includes('httpbin.org/get');
+                passed = Boolean(echoedQa && echoedUrl);
+                detail = passed
+                  ? 'Response echoed args.qa=openfn and url as expected.'
+                  : `Echo check failed. args=${JSON.stringify(body.args)}, url=${body.url}`;
 
-            return {
-              ...state,
-              qaResults: [...qaResults, { name, endpoint, passed, detail }],
-            };
+                return {
+                  ...nextState,
+                  qaResults: [...qaResults, { name, endpoint, passed, detail }],
+                };
+              })
+              .catch(error => {
+                const res = error.response;
+                let detail;
+                if (res) {
+                  // HTTP error: include status code, status message and body if present
+                  const bodyText =
+                    res.body !== undefined
+                      ? JSON.stringify(res.body)
+                      : res.data !== undefined
+                      ? JSON.stringify(res.data)
+                      : '(no body)';
+                  detail = `HTTP ${res.status} ${res.statusText || ''}. Body: ${bodyText}`;
+                } else {
+                  // Network failure or other error with no HTTP response
+                  detail = `Network error: ${error.message}`;
+                }
+
+                return {
+                  ...state,
+                  qaResults: [...qaResults, { name, endpoint, passed: false, detail }],
+                };
+              });
           });
-
       httpbin-post:
         name: httpbin-post
         adaptor: '@openfn/language-http@latest'
@@ -709,35 +732,60 @@ workflows:
           // Records passed:false on failure instead of throwing.
 
           const endpoint = 'https://httpbin.org/post';
-          const body = { qa: 'openfn', ts: Date.now() };
-
-          post(endpoint, { body })(state => state); // keep body available below
-
-          post(endpoint, state => ({
-            body: { qa: 'openfn', ts: Date.now() },
-          }));
 
           fn(state => {
             // ensure the shared array exists without overwriting existing entries
             const qaResults = state.qaResults || [];
 
-            const sent = { qa: 'openfn' };
-            const echoed = state.data && state.data.json;
+            const body = { qa: 'openfn', ts: Date.now() };
 
-            const passed = !!echoed && echoed.qa === 'openfn' && typeof echoed.ts !== 'undefined';
+            // Invoke the request inside fn so we can catch any failure.
+            // A non-2xx response or a network error rejects here instead of
+            // aborting the whole workflow.
+            return post(endpoint, body)(state)
+              .then(nextState => {
+                // ---- success: keep the existing check logic ----
+                const echoed = nextState.data && nextState.data.json;
 
-            const result = {
-              name: 'httpbin-post',
-              endpoint: 'https://httpbin.org/post',
-              passed,
-              detail: passed
-                ? 'Response json echoed the posted body.'
-                : `Echo mismatch: ${JSON.stringify(echoed)}`,
-            };
+                const passed =
+                  !!echoed && echoed.qa === 'openfn' && typeof echoed.ts !== 'undefined';
 
-            return { ...state, qaResults: [...qaResults, result] };
+                const result = {
+                  name: 'httpbin-post',
+                  endpoint,
+                  passed,
+                  detail: passed
+                    ? 'Response json echoed the posted body.'
+                    : `Echo mismatch: ${JSON.stringify(echoed)}`,
+                };
+
+                return { ...nextState, qaResults: [...qaResults, result] };
+              })
+              .catch(error => {
+                // ---- failure: never throw, record passed:false ----
+                const response = error && error.response;
+
+                let detail;
+                if (response) {
+                  const bodyText =
+                    typeof response.data === 'undefined'
+                      ? ''
+                      : ` Body: ${JSON.stringify(response.data)}`;
+                  detail = `HTTP ${response.status} ${response.statusText || ''}.${bodyText}`.trim();
+                } else {
+                  detail = `Network error: ${(error && error.message) || String(error)}`;
+                }
+
+                const result = {
+                  name: 'httpbin-post',
+                  endpoint,
+                  passed: false,
+                  detail,
+                };
+
+                return { ...state, qaResults: [...qaResults, result] };
+              });
           });
-
       httpbin-status:
         name: httpbin-status
         adaptor: '@openfn/language-http@latest'
@@ -747,31 +795,62 @@ workflows:
           // Sends a GET request to https://httpbin.org/status/200
           // Verifies the returned status code is 200
           // Appends a result object to the shared state.qaResults array (never overwrites existing entries)
-
-          get('https://httpbin.org/status/200', {
-            // don't throw on non-2xx responses so we can record the failure instead
-            parseAs: 'text',
-          });
+          // Any HTTP failure (non-2xx or network error) is caught and recorded - it never aborts the run
 
           fn(state => {
+            const name = 'httpbin-status';
             const endpoint = 'https://httpbin.org/status/200';
-            const status = state.response?.status;
-            const passed = status === 200;
 
-            const result = {
-              name: 'httpbin-status',
-              endpoint,
-              passed,
-              detail: passed
-                ? 'Returned expected status 200'
-                : `Expected status 200 but got ${status}`,
-            };
+            // append exactly one entry to state.qaResults without overwriting existing ones
+            const append = (s, result) => ({
+              ...s,
+              qaResults: [...(s.qaResults || []), result],
+            });
 
-            const qaResults = state.qaResults || [];
-
-            return { ...state, qaResults: [...qaResults, result] };
+            try {
+              // parseAs 'text' so we can read the raw body even on failures
+              return get(endpoint, { parseAs: 'text' })(state)
+                .then(nextState => {
+                  const status = nextState.response?.statusCode;
+                  const passed = status === 200;
+                  return append(nextState, {
+                    name,
+                    endpoint,
+                    passed,
+                    detail: passed
+                      ? 'Returned expected status 200'
+                      : `Expected status 200 but got ${status}`,
+                  });
+                })
+                .catch(error => {
+                  const response = error.response;
+                  let detail;
+                  if (response) {
+                    // non-2xx HTTP response: include status code, status message and body
+                    detail = `HTTP ${response.status} ${response.statusText || ''}`.trim();
+                    if (response.data !== undefined && response.data !== null && response.data !== '') {
+                      const body =
+                        typeof response.data === 'string'
+                          ? response.data
+                          : JSON.stringify(response.data);
+                      detail += ` - body: ${body}`;
+                    }
+                  } else {
+                    // network / connection failure: no response, use the error message
+                    detail = `Network error: ${error.message}`;
+                  }
+                  return append(state, { name, endpoint, passed: false, detail });
+                });
+            } catch (error) {
+              // safety net: never throw
+              return append(state, {
+                name,
+                endpoint,
+                passed: false,
+                detail: `Network error: ${error.message}`,
+              });
+            }
           });
-
       httpbin-headers:
         name: httpbin-headers
         adaptor: '@openfn/language-http@latest'
@@ -783,37 +862,57 @@ workflows:
           // Appends a result to the shared state.qaResults array (never overwrites existing entries)
           // Does not throw on failure - records passed:false with detail instead
 
-          get('https://httpbin.org/headers');
-
           fn(state => {
             const endpoint = 'https://httpbin.org/headers';
-            const qaResults = state.qaResults || [];
+            const name = 'httpbin-headers';
 
-            let passed = false;
-            let detail = '';
+            const append = result => ({
+              ...state,
+              qaResults: [...(state.qaResults || []), { name, endpoint, ...result }],
+            });
 
-            try {
-              const headers = state.data && state.data.headers;
-              if (headers && typeof headers === 'object' && headers.Host) {
-                passed = true;
-                detail = `Host header present: ${headers.Host}`;
-              } else if (headers && typeof headers === 'object') {
-                detail = 'headers object found but no Host header';
-              } else {
-                detail = 'no headers object in response';
-              }
-            } catch (e) {
-              detail = `assertion error: ${e.message}`;
-            }
+            return get(endpoint)(state)
+              .then(nextState => {
+                let passed = false;
+                let detail = '';
 
-            const result = {
-              name: 'httpbin-headers',
-              endpoint,
-              passed,
-              detail,
-            };
+                const headers = nextState.data && nextState.data.headers;
+                if (headers && typeof headers === 'object' && headers.Host) {
+                  passed = true;
+                  detail = `Host header present: ${headers.Host}`;
+                } else if (headers && typeof headers === 'object') {
+                  detail = 'headers object found but no Host header';
+                } else {
+                  detail = 'no headers object in response';
+                }
 
-            return { ...state, qaResults: [...qaResults, result] };
+                return {
+                  ...nextState,
+                  qaResults: [
+                    ...(nextState.qaResults || []),
+                    { name, endpoint, passed, detail },
+                  ],
+                };
+              })
+              .catch(error => {
+                let detail;
+                const response = error && error.response;
+
+                if (response && response.status) {
+                  const status = response.status;
+                  const statusText = response.statusText || '';
+                  let body = response.data;
+                  if (body && typeof body === 'object') {
+                    body = JSON.stringify(body);
+                  }
+                  detail = `HTTP ${status} ${statusText}`.trim();
+                  if (body) detail += ` - body: ${body}`;
+                } else {
+                  detail = `network error: ${error && error.message ? error.message : String(error)}`;
+                }
+
+                return append({ passed: false, detail });
+              });
           });
       jsonplaceholder-list:
         name: jsonplaceholder-list
@@ -826,38 +925,58 @@ workflows:
           // Appends a { name, endpoint, passed, detail } record to the shared state.qaResults array.
           // Never throws on failure and never overwrites existing qaResults entries.
 
-          get('https://jsonplaceholder.typicode.com/posts');
-
           fn(state => {
+            const name = 'jsonplaceholder-list';
             const endpoint = 'https://jsonplaceholder.typicode.com/posts';
             const qaResults = Array.isArray(state.qaResults) ? state.qaResults : [];
 
-            const posts = state.data;
-            const isArray = Array.isArray(posts);
-            const count = isArray ? posts.length : 0;
-            const first = isArray ? posts[0] : undefined;
+            return get(endpoint)(state)
+              .then(nextState => {
+                const posts = nextState.data;
+                const isArray = Array.isArray(posts);
+                const count = isArray ? posts.length : 0;
+                const first = isArray ? posts[0] : undefined;
 
-            const passed = Boolean(
-              isArray &&
-              count > 0 &&
-              first &&
-              first.id !== undefined &&
-              first.title !== undefined
-            );
+                const passed = Boolean(
+                  isArray &&
+                  count > 0 &&
+                  first &&
+                  first.id !== undefined &&
+                  first.title !== undefined
+                );
 
-            const detail = passed
-              ? `Received ${count} posts`
-              : `Verification failed (isArray: ${isArray}, count: ${count})`;
+                const detail = passed
+                  ? `Received ${count} posts`
+                  : `Verification failed (isArray: ${isArray}, count: ${count})`;
 
-            return {
-              ...state,
-              qaResults: [
-                ...qaResults,
-                { name: 'jsonplaceholder-list', endpoint, passed, detail },
-              ],
-            };
+                return {
+                  ...nextState,
+                  qaResults: [...qaResults, { name, endpoint, passed, detail }],
+                };
+              })
+              .catch(error => {
+                const response = error.response;
+                let detail;
+
+                if (response) {
+                  const status = response.statusCode ?? response.status ?? '';
+                  const message = response.statusMessage ?? '';
+                  const body = response.body ?? response.data;
+                  const bodyText =
+                    body === undefined || body === null || body === ''
+                      ? ''
+                      : ` - ${typeof body === 'string' ? body : JSON.stringify(body)}`;
+                  detail = `HTTP ${status} ${message}${bodyText}`.trim();
+                } else {
+                  detail = `Network error: ${error.message}`;
+                }
+
+                return {
+                  ...state,
+                  qaResults: [...qaResults, { name, endpoint, passed: false, detail }],
+                };
+              });
           });
-
       jsonplaceholder-create:
         name: jsonplaceholder-create
         adaptor: '@openfn/language-http@latest'
@@ -867,85 +986,63 @@ workflows:
           // QA health-check node: POSTs a sample post to the JSONPlaceholder mock API.
           // Verifies the response returns a created resource with an id (mock returns 101).
           // Appends a pass/fail result to the shared state.qaResults array (never overwrites).
-
-          post('https://jsonplaceholder.typicode.com/posts', {
-            title: 'qa',
-            body: 'openfn health check',
-            userId: 1,
-          });
+          // The request is wrapped so any failure is caught and never aborts the run.
 
           fn(state => {
+            const name = 'jsonplaceholder-create';
             const endpoint = 'https://jsonplaceholder.typicode.com/posts';
             const qaResults = state.qaResults || [];
 
-            const id = state.data && state.data.id;
-            const passed = id != null;
+            return post(endpoint, {
+              title: 'qa',
+              body: 'openfn health check',
+              userId: 1,
+            })(state)
+              .then(nextState => {
+                const id = nextState.data && nextState.data.id;
+                const passed = id != null;
 
-            const result = {
-              name: 'jsonplaceholder-create',
-              endpoint,
-              passed,
-              detail: passed
-                ? `Created resource with id ${id}`
-                : 'No id returned in response',
-            };
+                const result = {
+                  name,
+                  endpoint,
+                  passed,
+                  detail: passed
+                    ? `Created resource with id ${id}`
+                    : 'No id returned in response',
+                };
 
-            return { ...state, qaResults: [...qaResults, result] };
-          });
+                return { ...nextState, qaResults: [...qaResults, result] };
+              })
+              .catch(error => {
+                const response = error.response;
+                let detail;
 
-      restcountries-lookup:
-        name: restcountries-lookup
-        adaptor: '@openfn/language-http@latest'
-        credential: null
-        body: |
-          // Node: restcountries-lookup
-          // Sends a GET request to https://restcountries.com/v3.1/name/kenya
-          // Verifies the response is an array containing a country whose common
-          // name is 'Kenya' and capital is 'Nairobi'.
-          // Appends a pass/fail result object to the shared state.qaResults array.
-          // Never throws on assertion failure - records passed:false instead.
+                if (response) {
+                  const status = response.status;
+                  const statusMessage = response.statusText || '';
+                  let body = response.data;
+                  if (body && typeof body !== 'string') {
+                    try {
+                      body = JSON.stringify(body);
+                    } catch (e) {
+                      body = String(body);
+                    }
+                  }
+                  detail = `HTTP ${status} ${statusMessage}`.trim();
+                  if (body) detail += ` - ${body}`;
+                } else {
+                  detail = `Network error: ${error.message}`;
+                }
 
-          get('https://restcountries.com/v3.1/name/kenya');
+                const result = {
+                  name,
+                  endpoint,
+                  passed: false,
+                  detail,
+                };
 
-          fn(state => {
-            const endpoint = 'https://restcountries.com/v3.1/name/kenya';
-            const qaResults = state.qaResults || [];
-
-            let passed = false;
-            let detail = '';
-
-            try {
-              const data = state.data;
-              if (!Array.isArray(data)) {
-                throw new Error('Response is not an array');
-              }
-
-              const kenya = data.find(
-                c =>
-                  c.name &&
-                  c.name.common === 'Kenya' &&
-                  Array.isArray(c.capital) &&
-                  c.capital.includes('Nairobi')
-              );
-
-              if (kenya) {
-                passed = true;
-                detail = 'Found Kenya with capital Nairobi';
-              } else {
-                detail = 'No country with common name Kenya and capital Nairobi found';
-              }
-            } catch (e) {
-              detail = `Assertion error: ${e.message}`;
-            }
-
-            const result = {
-              name: 'restcountries-lookup',
-              endpoint,
-              passed,
-              detail,
-            };
-
-            return { ...state, qaResults: [...qaResults, result] };
+                return { ...state, qaResults: [...qaResults, result] };
+              });
           });
       github-repo:
         name: github-repo
@@ -957,29 +1054,56 @@ workflows:
           // Verifies the response full_name equals 'OpenFn/kit'.
           // Appends a pass/fail result to the shared state.qaResults array without throwing.
 
-          get('https://api.github.com/repos/OpenFn/kit', {
-            headers: { 'User-Agent': 'openfn-qa' },
-          });
-
           fn(state => {
             const endpoint = 'https://api.github.com/repos/OpenFn/kit';
             const qaResults = state.qaResults || [];
 
-            const body = state.data || {};
-            const passed = body.full_name === 'OpenFn/kit';
+            return get(endpoint, { headers: { 'User-Agent': 'openfn-qa' } })(state)
+              .then(nextState => {
+                const body = nextState.data || {};
+                const passed = body.full_name === 'OpenFn/kit';
 
-            qaResults.push({
-              name: 'github-repo',
-              endpoint,
-              passed,
-              detail: passed
-                ? `stargazers_count: ${body.stargazers_count}`
-                : `Expected full_name 'OpenFn/kit', got '${body.full_name}'`,
-            });
+                qaResults.push({
+                  name: 'github-repo',
+                  endpoint,
+                  passed,
+                  detail: passed
+                    ? `stargazers_count: ${body.stargazers_count}`
+                    : `Expected full_name 'OpenFn/kit', got '${body.full_name}'`,
+                });
 
-            return { ...state, qaResults };
+                return { ...nextState, qaResults };
+              })
+              .catch(error => {
+                // A non-2xx response carries an HTTP response; a network error does not.
+                const response = error.response || (error.body && error) || null;
+                let detail;
+
+                if (response && (response.status || response.statusCode)) {
+                  const status = response.status || response.statusCode;
+                  const message = response.statusText || response.statusMessage || '';
+                  const body = response.body ?? response.data;
+                  const bodyText =
+                    body == null
+                      ? 'no body'
+                      : typeof body === 'string'
+                      ? body
+                      : JSON.stringify(body);
+                  detail = `HTTP ${status} ${message} - ${bodyText}`.trim();
+                } else {
+                  detail = `Network error: ${error.message || String(error)}`;
+                }
+
+                qaResults.push({
+                  name: 'github-repo',
+                  endpoint,
+                  passed: false,
+                  detail,
+                });
+
+                return { ...state, qaResults };
+              });
           });
-
       random-user:
         name: random-user
         adaptor: '@openfn/language-http@latest'
@@ -990,41 +1114,66 @@ workflows:
           // - Verifies the response has a results array with one user having a name and email
           // - Appends a result object to the shared state.qaResults array (never overwrites existing entries)
           // - Records passed:false on failure instead of throwing
-
-          get('https://randomuser.me/api/');
+          // - A non-2xx response or network error is caught here and never aborts the workflow
 
           fn(state => {
             const endpoint = 'https://randomuser.me/api/';
-            let passed = false;
-            let detail = '';
+            const name = 'random-user';
 
-            try {
-              const results = state.data && state.data.results;
-              if (!Array.isArray(results)) {
-                detail = 'Response has no results array';
-              } else if (results.length !== 1) {
-                detail = `Expected 1 user, got ${results.length}`;
-              } else {
-                const user = results[0];
-                const hasName = !!(user.name && (user.name.first || user.name.last));
-                const hasEmail = !!user.email;
-                if (hasName && hasEmail) {
-                  passed = true;
-                  detail = `Found user ${user.name.first} ${user.name.last} <${user.email}>`;
-                } else {
-                  detail = `Missing ${!hasName ? 'name' : ''}${!hasName && !hasEmail ? ' and ' : ''}${!hasEmail ? 'email' : ''}`;
+            // Run the request inside the fn so any failure can be caught here.
+            return get(endpoint)(state)
+              .then(s => {
+                let passed = false;
+                let detail = '';
+
+                try {
+                  const results = s.data && s.data.results;
+                  if (!Array.isArray(results)) {
+                    detail = 'Response has no results array';
+                  } else if (results.length !== 1) {
+                    detail = `Expected 1 user, got ${results.length}`;
+                  } else {
+                    const user = results[0];
+                    const hasName = !!(user.name && (user.name.first || user.name.last));
+                    const hasEmail = !!user.email;
+                    if (hasName && hasEmail) {
+                      passed = true;
+                      detail = `Found user ${user.name.first} ${user.name.last} <${user.email}>`;
+                    } else {
+                      detail = `Missing ${!hasName ? 'name' : ''}${!hasName && !hasEmail ? ' and ' : ''}${!hasEmail ? 'email' : ''}`;
+                    }
+                  }
+                } catch (e) {
+                  detail = `Assertion error: ${e.message}`;
                 }
-              }
-            } catch (e) {
-              detail = `Assertion error: ${e.message}`;
-            }
 
-            const qaResults = state.qaResults || [];
-            qaResults.push({ name: 'random-user', endpoint, passed, detail });
+                const qaResults = s.qaResults || [];
+                qaResults.push({ name, endpoint, passed, detail });
+                return { ...s, qaResults };
+              })
+              .catch(err => {
+                // Non-2xx response or network error: never throw, record the failure.
+                const response = err && err.response;
+                let detail;
 
-            return { ...state, qaResults };
+                if (response) {
+                  const status = response.status ?? response.statusCode ?? '?';
+                  const statusText = response.statusText ?? response.statusMessage ?? '';
+                  const body = response.data ?? response.body;
+                  const bodyStr =
+                    body === undefined
+                      ? ''
+                      : ` - body: ${typeof body === 'string' ? body : JSON.stringify(body)}`;
+                  detail = `HTTP ${status} ${statusText}${bodyStr}`;
+                } else {
+                  detail = `Network error: ${err && err.message ? err.message : String(err)}`;
+                }
+
+                const qaResults = state.qaResults || [];
+                qaResults.push({ name, endpoint, passed: false, detail });
+                return { ...state, qaResults };
+              });
           });
-
       dog-image:
         name: dog-image
         adaptor: '@openfn/language-http@latest'
@@ -1035,28 +1184,57 @@ workflows:
           // Sends GET https://dog.ceo/api/breeds/image/random
           // Verifies the response status is 'success' and message is a URL string.
           // Appends a result to state.qaResults without overwriting existing entries.
-
-          get('https://dog.ceo/api/breeds/image/random');
+          // Never aborts the run: any HTTP/network failure is caught and recorded.
 
           fn(state => {
             const endpoint = 'https://dog.ceo/api/breeds/image/random';
             const qaResults = state.qaResults || [];
 
-            const body = state.data || {};
-            const url = body.message;
-            const isUrl = typeof url === 'string' && /^https?:\/\//.test(url);
-            const passed = body.status === 'success' && isUrl;
+            return get(endpoint)(state)
+              .then(nextState => {
+                const body = nextState.data || {};
+                const url = body.message;
+                const isUrl = typeof url === 'string' && /^https?:\/\//.test(url);
+                const passed = body.status === 'success' && isUrl;
 
-            qaResults.push({
-              name: 'dog-image',
-              endpoint,
-              passed,
-              detail: isUrl ? url : null,
-            });
+                qaResults.push({
+                  name: 'dog-image',
+                  endpoint,
+                  passed,
+                  detail: isUrl ? url : null,
+                });
 
-            return { ...state, qaResults };
+                return { ...nextState, qaResults };
+              })
+              .catch(error => {
+                const response = error.response;
+                let detail;
+
+                if (response) {
+                  const status = response.status;
+                  const statusText = response.statusText || '';
+                  const bodyText =
+                    response.data !== undefined
+                      ? typeof response.data === 'string'
+                        ? response.data
+                        : JSON.stringify(response.data)
+                      : '';
+                  detail = `HTTP ${status} ${statusText}`.trim();
+                  if (bodyText) detail += ` - ${bodyText}`;
+                } else {
+                  detail = `Network error: ${error.message}`;
+                }
+
+                qaResults.push({
+                  name: 'dog-image',
+                  endpoint,
+                  passed: false,
+                  detail,
+                });
+
+                return { ...state, qaResults };
+              });
           });
-
       cat-fact:
         name: cat-fact
         adaptor: '@openfn/language-http@latest'
@@ -1068,25 +1246,45 @@ workflows:
           // Appends a result object to state.qaResults (never overwrites existing entries).
           // Records passed:false on failure instead of throwing.
 
-          get('https://catfact.ninja/fact');
-
           fn(state => {
+            const name = 'cat-fact';
             const endpoint = 'https://catfact.ninja/fact';
-            const fact = state.data && state.data.fact;
-            const passed = typeof fact === 'string' && fact.trim().length > 0;
 
-            const result = {
-              name: 'cat-fact',
-              endpoint,
-              passed,
-              detail: passed ? fact.slice(0, 200) : 'No valid fact returned',
-            };
+            return get(endpoint)(state)
+              .then(nextState => {
+                const fact = nextState.data && nextState.data.fact;
+                const passed = typeof fact === 'string' && fact.trim().length > 0;
 
-            const qaResults = state.qaResults || [];
+                const result = {
+                  name,
+                  endpoint,
+                  passed,
+                  detail: passed ? fact.slice(0, 200) : 'No valid fact returned',
+                };
 
-            return { ...state, qaResults: [...qaResults, result] };
+                const qaResults = nextState.qaResults || [];
+                return { ...nextState, qaResults: [...qaResults, result] };
+              })
+              .catch(error => {
+                let detail;
+                if (error.response) {
+                  const { status, statusText, data } = error.response;
+                  const body =
+                    data == null
+                      ? ''
+                      : ` - body: ${
+                          typeof data === 'string' ? data : JSON.stringify(data)
+                        }`;
+                  detail = `HTTP ${status} ${statusText || ''}`.trim() + body;
+                } else {
+                  detail = `Network error: ${error.message}`;
+                }
+
+                const result = { name, endpoint, passed: false, detail };
+                const qaResults = state.qaResults || [];
+                return { ...state, qaResults: [...qaResults, result] };
+              });
           });
-
       numbers-trivia:
         name: numbers-trivia
         adaptor: '@openfn/language-http@latest'
@@ -1098,27 +1296,55 @@ workflows:
           // - Appends a result object to the shared state.qaResults array
           // - Never overwrites existing results; never throws on failure
 
-          get('http://numbersapi.com/random/trivia', { parseAs: 'text' });
-
           fn(state => {
-            const endpoint = 'http://numbersapi.com/random/trivia';
-            const trivia = typeof state.data === 'string' ? state.data.trim() : '';
-            const passed = trivia.length > 0;
+            const name = 'numbers-trivia';
+            const endpoint =
+              'https://uselessfacts.jsph.pl/api/v2/facts/random?language=en';
 
-            const qaResults = state.qaResults || [];
+            return get(endpoint)(state)
+              .then(nextState => {
+                // Success: response is JSON with a `text` field
+                const body = nextState.data;
+                const trivia =
+                  body && typeof body.text === 'string' ? body.text.trim() : '';
+                const passed = trivia.length > 0;
 
-            return {
-              ...state,
-              qaResults: [
-                ...qaResults,
-                {
-                  name: 'numbers-trivia',
-                  endpoint,
-                  passed,
-                  detail: trivia,
-                },
-              ],
-            };
+                const qaResults = nextState.qaResults || [];
+
+                return {
+                  ...nextState,
+                  qaResults: [
+                    ...qaResults,
+                    { name, endpoint, passed, detail: trivia },
+                  ],
+                };
+              })
+              .catch(error => {
+                // Failure: never throw, append a passed:false entry
+                let detail;
+                if (error && error.statusCode) {
+                  detail = `HTTP ${error.statusCode} ${error.statusMessage || ''}`.trim();
+                  if (error.body) {
+                    detail += `: ${
+                      typeof error.body === 'string'
+                        ? error.body
+                        : JSON.stringify(error.body)
+                    }`;
+                  }
+                } else {
+                  detail = (error && error.message) || String(error);
+                }
+
+                const qaResults = state.qaResults || [];
+
+                return {
+                  ...state,
+                  qaResults: [
+                    ...qaResults,
+                    { name, endpoint, passed: false, detail },
+                  ],
+                };
+              });
           });
       iss-location:
         name: iss-location
@@ -1129,31 +1355,57 @@ workflows:
           // Sends a GET request to the Open Notify ISS location API
           // Verifies the response message is 'success' and includes an iss_position with latitude/longitude
           // Appends a pass/fail result to the shared state.qaResults array (never overwrites existing entries)
-
-          get('http://api.open-notify.org/iss-now.json');
+          // The request is wrapped so any failure (non-2xx or network error) is caught and recorded, never thrown
 
           fn(state => {
-            const endpoint = 'http://api.open-notify.org/iss-now.json';
+            const endpoint = 'https://api.wheretheiss.at/v1/satellites/25544';
             const qaResults = state.qaResults || [];
 
-            const body = state.data || {};
-            const pos = body.iss_position || {};
+            const appendResult = result => ({
+              ...state,
+              qaResults: [...qaResults, result],
+            });
 
-            const passed =
-              body.message === 'success' &&
-              pos.latitude != null &&
-              pos.longitude != null;
+            return get(endpoint)(state)
+              .then(next => {
+                const body = next.data || {};
 
-            const result = {
-              name: 'iss-location',
-              endpoint,
-              passed,
-              detail: { latitude: pos.latitude, longitude: pos.longitude },
-            };
+                const passed = body.latitude != null && body.longitude != null;
 
-            return { ...state, qaResults: [...qaResults, result] };
+                return appendResult({
+                  name: 'iss-location',
+                  endpoint,
+                  passed,
+                  detail: `latitude=${body.latitude}, longitude=${body.longitude}`,
+                });
+              })
+              .catch(error => {
+                const response = error.response;
+                let detail;
+
+                if (response) {
+                  // Non-2xx HTTP response: include status code, status message and body
+                  const body =
+                    typeof response.body === 'string'
+                      ? response.body
+                      : JSON.stringify(response.body);
+                  detail = `HTTP ${response.statusCode} ${
+                    response.statusMessage || ''
+                  }`.trim();
+                  if (body) detail += ` - ${body}`;
+                } else {
+                  // Network / other failure: use the error message
+                  detail = `Network error: ${error.message}`;
+                }
+
+                return appendResult({
+                  name: 'iss-location',
+                  endpoint,
+                  passed: false,
+                  detail,
+                });
+              });
           });
-
       crypto-price:
         name: crypto-price
         adaptor: '@openfn/language-http@latest'
@@ -1163,32 +1415,56 @@ workflows:
           // Fetches the current Bitcoin price in USD from CoinGecko
           // Verifies bitcoin.usd is a positive number
           // Appends a result object to the shared state.qaResults array (never overwrites existing entries)
-
-          get('https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd');
+          // Never throws: HTTP/network failures are caught and recorded as passed:false
 
           fn(state => {
             const endpoint =
               'https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd';
 
-            const price = state.data?.bitcoin?.usd;
-            const passed = typeof price === 'number' && price > 0;
+            const append = (base, result) => ({
+              ...base,
+              qaResults: [...(base.qaResults || []), result],
+            });
 
-            const qaResults = state.qaResults || [];
+            return get(endpoint, {
+              headers: { 'User-Agent': 'OpenFn-QA-HealthCheck/1.0' },
+            })(state)
+              .then(s => {
+                // Existing check logic, unchanged
+                const price = s.data?.bitcoin?.usd;
+                const passed = typeof price === 'number' && price > 0;
 
-            return {
-              ...state,
-              qaResults: [
-                ...qaResults,
-                {
+                return append(s, {
                   name: 'crypto-price',
                   endpoint,
                   passed,
                   detail: price,
-                },
-              ],
-            };
-          });
+                });
+              })
+              .catch(error => {
+                const response = error.response;
+                let detail;
 
+                if (response) {
+                  const status = response.status ?? response.statusCode ?? '';
+                  const statusText = response.statusText || response.statusMessage || '';
+                  const body =
+                    typeof response.data === 'object'
+                      ? JSON.stringify(response.data)
+                      : String(response.data ?? '');
+                  detail = `HTTP ${status} ${statusText} - ${body}`.trim();
+                } else {
+                  detail = `Network error: ${error.message}`;
+                }
+
+                return append(state, {
+                  name: 'crypto-price',
+                  endpoint,
+                  passed: false,
+                  detail,
+                });
+              });
+          });
       bored-activity:
         name: bored-activity
         adaptor: '@openfn/language-http@latest'
@@ -1198,31 +1474,59 @@ workflows:
           // - Sends a GET request to the Bored API activity endpoint
           // - Verifies the response contains a non-empty 'activity' string
           // - Appends a pass/fail result object to the shared state.qaResults array
-          // - Never throws on assertion failure; records passed:false instead
-
-          get('https://www.boredapi.com/api/activity');
+          // - Never throws on request or assertion failure; records passed:false instead
 
           fn(state => {
-            const endpoint = 'https://www.boredapi.com/api/activity';
-            const activity = state.data && state.data.activity;
-            const passed = typeof activity === 'string' && activity.trim().length > 0;
-
+            const name = 'bored-activity';
+            const endpoint = 'https://bored-api.appbrewery.com/random';
             const qaResults = state.qaResults || [];
 
-            return {
-              ...state,
-              qaResults: [
-                ...qaResults,
-                {
-                  name: 'bored-activity',
-                  endpoint,
-                  passed,
-                  detail: activity,
-                },
-              ],
-            };
-          });
+            return get(endpoint)(state)
+              .then(nextState => {
+                // Success: keep the existing check logic
+                const activity = nextState.data && nextState.data.activity;
+                const passed =
+                  typeof activity === 'string' && activity.trim().length > 0;
 
+                return {
+                  ...nextState,
+                  qaResults: [
+                    ...qaResults,
+                    { name, endpoint, passed, detail: activity },
+                  ],
+                };
+              })
+              .catch(error => {
+                // Failure: build a full explanation, never throw
+                let detail;
+                const response = error.response || (error.body && error);
+
+                if (response && (response.statusCode || response.status)) {
+                  const statusCode = response.statusCode || response.status;
+                  const statusMessage = response.statusMessage || '';
+                  const body = response.body ?? response.data;
+                  const bodyText =
+                    body === undefined || body === null
+                      ? ''
+                      : typeof body === 'string'
+                      ? body
+                      : JSON.stringify(body);
+                  detail = `HTTP ${statusCode} ${statusMessage}`.trim();
+                  if (bodyText) detail += ` - ${bodyText}`;
+                } else {
+                  // Network / non-HTTP failure
+                  detail = error.message || String(error);
+                }
+
+                return {
+                  ...state,
+                  qaResults: [
+                    ...qaResults,
+                    { name, endpoint, passed: false, detail },
+                  ],
+                };
+              });
+          });
       public-holidays:
         name: public-holidays
         adaptor: '@openfn/language-http@latest'
@@ -1232,60 +1536,63 @@ workflows:
           // Sends a GET request to the Nager.Date public holidays API for US 2024.
           // Verifies the response is a non-empty array where each holiday has a date and name.
           // Appends a pass/fail result to the shared state.qaResults array without overwriting existing entries.
-
-          get('https://date.nager.at/api/v3/PublicHolidays/2024/US');
+          // Any HTTP or network failure is caught and recorded - it never aborts the run.
 
           fn(state => {
             const endpoint = 'https://date.nager.at/api/v3/PublicHolidays/2024/US';
-            const holidays = state.data;
 
-            const passed =
-              Array.isArray(holidays) &&
-              holidays.length > 0 &&
-              holidays.every(h => h && h.date && h.name);
+            return get(endpoint)(state)
+              .then(s => {
+                const holidays = s.data;
 
-            const result = {
-              name: 'public-holidays',
-              endpoint,
-              passed,
-              detail: Array.isArray(holidays) ? holidays.length : 0,
-            };
+                const passed =
+                  Array.isArray(holidays) &&
+                  holidays.length > 0 &&
+                  holidays.every(h => h && h.date && h.name);
 
-            const qaResults = state.qaResults || [];
+                const result = {
+                  name: 'public-holidays',
+                  endpoint,
+                  passed,
+                  detail: Array.isArray(holidays) ? holidays.length : 0,
+                };
 
-            return { ...state, qaResults: [...qaResults, result] };
+                const qaResults = s.qaResults || [];
+
+                return { ...s, qaResults: [...qaResults, result] };
+              })
+              .catch(error => {
+                const resp = error.response;
+                let detail;
+
+                if (resp) {
+                  const status = resp.status ?? resp.statusCode ?? '';
+                  const message = resp.statusText ?? resp.statusMessage ?? '';
+                  const body = resp.data ?? resp.body;
+                  const bodyStr =
+                    body == null
+                      ? ''
+                      : typeof body === 'string'
+                      ? body
+                      : JSON.stringify(body);
+                  detail = `HTTP ${status} ${message}`.trim();
+                  if (bodyStr) detail += ` - ${bodyStr}`;
+                } else {
+                  detail = error.message || String(error);
+                }
+
+                const result = {
+                  name: 'public-holidays',
+                  endpoint,
+                  passed: false,
+                  detail,
+                };
+
+                const qaResults = state.qaResults || [];
+
+                return { ...state, qaResults: [...qaResults, result] };
+              });
           });
-
-      ip-geolocation:
-        name: ip-geolocation
-        adaptor: '@openfn/language-http@latest'
-        credential: null
-        body: |
-          // Node: ip-geolocation
-          // Sends a GET request to https://ipapi.co/8.8.8.8/json/
-          // Verifies the response has ip === '8.8.8.8' and a country_name.
-          // Appends a pass/fail result object to the shared state.qaResults array.
-
-          get('https://ipapi.co/8.8.8.8/json/');
-
-          fn(state => {
-            const endpoint = 'https://ipapi.co/8.8.8.8/json/';
-            const data = state.data || {};
-
-            const passed = data.ip === '8.8.8.8' && !!data.country_name;
-
-            const result = {
-              name: 'ip-geolocation',
-              endpoint,
-              passed,
-              detail: data.country_name,
-            };
-
-            const qaResults = state.qaResults || [];
-
-            return { ...state, qaResults: [...qaResults, result] };
-          });
-
       advice-slip:
         name: advice-slip
         adaptor: '@openfn/language-http@latest'
@@ -1297,43 +1604,82 @@ workflows:
           // The API sometimes returns a JSON string, so parsing is handled gracefully.
           // Appends a QA result { name, endpoint, passed, detail } to state.qaResults
           // without overwriting existing entries and without throwing on failure.
-
-          get('https://api.adviceslip.com/advice');
+          // The request is wrapped so a non-2xx response or a network error never aborts the run.
 
           fn(state => {
+            const name = 'advice-slip';
             const endpoint = 'https://api.adviceslip.com/advice';
             const qaResults = state.qaResults || [];
 
-            let passed = false;
-            let detail = null;
+            const append = (entry, base) => ({
+              ...(base || state),
+              qaResults: [...qaResults, entry],
+            });
 
-            try {
-              let body = state.data;
-
-              // Handle case where the API returns text that needs JSON parsing
-              if (typeof body === 'string') {
-                body = JSON.parse(body);
+            const failFromResponse = res => {
+              const status = res.statusCode;
+              const statusText = res.statusText || '';
+              let body = '';
+              if (res.data !== undefined && res.data !== null && res.data !== '') {
+                body =
+                  typeof res.data === 'string' ? res.data : JSON.stringify(res.data);
               }
-
-              const advice = body && body.slip && body.slip.advice;
-
-              if (typeof advice === 'string' && advice.trim().length > 0) {
-                passed = true;
-                detail = advice;
-              } else {
-                detail = 'Missing or empty slip.advice';
-              }
-            } catch (e) {
-              passed = false;
-              detail = `Failed to parse response: ${e.message}`;
-            }
-
-            return {
-              ...state,
-              qaResults: [...qaResults, { name: 'advice-slip', endpoint, passed, detail }],
+              const detail = `HTTP ${status} ${statusText}`.trim() +
+                (body ? ` - ${body}` : '');
+              return { name, endpoint, passed: false, detail };
             };
-          });
 
+            // validateStatus prevents non-2xx from throwing; .catch handles network errors.
+            return get(endpoint, { validateStatus: () => true })(state)
+              .then(s => {
+                const res = s.response || {};
+                const status = res.statusCode;
+
+                // Non-2xx response: record failure with full explanation.
+                if (typeof status !== 'number' || status < 200 || status >= 300) {
+                  return append(failFromResponse({ ...res, data: s.data }), s);
+                }
+
+                // Success: keep the existing check logic.
+                let passed = false;
+                let detail = null;
+
+                try {
+                  let body = s.data;
+
+                  // Handle case where the API returns text that needs JSON parsing
+                  if (typeof body === 'string') {
+                    body = JSON.parse(body);
+                  }
+
+                  const advice = body && body.slip && body.slip.advice;
+
+                  if (typeof advice === 'string' && advice.trim().length > 0) {
+                    passed = true;
+                    detail = advice;
+                  } else {
+                    detail = 'Missing or empty slip.advice';
+                  }
+                } catch (e) {
+                  passed = false;
+                  detail = `Failed to parse response: ${e.message}`;
+                }
+
+                return append({ name, endpoint, passed, detail }, s);
+              })
+              .catch(e => {
+                // A response present here means an HTTP error; otherwise a network failure.
+                if (e && e.response) {
+                  return append(failFromResponse(e.response));
+                }
+                return append({
+                  name,
+                  endpoint,
+                  passed: false,
+                  detail: `Request failed: ${e.message}`,
+                });
+              });
+          });
       universities-search:
         name: universities-search
         adaptor: '@openfn/language-http@latest'
@@ -1345,29 +1691,61 @@ workflows:
           // Appends a pass/fail result object to the shared state.qaResults array.
           // Does not throw on failure - records passed:false instead.
 
-          get('http://universities.hipolabs.com/search?country=Kenya');
-
           fn(state => {
+            const name = 'universities-search';
             const endpoint = 'http://universities.hipolabs.com/search?country=Kenya';
             const qaResults = state.qaResults || [];
 
-            const data = state.data;
-            const isArray = Array.isArray(data);
-            const nonEmpty = isArray && data.length > 0;
-            const allValid =
-              nonEmpty && data.every(u => u && u.name && u.country);
-            const passed = Boolean(nonEmpty && allValid);
+            return get(endpoint)(state)
+              .then(nextState => {
+                // Success: run the existing check logic on the response.
+                const data = nextState.data;
+                const isArray = Array.isArray(data);
+                const nonEmpty = isArray && data.length > 0;
+                const allValid =
+                  nonEmpty && data.every(u => u && u.name && u.country);
+                const passed = Boolean(nonEmpty && allValid);
 
-            qaResults.push({
-              name: 'universities-search',
-              endpoint,
-              passed,
-              detail: isArray ? data.length : 0,
-            });
+                qaResults.push({
+                  name,
+                  endpoint,
+                  passed,
+                  detail: String(isArray ? data.length : 0),
+                });
 
-            return { ...state, qaResults };
+                return { ...nextState, qaResults };
+              })
+              .catch(error => {
+                // Failure: never throw - record passed:false with a full explanation.
+                const response = error && error.response;
+                let detail;
+
+                if (response) {
+                  // HTTP error (non-2xx response).
+                  const status = response.status;
+                  const statusText = response.statusText || '';
+                  let body = response.data;
+                  if (body && typeof body === 'object') {
+                    body = JSON.stringify(body);
+                  }
+                  detail =
+                    `HTTP ${status} ${statusText}`.trim() +
+                    (body ? ` - ${body}` : '');
+                } else {
+                  // Network error (no response received).
+                  detail = `Network error: ${error && error.message ? error.message : String(error)}`;
+                }
+
+                qaResults.push({
+                  name,
+                  endpoint,
+                  passed: false,
+                  detail,
+                });
+
+                return { ...state, qaResults };
+              });
           });
-
       qa-summary:
         name: qa-summary
         adaptor: '@openfn/language-http@latest'
@@ -1406,7 +1784,146 @@ workflows:
 
             return { ...state, qaSummary: summary };
           });
+      notify-failures:
+        name: notify-failures
+        adaptor: '@openfn/language-gmail@latest'
+        credential: megan@openfn.org-megan-gmail
+        body: |
+          // notify-failures: Compile a QA failure report and email it to megan@openfn.org.
+          // - Reads state.qaResults (array of {name, endpoint, passed, detail}).
+          // - Reads state.errors (object keyed by step id: {message, details, operationName, line, ...}).
+          // - Always emails a full breakdown. Never throws.
 
+          fn(state => {
+            const results = state.qaResults || [];
+            const errors = state.errors || {};
+
+            const passed = results.filter(r => r.passed);
+            const failedResults = results.filter(r => !r.passed);
+            const errorEntries = Object.entries(errors);
+
+            const totalFailures = failedResults.length + errorEntries.length;
+
+            const summaryLine = `QA Health Check: ${passed.length}/${results.length} checks passed, ${failedResults.length} failed` +
+              (errorEntries.length ? `, ${errorEntries.length} step error(s)` : '');
+
+            // Dog image URL captured by the dog-image check
+            const dogResult = results.find(r => r.name === 'dog-image');
+            const dogUrl = dogResult && dogResult.passed ? dogResult.detail : null;
+
+            const line = '='.repeat(60);
+            const sub = '-'.repeat(60);
+
+            const parts = [];
+            parts.push(line);
+            parts.push('QA HEALTH CHECK REPORT');
+            parts.push(new Date().toISOString());
+            parts.push(summaryLine);
+            if (dogUrl) {
+              parts.push('');
+              parts.push(`Dog of the day: ${dogUrl}`);
+            }
+            parts.push(line);
+            parts.push('');
+
+            // FAILED section
+            parts.push(`FAILED (${totalFailures})`);
+            parts.push(sub);
+            if (totalFailures === 0) {
+              parts.push('No failures. \u{1F389}');
+            } else {
+              failedResults.forEach(r => {
+                parts.push(`\u2718 ${r.name}`);
+                parts.push(`  Endpoint: ${r.endpoint || 'n/a'}`);
+                parts.push(`  Detail:   ${r.detail || 'n/a'}`);
+                parts.push('');
+              });
+
+              errorEntries.forEach(([stepId, err]) => {
+                const details = err.details || {};
+                const bodyText = details.body != null
+                  ? (typeof details.body === 'string' ? details.body : JSON.stringify(details.body, null, 2))
+                  : 'n/a';
+                parts.push(`\u26A0 STEP ERROR: ${stepId}`);
+                parts.push(`  Operation: ${err.operationName || 'n/a'}${err.line ? ' (line ' + err.line + ')' : ''}`);
+                parts.push(`  Status:    ${details.statusCode != null ? details.statusCode : 'n/a'}`);
+                parts.push(`  Message:   ${err.message || 'n/a'}`);
+                parts.push(`  Body:      ${bodyText}`);
+                parts.push('');
+              });
+            }
+
+            parts.push('');
+
+            // PASSED section
+            parts.push(`PASSED (${passed.length})`);
+            parts.push(sub);
+            if (passed.length === 0) {
+              parts.push('No successful checks.');
+            } else {
+              passed.forEach(r => {
+                parts.push(`\u2714 ${r.name}`);
+                parts.push(`  Endpoint: ${r.endpoint || 'n/a'}`);
+                parts.push(`  Detail:   ${r.detail || 'n/a'}`);
+                parts.push('');
+              });
+            }
+
+            parts.push(line);
+            parts.push('Automated QA Health Check \u00B7 OpenFn');
+            parts.push(line);
+
+            const body = parts.join('\n');
+
+            const subject = totalFailures > 0
+              ? `QA Health Check FAILED - ${totalFailures} issue(s) found`
+              : `QA Health Check PASSED - all ${results.length} checks OK`;
+
+            console.log(summaryLine);
+
+            return { ...state, report: { subject, body, totalFailures } };
+          });
+
+          sendMessage({
+            to: 'megan@openfn.org',
+            subject: state => state.report.subject,
+            body: state => state.report.body,
+          });
+
+          // Ensure the step never fails, even if sending errored
+          fn(state => {
+            if (state.errors) {
+              console.log('Notification step encountered errors while sending; continuing without throwing.');
+            }
+            return state;
+          });
+      intentional-fail:
+        name: intentional-fail
+        adaptor: '@openfn/language-http@latest'
+        credential: null
+        body: |
+          // QA health-check node: intentional-fail
+          // A deliberately-failing check that proves the failure-reporting path works.
+          // It performs no real request - it simply records a synthetic failure.
+          // Does not throw and completes successfully so the chain continues on on_job_success.
+
+          fn(state => {
+            const name = 'intentional-fail';
+            const endpoint = 'n/a - deliberate failure';
+            const qaResults = state.qaResults || [];
+
+            qaResults.push({
+              name,
+              endpoint,
+              passed: false,
+              detail:
+                'Intentional/synthetic failure. This check always reports passed:false ' +
+                'to verify that the QA failure-reporting and notification path works end to end. ' +
+                'No external system was called and no error was thrown.',
+            });
+
+            return { ...state, qaResults };
+          });
     triggers:
       cron:
         type: cron
@@ -1441,16 +1958,6 @@ workflows:
       jsonplaceholder-list->jsonplaceholder-create:
         source_job: jsonplaceholder-list
         target_job: jsonplaceholder-create
-        condition_type: on_job_success
-        enabled: true
-      jsonplaceholder-create->restcountries-lookup:
-        source_job: jsonplaceholder-create
-        target_job: restcountries-lookup
-        condition_type: on_job_success
-        enabled: true
-      restcountries-lookup->github-repo:
-        source_job: restcountries-lookup
-        target_job: github-repo
         condition_type: on_job_success
         enabled: true
       github-repo->random-user:
@@ -1493,24 +2000,34 @@ workflows:
         target_job: public-holidays
         condition_type: on_job_success
         enabled: true
-      public-holidays->ip-geolocation:
-        source_job: public-holidays
-        target_job: ip-geolocation
-        condition_type: on_job_success
-        enabled: true
-      ip-geolocation->advice-slip:
-        source_job: ip-geolocation
-        target_job: advice-slip
-        condition_type: on_job_success
-        enabled: true
       advice-slip->universities-search:
         source_job: advice-slip
         target_job: universities-search
         condition_type: on_job_success
         enabled: true
-      universities-search->qa-summary:
+      qa-summary->notify-failures:
+        source_job: qa-summary
+        target_job: notify-failures
+        condition_type: always
+        enabled: true
+      universities-search->intentional-fail:
         source_job: universities-search
+        target_job: intentional-fail
+        condition_type: on_job_success
+        enabled: true
+      intentional-fail->qa-summary:
+        source_job: intentional-fail
         target_job: qa-summary
+        condition_type: on_job_success
+        enabled: true
+      jsonplaceholder-create->github-repo:
+        source_job: jsonplaceholder-create
+        target_job: github-repo
+        condition_type: on_job_success
+        enabled: true
+      public-holidays->advice-slip:
+        source_job: public-holidays
+        target_job: advice-slip
         condition_type: on_job_success
         enabled: true
   DING-DONG-Notification-Workflow-1:
