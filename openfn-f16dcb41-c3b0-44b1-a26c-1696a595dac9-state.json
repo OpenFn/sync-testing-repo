@@ -4871,8 +4871,8 @@
     "Self-Testing-QA-Health-Check": {
       "id": "878a2dee-5d52-47f6-bd3a-8eee1ebdc3e9",
       "name": "Self-Testing QA Health Check",
-      "inserted_at": "2026-09-16T17:03:00.118439Z",
-      "lock_version": 22,
+      "inserted_at": "2026-09-16T17:05:02.342069Z",
+      "lock_version": 23,
       "triggers": {
         "webhook": {
           "enabled": true,
