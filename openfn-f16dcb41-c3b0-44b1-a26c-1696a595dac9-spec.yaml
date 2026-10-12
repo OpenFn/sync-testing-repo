@@ -1,6 +1,7 @@
 name: megan-is-qa-testing-here
 description: |
   This is Megan's testing space
+
 collections: null
 channels: null
 credentials:
@@ -42,6 +43,7 @@ workflows:
         body: |
           // Check out the Job Writing Guide for help getting started:
           // https://docs.openfn.org/documentation/jobs/job-writing-guide
+
       Dhis2-3:
         name: Dhis2 3
         adaptor: '@openfn/language-dhis2@8.2.0'
@@ -49,6 +51,7 @@ workflows:
         body: |
           // Check out the Job Writing Guide for help getting started:
           // https://docs.openfn.org/documentation/jobs/job-writing-guide
+
       Transform-data:
         name: Transform data
         adaptor: '@openfn/language-common@latest'
@@ -59,6 +62,7 @@ workflows:
             console.log("Do some data transformation here");
             return state;
           })
+
       Dhis2:
         name: Dhis2
         adaptor: '@openfn/language-dhis2@8.2.0'
@@ -66,6 +70,7 @@ workflows:
         body: |
           // Check out the Job Writing Guide for help getting started:
           // https://docs.openfn.org/documentation/jobs/job-writing-guide
+
       Dhis2-1:
         name: Dhis2 1
         adaptor: '@openfn/language-dhis2@8.2.0'
@@ -108,6 +113,7 @@ workflows:
             // Just a random comment
             
           });
+
       Http:
         name: Http
         adaptor: '@openfn/language-common@3.3.4'
@@ -122,10 +128,10 @@ workflows:
         webhook_reply: before_start
         enabled: true
     edges:
-      webhook->Transform-data:
-        source_trigger: webhook
-        target_job: Transform-data
-        condition_type: always
+      Dhis2->Dhis2-2:
+        source_job: Dhis2
+        target_job: Dhis2-2
+        condition_type: on_job_failure
         enabled: true
       Transform-data->Dhis2:
         source_job: Transform-data
@@ -137,11 +143,6 @@ workflows:
         target_job: Dhis2-1
         condition_type: on_job_success
         enabled: true
-      Dhis2->Dhis2-2:
-        source_job: Dhis2
-        target_job: Dhis2-2
-        condition_type: on_job_failure
-        enabled: true
       Dhis2-2->Dhis2-1:
         source_job: Dhis2-2
         target_job: Dhis2-1
@@ -151,6 +152,11 @@ workflows:
         source_job: Dhis2-2
         target_job: Dhis2-3
         condition_type: on_job_success
+        enabled: true
+      webhook->Transform-data:
+        source_trigger: webhook
+        target_job: Transform-data
+        condition_type: always
         enabled: true
       Dhis2-1->Test-job:
         source_job: Dhis2-1
@@ -284,6 +290,7 @@ workflows:
               },
             };
           });
+
       httpbin-headers:
         name: httpbin-headers
         adaptor: '@openfn/language-http@latest'
@@ -347,6 +354,7 @@ workflows:
                 return append({ passed: false, detail });
               });
           });
+
       crypto-price:
         name: crypto-price
         adaptor: '@openfn/language-http@latest'
@@ -406,6 +414,7 @@ workflows:
                 });
               });
           });
+
       notify-failures:
         name: notify-failures
         adaptor: '@openfn/language-gmail@latest'
@@ -530,6 +539,7 @@ workflows:
             }
             return state;
           });
+
       httpbin-get:
         name: httpbin-get
         adaptor: '@openfn/language-http@latest'
@@ -626,6 +636,7 @@ workflows:
                 };
               });
           });
+
       advice-slip:
         name: advice-slip
         adaptor: '@openfn/language-http@latest'
@@ -713,6 +724,7 @@ workflows:
                 });
               });
           });
+
       universities-search:
         name: universities-search
         adaptor: '@openfn/language-http@latest'
@@ -779,6 +791,7 @@ workflows:
                 return { ...state, qaResults };
               });
           });
+
       qa-summary:
         name: qa-summary
         adaptor: '@openfn/language-http@latest'
@@ -819,6 +832,7 @@ workflows:
 
             return { ...state, qaSummary: summary };
           });
+
       httpbin-post:
         name: httpbin-post
         adaptor: '@openfn/language-http@latest'
@@ -885,6 +899,7 @@ workflows:
                 return { ...state, qaResults: [...qaResults, result] };
               });
           });
+
       httpbin-status:
         name: httpbin-status
         adaptor: '@openfn/language-http@latest'
@@ -950,6 +965,7 @@ workflows:
               });
             }
           });
+
       jsonplaceholder-list:
         name: jsonplaceholder-list
         adaptor: '@openfn/language-http@latest'
@@ -1013,6 +1029,7 @@ workflows:
                 };
               });
           });
+
       jsonplaceholder-create:
         name: jsonplaceholder-create
         adaptor: '@openfn/language-http@latest'
@@ -1080,6 +1097,7 @@ workflows:
                 return { ...state, qaResults: [...qaResults, result] };
               });
           });
+
       github-repo:
         name: github-repo
         adaptor: '@openfn/language-http@latest'
@@ -1140,6 +1158,7 @@ workflows:
                 return { ...state, qaResults };
               });
           });
+
       random-user:
         name: random-user
         adaptor: '@openfn/language-http@latest'
@@ -1210,6 +1229,7 @@ workflows:
                 return { ...state, qaResults };
               });
           });
+
       dog-image:
         name: dog-image
         adaptor: '@openfn/language-http@latest'
@@ -1271,6 +1291,7 @@ workflows:
                 return { ...state, qaResults };
               });
           });
+
       numbers-trivia:
         name: numbers-trivia
         adaptor: '@openfn/language-http@latest'
@@ -1332,6 +1353,7 @@ workflows:
                 };
               });
           });
+
       public-holidays:
         name: public-holidays
         adaptor: '@openfn/language-http@latest'
@@ -1398,6 +1420,7 @@ workflows:
                 return { ...state, qaResults: [...qaResults, result] };
               });
           });
+
       cat-fact:
         name: cat-fact
         adaptor: '@openfn/language-http@latest'
@@ -1448,6 +1471,7 @@ workflows:
                 return { ...state, qaResults: [...qaResults, result] };
               });
           });
+
       iss-location:
         name: iss-location
         adaptor: '@openfn/language-http@latest'
@@ -1508,6 +1532,7 @@ workflows:
                 });
               });
           });
+
       bored-activity:
         name: bored-activity
         adaptor: '@openfn/language-http@latest'
@@ -1570,6 +1595,7 @@ workflows:
                 };
               });
           });
+
       intentional-fail:
         name: intentional-fail
         adaptor: '@openfn/language-http@latest'
@@ -1597,85 +1623,31 @@ workflows:
 
             return { ...state, qaResults };
           });
+
     triggers:
       cron:
         type: cron
         cron_expression: '00 09 * * 01'
         enabled: true
     edges:
-      cron->measure-and-strip-input:
-        source_trigger: cron
-        target_job: measure-and-strip-input
-        condition_type: always
+      httpbin-post->httpbin-status:
+        source_job: httpbin-post
+        target_job: httpbin-status
+        condition_type: on_job_success
         enabled: true
       measure-and-strip-input->httpbin-get:
         source_job: measure-and-strip-input
         target_job: httpbin-get
         condition_type: on_job_success
         enabled: true
-      httpbin-get->httpbin-post:
-        source_job: httpbin-get
-        target_job: httpbin-post
-        condition_type: on_job_success
+      cron->measure-and-strip-input:
+        source_trigger: cron
+        target_job: measure-and-strip-input
+        condition_type: always
         enabled: true
-      httpbin-post->httpbin-status:
-        source_job: httpbin-post
-        target_job: httpbin-status
-        condition_type: on_job_success
-        enabled: true
-      httpbin-status->httpbin-headers:
-        source_job: httpbin-status
-        target_job: httpbin-headers
-        condition_type: on_job_success
-        enabled: true
-      httpbin-headers->jsonplaceholder-list:
-        source_job: httpbin-headers
-        target_job: jsonplaceholder-list
-        condition_type: on_job_success
-        enabled: true
-      jsonplaceholder-list->jsonplaceholder-create:
-        source_job: jsonplaceholder-list
-        target_job: jsonplaceholder-create
-        condition_type: on_job_success
-        enabled: true
-      jsonplaceholder-create->github-repo:
-        source_job: jsonplaceholder-create
-        target_job: github-repo
-        condition_type: on_job_success
-        enabled: true
-      github-repo->random-user:
-        source_job: github-repo
-        target_job: random-user
-        condition_type: on_job_success
-        enabled: true
-      random-user->dog-image:
-        source_job: random-user
-        target_job: dog-image
-        condition_type: on_job_success
-        enabled: true
-      dog-image->cat-fact:
-        source_job: dog-image
-        target_job: cat-fact
-        condition_type: on_job_success
-        enabled: true
-      cat-fact->numbers-trivia:
-        source_job: cat-fact
-        target_job: numbers-trivia
-        condition_type: on_job_success
-        enabled: true
-      numbers-trivia->iss-location:
-        source_job: numbers-trivia
-        target_job: iss-location
-        condition_type: on_job_success
-        enabled: true
-      iss-location->crypto-price:
-        source_job: iss-location
-        target_job: crypto-price
-        condition_type: on_job_success
-        enabled: true
-      crypto-price->bored-activity:
-        source_job: crypto-price
-        target_job: bored-activity
+      public-holidays->advice-slip:
+        source_job: public-holidays
+        target_job: advice-slip
         condition_type: on_job_success
         enabled: true
       bored-activity->public-holidays:
@@ -1683,14 +1655,74 @@ workflows:
         target_job: public-holidays
         condition_type: on_job_success
         enabled: true
-      public-holidays->advice-slip:
-        source_job: public-holidays
-        target_job: advice-slip
+      dog-image->cat-fact:
+        source_job: dog-image
+        target_job: cat-fact
         condition_type: on_job_success
         enabled: true
-      advice-slip->universities-search:
-        source_job: advice-slip
-        target_job: universities-search
+      random-user->dog-image:
+        source_job: random-user
+        target_job: dog-image
+        condition_type: on_job_success
+        enabled: true
+      github-repo->random-user:
+        source_job: github-repo
+        target_job: random-user
+        condition_type: on_job_success
+        enabled: true
+      jsonplaceholder-create->github-repo:
+        source_job: jsonplaceholder-create
+        target_job: github-repo
+        condition_type: on_job_success
+        enabled: true
+      jsonplaceholder-list->jsonplaceholder-create:
+        source_job: jsonplaceholder-list
+        target_job: jsonplaceholder-create
+        condition_type: on_job_success
+        enabled: true
+      httpbin-headers->jsonplaceholder-list:
+        source_job: httpbin-headers
+        target_job: jsonplaceholder-list
+        condition_type: on_job_success
+        enabled: true
+      httpbin-status->httpbin-headers:
+        source_job: httpbin-status
+        target_job: httpbin-headers
+        condition_type: on_job_success
+        enabled: true
+      httpbin-get->httpbin-post:
+        source_job: httpbin-get
+        target_job: httpbin-post
+        condition_type: on_job_success
+        enabled: true
+      crypto-price->bored-activity:
+        source_job: crypto-price
+        target_job: bored-activity
+        condition_type: on_job_success
+        enabled: true
+      iss-location->crypto-price:
+        source_job: iss-location
+        target_job: crypto-price
+        condition_type: on_job_success
+        enabled: true
+      numbers-trivia->iss-location:
+        source_job: numbers-trivia
+        target_job: iss-location
+        condition_type: on_job_success
+        enabled: true
+      cat-fact->numbers-trivia:
+        source_job: cat-fact
+        target_job: numbers-trivia
+        condition_type: on_job_success
+        enabled: true
+      qa-summary->notify-failures:
+        source_job: qa-summary
+        target_job: notify-failures
+        condition_type: always
+        enabled: true
+      intentional-fail->qa-summary:
+        source_job: intentional-fail
+        target_job: qa-summary
         condition_type: on_job_success
         enabled: true
       universities-search->intentional-fail:
@@ -1698,15 +1730,10 @@ workflows:
         target_job: intentional-fail
         condition_type: on_job_success
         enabled: true
-      intentional-fail->qa-summary:
-        source_job: intentional-fail
-        target_job: qa-summary
+      advice-slip->universities-search:
+        source_job: advice-slip
+        target_job: universities-search
         condition_type: on_job_success
-        enabled: true
-      qa-summary->notify-failures:
-        source_job: qa-summary
-        target_job: notify-failures
-        condition_type: always
         enabled: true
   DING-DONG-Notification-Workflow-1-rename-3:
     name: DING DONG Notification Workflow 1 rename 3
@@ -1717,12 +1744,14 @@ workflows:
         credential: null
         body: |
           // Add operations here
+
       Log-to-Spreadsheet:
         name: Log to Spreadsheet
         adaptor: '@openfn/language-googlesheets@latest'
         credential: null
         body: |
           // Add operations here
+
       Common:
         name: Common
         adaptor: '@openfn/language-common@3.3.4'
@@ -1732,21 +1761,22 @@ workflows:
           // https://docs.openfn.org/documentation/jobs/job-writing-guide
           // a quick test
           // additional test
+
     triggers:
       cron:
         type: cron
         cron_expression: '*/15 * * * *'
         enabled: false
     edges:
-      cron->Send-Notification:
-        source_trigger: cron
-        target_job: Send-Notification
-        condition_type: always
-        enabled: true
       Send-Notification->Log-to-Spreadsheet:
         source_job: Send-Notification
         target_job: Log-to-Spreadsheet
         condition_type: on_job_success
+        enabled: true
+      cron->Send-Notification:
+        source_trigger: cron
+        target_job: Send-Notification
+        condition_type: always
         enabled: true
       Send-Notification->Common:
         source_job: Send-Notification
@@ -1874,6 +1904,7 @@ workflows:
               },
             };
           });
+
       httpbin-headers:
         name: httpbin-headers
         adaptor: '@openfn/language-http@latest'
@@ -1937,6 +1968,7 @@ workflows:
                 return append({ passed: false, detail });
               });
           });
+
       crypto-price:
         name: crypto-price
         adaptor: '@openfn/language-http@latest'
@@ -1996,6 +2028,7 @@ workflows:
                 });
               });
           });
+
       notify-failures:
         name: notify-failures
         adaptor: '@openfn/language-gmail@latest'
@@ -2120,6 +2153,7 @@ workflows:
             }
             return state;
           });
+
       httpbin-get:
         name: httpbin-get
         adaptor: '@openfn/language-http@latest'
@@ -2216,6 +2250,7 @@ workflows:
                 };
               });
           });
+
       advice-slip:
         name: advice-slip
         adaptor: '@openfn/language-http@latest'
@@ -2303,6 +2338,7 @@ workflows:
                 });
               });
           });
+
       universities-search:
         name: universities-search
         adaptor: '@openfn/language-http@latest'
@@ -2369,6 +2405,7 @@ workflows:
                 return { ...state, qaResults };
               });
           });
+
       qa-summary:
         name: qa-summary
         adaptor: '@openfn/language-http@latest'
@@ -2409,6 +2446,7 @@ workflows:
 
             return { ...state, qaSummary: summary };
           });
+
       httpbin-post:
         name: httpbin-post
         adaptor: '@openfn/language-http@latest'
@@ -2475,6 +2513,7 @@ workflows:
                 return { ...state, qaResults: [...qaResults, result] };
               });
           });
+
       httpbin-status:
         name: httpbin-status
         adaptor: '@openfn/language-http@latest'
@@ -2540,6 +2579,7 @@ workflows:
               });
             }
           });
+
       jsonplaceholder-list:
         name: jsonplaceholder-list
         adaptor: '@openfn/language-http@latest'
@@ -2603,6 +2643,7 @@ workflows:
                 };
               });
           });
+
       jsonplaceholder-create:
         name: jsonplaceholder-create
         adaptor: '@openfn/language-http@latest'
@@ -2670,6 +2711,7 @@ workflows:
                 return { ...state, qaResults: [...qaResults, result] };
               });
           });
+
       github-repo:
         name: github-repo
         adaptor: '@openfn/language-http@latest'
@@ -2730,6 +2772,7 @@ workflows:
                 return { ...state, qaResults };
               });
           });
+
       random-user:
         name: random-user
         adaptor: '@openfn/language-http@latest'
@@ -2800,6 +2843,7 @@ workflows:
                 return { ...state, qaResults };
               });
           });
+
       dog-image:
         name: dog-image
         adaptor: '@openfn/language-http@latest'
@@ -2861,6 +2905,7 @@ workflows:
                 return { ...state, qaResults };
               });
           });
+
       numbers-trivia:
         name: numbers-trivia
         adaptor: '@openfn/language-http@latest'
@@ -2922,6 +2967,7 @@ workflows:
                 };
               });
           });
+
       public-holidays:
         name: public-holidays
         adaptor: '@openfn/language-http@latest'
@@ -2988,6 +3034,7 @@ workflows:
                 return { ...state, qaResults: [...qaResults, result] };
               });
           });
+
       cat-fact:
         name: cat-fact
         adaptor: '@openfn/language-http@latest'
@@ -3038,6 +3085,7 @@ workflows:
                 return { ...state, qaResults: [...qaResults, result] };
               });
           });
+
       iss-location:
         name: iss-location
         adaptor: '@openfn/language-http@latest'
@@ -3098,6 +3146,7 @@ workflows:
                 });
               });
           });
+
       bored-activity:
         name: bored-activity
         adaptor: '@openfn/language-http@latest'
@@ -3160,6 +3209,7 @@ workflows:
                 };
               });
           });
+
       intentional-fail:
         name: intentional-fail
         adaptor: '@openfn/language-http@latest'
@@ -3187,6 +3237,7 @@ workflows:
 
             return { ...state, qaResults };
           });
+
       Common:
         name: Common
         adaptor: '@openfn/language-common@3.3.5'
@@ -3209,15 +3260,15 @@ workflows:
         webhook_reply: before_start
         enabled: true
     edges:
-      webhook->measure-and-strip-input:
-        source_trigger: webhook
-        target_job: measure-and-strip-input
-        condition_type: always
-        enabled: true
       measure-and-strip-input->httpbin-get:
         source_job: measure-and-strip-input
         target_job: httpbin-get
         condition_type: on_job_success
+        enabled: true
+      webhook->measure-and-strip-input:
+        source_trigger: webhook
+        target_job: measure-and-strip-input
+        condition_type: always
         enabled: true
       httpbin-get->httpbin-post:
         source_job: httpbin-get
@@ -3333,12 +3384,14 @@ workflows:
         credential: null
         body: |
           // Add operations here
+
       Send-Bug-Report-Email:
         name: Send Bug Report Email
         adaptor: '@openfn/language-gmail@latest'
         credential: null
         body: |
           // Add operations here
+
     triggers:
       webhook:
         type: webhook
@@ -3364,66 +3417,111 @@ workflows:
         credential: null
         body: |
           // Add operations here
+
       Fetch-External-Data:
         name: Fetch External Data
         adaptor: '@openfn/language-http@latest'
         credential: null
         body: |
           // Add operations here
+
       Transform-and-Enrich-Data:
         name: Transform and Enrich Data
         adaptor: '@openfn/language-common@latest'
         credential: null
         body: |
           // Add operations here
+
       Write-to-Database:
         name: Write to Database
         adaptor: '@openfn/language-postgresql@latest'
         credential: null
         body: |
           // Add operations here
+
       Handle-Transform-Error:
         name: Handle Transform Error
         adaptor: '@openfn/language-common@latest'
         credential: null
         body: |
           // Add operations here
+
       Handle-DB-Error:
         name: Handle DB Error
         adaptor: '@openfn/language-common@latest'
         credential: null
         body: |
           // Add operations here
+
       Read-Back-and-Verify:
         name: Read Back and Verify
         adaptor: '@openfn/language-postgresql@latest'
         credential: null
         body: |
           // Add operations here
+
       Post-to-Reporting-API:
         name: Post to Reporting API
         adaptor: '@openfn/language-http@latest'
         credential: null
         body: |
           // Add operations here
+
       Generate-Final-Report:
         name: Generate Final Report
         adaptor: '@openfn/language-common@latest'
         credential: null
         body: |
           // Add operations here
+
       Archive-Results:
         name: Archive Results
         adaptor: '@openfn/language-http@latest'
         credential: megan@openfn.org-2.19.0-pre
         body: |
           // Add operations here
+
     triggers:
       webhook:
         type: webhook
         webhook_reply: before_start
         enabled: false
     edges:
+      Transform-and-Enrich-Data->Handle-Transform-Error:
+        source_job: Transform-and-Enrich-Data
+        target_job: Handle-Transform-Error
+        condition_type: on_job_failure
+        enabled: true
+      Transform-and-Enrich-Data->Write-to-Database:
+        source_job: Transform-and-Enrich-Data
+        target_job: Write-to-Database
+        condition_type: on_job_success
+        enabled: true
+      Fetch-External-Data->Transform-and-Enrich-Data:
+        source_job: Fetch-External-Data
+        target_job: Transform-and-Enrich-Data
+        condition_type: on_job_success
+        enabled: true
+      Write-to-Database->Read-Back-and-Verify:
+        source_job: Write-to-Database
+        target_job: Read-Back-and-Verify
+        condition_type: on_job_success
+        enabled: true
+      Generate-Final-Report->Archive-Results:
+        source_job: Generate-Final-Report
+        target_job: Archive-Results
+        condition_type: on_job_success
+        enabled: true
+      Post-to-Reporting-API->Generate-Final-Report:
+        source_job: Post-to-Reporting-API
+        target_job: Generate-Final-Report
+        condition_type: on_job_success
+        enabled: true
+      Read-Back-and-Verify->Post-to-Reporting-API:
+        source_job: Read-Back-and-Verify
+        target_job: Post-to-Reporting-API
+        condition_type: on_job_success
+        enabled: true
       webhook->Validate-Incoming-Payload:
         source_trigger: webhook
         target_job: Validate-Incoming-Payload
@@ -3434,45 +3532,10 @@ workflows:
         target_job: Fetch-External-Data
         condition_type: on_job_success
         enabled: true
-      Fetch-External-Data->Transform-and-Enrich-Data:
-        source_job: Fetch-External-Data
-        target_job: Transform-and-Enrich-Data
-        condition_type: on_job_success
-        enabled: true
-      Transform-and-Enrich-Data->Write-to-Database:
-        source_job: Transform-and-Enrich-Data
-        target_job: Write-to-Database
-        condition_type: on_job_success
-        enabled: true
-      Transform-and-Enrich-Data->Handle-Transform-Error:
-        source_job: Transform-and-Enrich-Data
-        target_job: Handle-Transform-Error
-        condition_type: on_job_failure
-        enabled: true
-      Write-to-Database->Read-Back-and-Verify:
-        source_job: Write-to-Database
-        target_job: Read-Back-and-Verify
-        condition_type: on_job_success
-        enabled: true
       Write-to-Database->Handle-DB-Error:
         source_job: Write-to-Database
         target_job: Handle-DB-Error
         condition_type: on_job_failure
-        enabled: true
-      Read-Back-and-Verify->Post-to-Reporting-API:
-        source_job: Read-Back-and-Verify
-        target_job: Post-to-Reporting-API
-        condition_type: on_job_success
-        enabled: true
-      Post-to-Reporting-API->Generate-Final-Report:
-        source_job: Post-to-Reporting-API
-        target_job: Generate-Final-Report
-        condition_type: on_job_success
-        enabled: true
-      Generate-Final-Report->Archive-Results:
-        source_job: Generate-Final-Report
-        target_job: Archive-Results
-        condition_type: on_job_success
         enabled: true
   Basic-Input-Test-Workflow:
     name: Basic Input Test Workflow
@@ -3483,6 +3546,7 @@ workflows:
         credential: null
         body: |
           // Add operations here
+
     triggers:
       webhook:
         type: webhook
@@ -3510,54 +3574,63 @@ workflows:
         credential: null
         body: |
           // Add operations here
+
       Transform-and-Enrich-Data:
         name: Transform and Enrich Data
         adaptor: '@openfn/language-common@latest'
         credential: null
         body: |
           // Add operations here
+
       Write-to-Database:
         name: Write to Database
         adaptor: '@openfn/language-postgresql@latest'
         credential: null
         body: |
           // Add operations here
+
       Handle-Transform-Error:
         name: Handle Transform Error
         adaptor: '@openfn/language-common@latest'
         credential: null
         body: |
           // Add operations here
+
       Handle-DB-Error:
         name: Handle DB Error
         adaptor: '@openfn/language-common@latest'
         credential: null
         body: |
           // Add operations here
+
       Read-Back-and-Verify:
         name: Read Back and Verify
         adaptor: '@openfn/language-postgresql@latest'
         credential: null
         body: |
           // Add operations here
+
       Post-to-Reporting-API:
         name: Post to Reporting API
         adaptor: '@openfn/language-http@latest'
         credential: null
         body: |
           // Add operations here
+
       Generate-Final-Report:
         name: Generate Final Report
         adaptor: '@openfn/language-common@latest'
         credential: null
         body: |
           // Add operations here
+
       Archive-Results:
         name: Archive Results
         adaptor: '@openfn/language-http@latest'
         credential: null
         body: |
           // Add operations here
+
     triggers:
       webhook:
         type: webhook
@@ -3589,19 +3662,9 @@ workflows:
         target_job: Handle-Transform-Error
         condition_type: on_job_failure
         enabled: true
-      Write-to-Database->Read-Back-and-Verify:
-        source_job: Write-to-Database
-        target_job: Read-Back-and-Verify
-        condition_type: on_job_success
-        enabled: true
-      Write-to-Database->Handle-DB-Error:
-        source_job: Write-to-Database
-        target_job: Handle-DB-Error
-        condition_type: on_job_failure
-        enabled: true
-      Read-Back-and-Verify->Post-to-Reporting-API:
-        source_job: Read-Back-and-Verify
-        target_job: Post-to-Reporting-API
+      Generate-Final-Report->Archive-Results:
+        source_job: Generate-Final-Report
+        target_job: Archive-Results
         condition_type: on_job_success
         enabled: true
       Post-to-Reporting-API->Generate-Final-Report:
@@ -3609,9 +3672,19 @@ workflows:
         target_job: Generate-Final-Report
         condition_type: on_job_success
         enabled: true
-      Generate-Final-Report->Archive-Results:
-        source_job: Generate-Final-Report
-        target_job: Archive-Results
+      Read-Back-and-Verify->Post-to-Reporting-API:
+        source_job: Read-Back-and-Verify
+        target_job: Post-to-Reporting-API
+        condition_type: on_job_success
+        enabled: true
+      Write-to-Database->Handle-DB-Error:
+        source_job: Write-to-Database
+        target_job: Handle-DB-Error
+        condition_type: on_job_failure
+        enabled: true
+      Write-to-Database->Read-Back-and-Verify:
+        source_job: Write-to-Database
+        target_job: Read-Back-and-Verify
         condition_type: on_job_success
         enabled: true
   "Self-Testing-QA-Health-Check-(pasted-yaml)":
@@ -3679,6 +3752,7 @@ workflows:
                 };
               });
           });
+
       httpbin-post:
         name: httpbin-post
         adaptor: '@openfn/language-http@latest'
@@ -3745,6 +3819,7 @@ workflows:
                 return { ...state, qaResults: [...qaResults, result] };
               });
           });
+
       httpbin-status:
         name: httpbin-status
         adaptor: '@openfn/language-http@latest'
@@ -3810,6 +3885,7 @@ workflows:
               });
             }
           });
+
       httpbin-headers:
         name: httpbin-headers
         adaptor: '@openfn/language-http@latest'
@@ -3873,6 +3949,7 @@ workflows:
                 return append({ passed: false, detail });
               });
           });
+
       jsonplaceholder-list:
         name: jsonplaceholder-list
         adaptor: '@openfn/language-http@latest'
@@ -3936,6 +4013,7 @@ workflows:
                 };
               });
           });
+
       jsonplaceholder-create:
         name: jsonplaceholder-create
         adaptor: '@openfn/language-http@latest'
@@ -4003,6 +4081,7 @@ workflows:
                 return { ...state, qaResults: [...qaResults, result] };
               });
           });
+
       github-repo:
         name: github-repo
         adaptor: '@openfn/language-http@latest'
@@ -4063,6 +4142,7 @@ workflows:
                 return { ...state, qaResults };
               });
           });
+
       random-user:
         name: random-user
         adaptor: '@openfn/language-http@latest'
@@ -4133,6 +4213,7 @@ workflows:
                 return { ...state, qaResults };
               });
           });
+
       dog-image:
         name: dog-image
         adaptor: '@openfn/language-http@latest'
@@ -4194,6 +4275,7 @@ workflows:
                 return { ...state, qaResults };
               });
           });
+
       cat-fact:
         name: cat-fact
         adaptor: '@openfn/language-http@latest'
@@ -4244,6 +4326,7 @@ workflows:
                 return { ...state, qaResults: [...qaResults, result] };
               });
           });
+
       numbers-trivia:
         name: numbers-trivia
         adaptor: '@openfn/language-http@latest'
@@ -4305,6 +4388,7 @@ workflows:
                 };
               });
           });
+
       iss-location:
         name: iss-location
         adaptor: '@openfn/language-http@latest'
@@ -4365,6 +4449,7 @@ workflows:
                 });
               });
           });
+
       crypto-price:
         name: crypto-price
         adaptor: '@openfn/language-http@latest'
@@ -4424,6 +4509,7 @@ workflows:
                 });
               });
           });
+
       bored-activity:
         name: bored-activity
         adaptor: '@openfn/language-http@latest'
@@ -4486,6 +4572,7 @@ workflows:
                 };
               });
           });
+
       public-holidays:
         name: public-holidays
         adaptor: '@openfn/language-http@latest'
@@ -4552,6 +4639,7 @@ workflows:
                 return { ...state, qaResults: [...qaResults, result] };
               });
           });
+
       advice-slip:
         name: advice-slip
         adaptor: '@openfn/language-http@latest'
@@ -4639,6 +4727,7 @@ workflows:
                 });
               });
           });
+
       universities-search:
         name: universities-search
         adaptor: '@openfn/language-http@latest'
@@ -4705,6 +4794,7 @@ workflows:
                 return { ...state, qaResults };
               });
           });
+
       intentional-fail:
         name: intentional-fail
         adaptor: '@openfn/language-http@latest'
@@ -4732,6 +4822,7 @@ workflows:
 
             return { ...state, qaResults };
           });
+
       qa-summary:
         name: qa-summary
         adaptor: '@openfn/language-http@latest'
@@ -4770,6 +4861,7 @@ workflows:
 
             return { ...state, qaSummary: summary };
           });
+
       notify-failures:
         name: notify-failures
         adaptor: '@openfn/language-gmail@latest'
@@ -4883,6 +4975,7 @@ workflows:
             }
             return state;
           });
+
     triggers:
       cron:
         type: cron
@@ -4894,59 +4987,9 @@ workflows:
         target_job: httpbin-get
         condition_type: always
         enabled: true
-      httpbin-get->httpbin-post:
-        source_job: httpbin-get
-        target_job: httpbin-post
-        condition_type: on_job_success
-        enabled: true
       httpbin-post->httpbin-status:
         source_job: httpbin-post
         target_job: httpbin-status
-        condition_type: on_job_success
-        enabled: true
-      httpbin-status->httpbin-headers:
-        source_job: httpbin-status
-        target_job: httpbin-headers
-        condition_type: on_job_success
-        enabled: true
-      httpbin-headers->jsonplaceholder-list:
-        source_job: httpbin-headers
-        target_job: jsonplaceholder-list
-        condition_type: on_job_success
-        enabled: true
-      jsonplaceholder-list->jsonplaceholder-create:
-        source_job: jsonplaceholder-list
-        target_job: jsonplaceholder-create
-        condition_type: on_job_success
-        enabled: true
-      jsonplaceholder-create->github-repo:
-        source_job: jsonplaceholder-create
-        target_job: github-repo
-        condition_type: on_job_success
-        enabled: true
-      github-repo->random-user:
-        source_job: github-repo
-        target_job: random-user
-        condition_type: on_job_success
-        enabled: true
-      random-user->dog-image:
-        source_job: random-user
-        target_job: dog-image
-        condition_type: on_job_success
-        enabled: true
-      dog-image->cat-fact:
-        source_job: dog-image
-        target_job: cat-fact
-        condition_type: on_job_success
-        enabled: true
-      cat-fact->numbers-trivia:
-        source_job: cat-fact
-        target_job: numbers-trivia
-        condition_type: on_job_success
-        enabled: true
-      numbers-trivia->iss-location:
-        source_job: numbers-trivia
-        target_job: iss-location
         condition_type: on_job_success
         enabled: true
       iss-location->crypto-price:
@@ -4988,6 +5031,56 @@ workflows:
         source_job: qa-summary
         target_job: notify-failures
         condition_type: always
+        enabled: true
+      dog-image->cat-fact:
+        source_job: dog-image
+        target_job: cat-fact
+        condition_type: on_job_success
+        enabled: true
+      random-user->dog-image:
+        source_job: random-user
+        target_job: dog-image
+        condition_type: on_job_success
+        enabled: true
+      github-repo->random-user:
+        source_job: github-repo
+        target_job: random-user
+        condition_type: on_job_success
+        enabled: true
+      jsonplaceholder-create->github-repo:
+        source_job: jsonplaceholder-create
+        target_job: github-repo
+        condition_type: on_job_success
+        enabled: true
+      jsonplaceholder-list->jsonplaceholder-create:
+        source_job: jsonplaceholder-list
+        target_job: jsonplaceholder-create
+        condition_type: on_job_success
+        enabled: true
+      httpbin-headers->jsonplaceholder-list:
+        source_job: httpbin-headers
+        target_job: jsonplaceholder-list
+        condition_type: on_job_success
+        enabled: true
+      numbers-trivia->iss-location:
+        source_job: numbers-trivia
+        target_job: iss-location
+        condition_type: on_job_success
+        enabled: true
+      httpbin-status->httpbin-headers:
+        source_job: httpbin-status
+        target_job: httpbin-headers
+        condition_type: on_job_success
+        enabled: true
+      cat-fact->numbers-trivia:
+        source_job: cat-fact
+        target_job: numbers-trivia
+        condition_type: on_job_success
+        enabled: true
+      httpbin-get->httpbin-post:
+        source_job: httpbin-get
+        target_job: httpbin-post
+        condition_type: on_job_success
         enabled: true
   Self-Testing-QA-Health-Check:
     name: Self-Testing QA Health Check
@@ -6463,27 +6556,29 @@ workflows:
         credential: null
         body: |
           // Add operations here
+
       Log-to-Spreadsheet:
         name: Log to Spreadsheet
         adaptor: '@openfn/language-googlesheets@latest'
         credential: null
         body: |
           // Add operations here
+
     triggers:
       cron:
         type: cron
         cron_expression: '*/15 * * * *'
         enabled: false
     edges:
-      cron->Send-Notification:
-        source_trigger: cron
-        target_job: Send-Notification
-        condition_type: always
-        enabled: true
       Send-Notification->Log-to-Spreadsheet:
         source_job: Send-Notification
         target_job: Log-to-Spreadsheet
         condition_type: on_job_success
+        enabled: true
+      cron->Send-Notification:
+        source_trigger: cron
+        target_job: Send-Notification
+        condition_type: always
         enabled: true
   20-Node-Self-Testing-Workflow-1:
     name: 20-Node Self-Testing Workflow 1
@@ -6494,204 +6589,159 @@ workflows:
         credential: null
         body: |
           // Add operations here
+
       Test-HTTP-Connectivity:
         name: Test HTTP Connectivity
         adaptor: '@openfn/language-http@latest'
         credential: null
         body: |
           // Add operations here
+
       Test-Data-Transformation:
         name: Test Data Transformation
         adaptor: '@openfn/language-common@latest'
         credential: null
         body: |
           // Add operations here
+
       Test-Error-Handling:
         name: Test Error Handling
         adaptor: '@openfn/language-common@latest'
         credential: null
         body: |
           // Add operations here
+
       Test-Conditional-Logic:
         name: Test Conditional Logic
         adaptor: '@openfn/language-common@latest'
         credential: null
         body: |
           // Add operations here
+
       Test-Data-Aggregation:
         name: Test Data Aggregation
         adaptor: '@openfn/language-common@latest'
         credential: null
         body: |
           // Add operations here
+
       Test-String-Operations:
         name: Test String Operations
         adaptor: '@openfn/language-common@latest'
         credential: null
         body: |
           // Add operations here
+
       Test-Array-Operations:
         name: Test Array Operations
         adaptor: '@openfn/language-common@latest'
         credential: null
         body: |
           // Add operations here
+
       Test-Object-Mapping:
         name: Test Object Mapping
         adaptor: '@openfn/language-common@latest'
         credential: null
         body: |
           // Add operations here
+
       Test-Date-Handling:
         name: Test Date Handling
         adaptor: '@openfn/language-common@latest'
         credential: null
         body: |
           // Add operations here
+
       Test-Number-Formatting:
         name: Test Number Formatting
         adaptor: '@openfn/language-common@latest'
         credential: null
         body: |
           // Add operations here
+
       Test-Validation-Logic:
         name: Test Validation Logic
         adaptor: '@openfn/language-common@latest'
         credential: null
         body: |
           // Add operations here
+
       Test-Filtering:
         name: Test Filtering
         adaptor: '@openfn/language-common@latest'
         credential: null
         body: |
           // Add operations here
+
       Test-Sorting:
         name: Test Sorting
         adaptor: '@openfn/language-common@latest'
         credential: null
         body: |
           // Add operations here
+
       Test-Merging-Data:
         name: Test Merging Data
         adaptor: '@openfn/language-common@latest'
         credential: null
         body: |
           // Add operations here
+
       Test-Splitting-Data:
         name: Test Splitting Data
         adaptor: '@openfn/language-common@latest'
         credential: null
         body: |
           // Add operations here
+
       Test-Encoding:
         name: Test Encoding
         adaptor: '@openfn/language-common@latest'
         credential: null
         body: |
           // Add operations here
+
       Test-Decoding:
         name: Test Decoding
         adaptor: '@openfn/language-common@latest'
         credential: null
         body: |
           // Add operations here
+
       Compile-Test-Results:
         name: Compile Test Results
         adaptor: '@openfn/language-common@latest'
         credential: null
         body: |
           // Add operations here
+
       Send-Test-Report:
         name: Send Test Report
         adaptor: '@openfn/language-http@latest'
         credential: null
         body: |
           // Add operations here
+
     triggers:
       webhook:
         type: webhook
         webhook_reply: before_start
         enabled: false
     edges:
-      webhook->Initialize-Test-Suite:
-        source_trigger: webhook
-        target_job: Initialize-Test-Suite
-        condition_type: always
-        enabled: true
-      Initialize-Test-Suite->Test-HTTP-Connectivity:
-        source_job: Initialize-Test-Suite
-        target_job: Test-HTTP-Connectivity
-        condition_type: on_job_success
-        enabled: true
-      Test-HTTP-Connectivity->Test-Data-Transformation:
-        source_job: Test-HTTP-Connectivity
-        target_job: Test-Data-Transformation
-        condition_type: always
-        enabled: true
-      Test-Data-Transformation->Test-Error-Handling:
-        source_job: Test-Data-Transformation
-        target_job: Test-Error-Handling
-        condition_type: always
-        enabled: true
-      Test-Error-Handling->Test-Conditional-Logic:
-        source_job: Test-Error-Handling
-        target_job: Test-Conditional-Logic
-        condition_type: always
-        enabled: true
       Test-Conditional-Logic->Test-Data-Aggregation:
         source_job: Test-Conditional-Logic
         target_job: Test-Data-Aggregation
         condition_type: on_job_success
         enabled: true
-      Test-Data-Aggregation->Test-String-Operations:
-        source_job: Test-Data-Aggregation
-        target_job: Test-String-Operations
-        condition_type: on_job_success
+      Compile-Test-Results->Send-Test-Report:
+        source_job: Compile-Test-Results
+        target_job: Send-Test-Report
+        condition_type: always
         enabled: true
-      Test-String-Operations->Test-Array-Operations:
-        source_job: Test-String-Operations
-        target_job: Test-Array-Operations
-        condition_type: on_job_success
-        enabled: true
-      Test-Array-Operations->Test-Object-Mapping:
-        source_job: Test-Array-Operations
-        target_job: Test-Object-Mapping
-        condition_type: on_job_success
-        enabled: true
-      Test-Object-Mapping->Test-Date-Handling:
-        source_job: Test-Object-Mapping
-        target_job: Test-Date-Handling
-        condition_type: on_job_success
-        enabled: true
-      Test-Date-Handling->Test-Number-Formatting:
-        source_job: Test-Date-Handling
-        target_job: Test-Number-Formatting
-        condition_type: on_job_success
-        enabled: true
-      Test-Number-Formatting->Test-Validation-Logic:
-        source_job: Test-Number-Formatting
-        target_job: Test-Validation-Logic
-        condition_type: on_job_success
-        enabled: true
-      Test-Validation-Logic->Test-Filtering:
-        source_job: Test-Validation-Logic
-        target_job: Test-Filtering
-        condition_type: on_job_success
-        enabled: true
-      Test-Filtering->Test-Sorting:
-        source_job: Test-Filtering
-        target_job: Test-Sorting
-        condition_type: on_job_success
-        enabled: true
-      Test-Sorting->Test-Merging-Data:
-        source_job: Test-Sorting
-        target_job: Test-Merging-Data
-        condition_type: on_job_success
-        enabled: true
-      Test-Merging-Data->Test-Splitting-Data:
-        source_job: Test-Merging-Data
-        target_job: Test-Splitting-Data
+      Test-Encoding->Test-Decoding:
+        source_job: Test-Encoding
+        target_job: Test-Decoding
         condition_type: on_job_success
         enabled: true
       Test-Splitting-Data->Test-Encoding:
@@ -6699,9 +6749,54 @@ workflows:
         target_job: Test-Encoding
         condition_type: on_job_success
         enabled: true
-      Test-Encoding->Test-Decoding:
-        source_job: Test-Encoding
-        target_job: Test-Decoding
+      Test-Merging-Data->Test-Splitting-Data:
+        source_job: Test-Merging-Data
+        target_job: Test-Splitting-Data
+        condition_type: on_job_success
+        enabled: true
+      Test-Sorting->Test-Merging-Data:
+        source_job: Test-Sorting
+        target_job: Test-Merging-Data
+        condition_type: on_job_success
+        enabled: true
+      Test-Filtering->Test-Sorting:
+        source_job: Test-Filtering
+        target_job: Test-Sorting
+        condition_type: on_job_success
+        enabled: true
+      Test-Validation-Logic->Test-Filtering:
+        source_job: Test-Validation-Logic
+        target_job: Test-Filtering
+        condition_type: on_job_success
+        enabled: true
+      Test-Number-Formatting->Test-Validation-Logic:
+        source_job: Test-Number-Formatting
+        target_job: Test-Validation-Logic
+        condition_type: on_job_success
+        enabled: true
+      Test-Date-Handling->Test-Number-Formatting:
+        source_job: Test-Date-Handling
+        target_job: Test-Number-Formatting
+        condition_type: on_job_success
+        enabled: true
+      Test-Object-Mapping->Test-Date-Handling:
+        source_job: Test-Object-Mapping
+        target_job: Test-Date-Handling
+        condition_type: on_job_success
+        enabled: true
+      Test-Array-Operations->Test-Object-Mapping:
+        source_job: Test-Array-Operations
+        target_job: Test-Object-Mapping
+        condition_type: on_job_success
+        enabled: true
+      Test-String-Operations->Test-Array-Operations:
+        source_job: Test-String-Operations
+        target_job: Test-Array-Operations
+        condition_type: on_job_success
+        enabled: true
+      Test-Data-Aggregation->Test-String-Operations:
+        source_job: Test-Data-Aggregation
+        target_job: Test-String-Operations
         condition_type: on_job_success
         enabled: true
       Test-Decoding->Compile-Test-Results:
@@ -6709,9 +6804,29 @@ workflows:
         target_job: Compile-Test-Results
         condition_type: always
         enabled: true
-      Compile-Test-Results->Send-Test-Report:
-        source_job: Compile-Test-Results
-        target_job: Send-Test-Report
+      Test-Error-Handling->Test-Conditional-Logic:
+        source_job: Test-Error-Handling
+        target_job: Test-Conditional-Logic
+        condition_type: always
+        enabled: true
+      Test-Data-Transformation->Test-Error-Handling:
+        source_job: Test-Data-Transformation
+        target_job: Test-Error-Handling
+        condition_type: always
+        enabled: true
+      Test-HTTP-Connectivity->Test-Data-Transformation:
+        source_job: Test-HTTP-Connectivity
+        target_job: Test-Data-Transformation
+        condition_type: always
+        enabled: true
+      Initialize-Test-Suite->Test-HTTP-Connectivity:
+        source_job: Initialize-Test-Suite
+        target_job: Test-HTTP-Connectivity
+        condition_type: on_job_success
+        enabled: true
+      webhook->Initialize-Test-Suite:
+        source_trigger: webhook
+        target_job: Initialize-Test-Suite
         condition_type: always
         enabled: true
   Self-Testing-QA-Health-Check-2:
@@ -6753,6 +6868,7 @@ workflows:
               },
             };
           });
+
       httpbin-headers:
         name: httpbin-headers
         adaptor: '@openfn/language-http@latest'
@@ -6816,6 +6932,7 @@ workflows:
                 return append({ passed: false, detail });
               });
           });
+
       crypto-price:
         name: crypto-price
         adaptor: '@openfn/language-http@latest'
@@ -6875,6 +6992,7 @@ workflows:
                 });
               });
           });
+
       notify-failures:
         name: notify-failures
         adaptor: '@openfn/language-gmail@latest'
@@ -6999,6 +7117,7 @@ workflows:
             }
             return state;
           });
+
       httpbin-get:
         name: httpbin-get
         adaptor: '@openfn/language-http@latest'
@@ -7095,6 +7214,7 @@ workflows:
                 };
               });
           });
+
       advice-slip:
         name: advice-slip
         adaptor: '@openfn/language-http@latest'
@@ -7182,6 +7302,7 @@ workflows:
                 });
               });
           });
+
       universities-search:
         name: universities-search
         adaptor: '@openfn/language-http@latest'
@@ -7248,6 +7369,7 @@ workflows:
                 return { ...state, qaResults };
               });
           });
+
       qa-summary:
         name: qa-summary
         adaptor: '@openfn/language-http@latest'
@@ -7288,6 +7410,7 @@ workflows:
 
             return { ...state, qaSummary: summary };
           });
+
       httpbin-post:
         name: httpbin-post
         adaptor: '@openfn/language-http@latest'
@@ -7354,6 +7477,7 @@ workflows:
                 return { ...state, qaResults: [...qaResults, result] };
               });
           });
+
       httpbin-status:
         name: httpbin-status
         adaptor: '@openfn/language-http@latest'
@@ -7419,6 +7543,7 @@ workflows:
               });
             }
           });
+
       jsonplaceholder-list:
         name: jsonplaceholder-list
         adaptor: '@openfn/language-http@latest'
@@ -7482,6 +7607,7 @@ workflows:
                 };
               });
           });
+
       jsonplaceholder-create:
         name: jsonplaceholder-create
         adaptor: '@openfn/language-http@latest'
@@ -7549,6 +7675,7 @@ workflows:
                 return { ...state, qaResults: [...qaResults, result] };
               });
           });
+
       github-repo:
         name: github-repo
         adaptor: '@openfn/language-http@latest'
@@ -7609,6 +7736,7 @@ workflows:
                 return { ...state, qaResults };
               });
           });
+
       random-user:
         name: random-user
         adaptor: '@openfn/language-http@latest'
@@ -7679,6 +7807,7 @@ workflows:
                 return { ...state, qaResults };
               });
           });
+
       dog-image:
         name: dog-image
         adaptor: '@openfn/language-http@latest'
@@ -7740,6 +7869,7 @@ workflows:
                 return { ...state, qaResults };
               });
           });
+
       numbers-trivia:
         name: numbers-trivia
         adaptor: '@openfn/language-http@latest'
@@ -7801,6 +7931,7 @@ workflows:
                 };
               });
           });
+
       public-holidays:
         name: public-holidays
         adaptor: '@openfn/language-http@latest'
@@ -7867,6 +7998,7 @@ workflows:
                 return { ...state, qaResults: [...qaResults, result] };
               });
           });
+
       cat-fact:
         name: cat-fact
         adaptor: '@openfn/language-http@latest'
@@ -7917,6 +8049,7 @@ workflows:
                 return { ...state, qaResults: [...qaResults, result] };
               });
           });
+
       iss-location:
         name: iss-location
         adaptor: '@openfn/language-http@latest'
@@ -7977,6 +8110,7 @@ workflows:
                 });
               });
           });
+
       bored-activity:
         name: bored-activity
         adaptor: '@openfn/language-http@latest'
@@ -8039,6 +8173,7 @@ workflows:
                 };
               });
           });
+
       intentional-fail:
         name: intentional-fail
         adaptor: '@openfn/language-http@latest'
@@ -8066,25 +8201,16 @@ workflows:
 
             return { ...state, qaResults };
           });
+
     triggers:
       webhook:
         type: webhook
         webhook_reply: before_start
         enabled: true
     edges:
-      webhook->measure-and-strip-input:
-        source_trigger: webhook
-        target_job: measure-and-strip-input
-        condition_type: always
-        enabled: true
       measure-and-strip-input->httpbin-get:
         source_job: measure-and-strip-input
         target_job: httpbin-get
-        condition_type: on_job_success
-        enabled: true
-      httpbin-get->httpbin-post:
-        source_job: httpbin-get
-        target_job: httpbin-post
         condition_type: on_job_success
         enabled: true
       httpbin-post->httpbin-status:
@@ -8177,6 +8303,16 @@ workflows:
         target_job: notify-failures
         condition_type: always
         enabled: true
+      webhook->measure-and-strip-input:
+        source_trigger: webhook
+        target_job: measure-and-strip-input
+        condition_type: always
+        enabled: true
+      httpbin-get->httpbin-post:
+        source_job: httpbin-get
+        target_job: httpbin-post
+        condition_type: on_job_success
+        enabled: true
   dalgo-comp:
     name: dalgo-comp
     jobs:
@@ -8244,6 +8380,7 @@ workflows:
         credential: null
         body: |
           // Add operations here
+
     triggers:
       cron:
         type: cron
@@ -8354,49 +8491,44 @@ workflows:
         credential: null
         body: |
           // Add operations here
+
       Test-Data-Transformation:
         name: Test Data Transformation
         adaptor: '@openfn/language-common@latest'
         credential: null
         body: |
           // Add operations here
+
       Test-HTTP-Request:
         name: Test HTTP Request
         adaptor: '@openfn/language-http@latest'
         credential: null
         body: |
           // Add operations here
+
       Handle-Test-Success:
         name: Handle Test Success
         adaptor: '@openfn/language-common@latest'
         credential: null
         body: |
           // Add operations here
+
       Handle-Test-Failure:
         name: Handle Test Failure
         adaptor: '@openfn/language-common@latest'
         credential: null
         body: |
           // Add operations here
+
     triggers:
       webhook:
         type: webhook
         webhook_reply: before_start
         enabled: false
     edges:
-      webhook->Initialize-Tests:
-        source_trigger: webhook
-        target_job: Initialize-Tests
-        condition_type: always
-        enabled: true
       Initialize-Tests->Test-Data-Transformation:
         source_job: Initialize-Tests
         target_job: Test-Data-Transformation
-        condition_type: on_job_success
-        enabled: true
-      Test-Data-Transformation->Test-HTTP-Request:
-        source_job: Test-Data-Transformation
-        target_job: Test-HTTP-Request
         condition_type: on_job_success
         enabled: true
       Test-HTTP-Request->Handle-Test-Success:
@@ -8408,6 +8540,16 @@ workflows:
         source_job: Test-HTTP-Request
         target_job: Handle-Test-Failure
         condition_type: on_job_failure
+        enabled: true
+      Test-Data-Transformation->Test-HTTP-Request:
+        source_job: Test-Data-Transformation
+        target_job: Test-HTTP-Request
+        condition_type: on_job_success
+        enabled: true
+      webhook->Initialize-Tests:
+        source_trigger: webhook
+        target_job: Initialize-Tests
+        condition_type: always
         enabled: true
   Another-2.16.8-test---rename-4:
     name: Another 2.16.8 test - rename 4
@@ -8548,120 +8690,140 @@ workflows:
         credential: null
         body: |
           // Add operations here
+
       Test-HTTP-GET-Request:
         name: Test HTTP GET Request
         adaptor: '@openfn/language-http@latest'
         credential: null
         body: |
           // Add operations here
+
       Test-HTTP-POST-Request:
         name: Test HTTP POST Request
         adaptor: '@openfn/language-http@latest'
         credential: null
         body: |
           // Add operations here
+
       Test-Data-Transformation:
         name: Test Data Transformation
         adaptor: '@openfn/language-common@latest'
         credential: null
         body: |
           // Add operations here
+
       Test-Conditional-Logic:
         name: Test Conditional Logic
         adaptor: '@openfn/language-common@latest'
         credential: null
         body: |
           // Add operations here
+
       Test-PostgreSQL-Read:
         name: Test PostgreSQL Read
         adaptor: '@openfn/language-postgresql@latest'
         credential: null
         body: |
           // Add operations here
+
       Test-PostgreSQL-Write:
         name: Test PostgreSQL Write
         adaptor: '@openfn/language-postgresql@latest'
         credential: null
         body: |
           // Add operations here
+
       Test-Data-Validation:
         name: Test Data Validation
         adaptor: '@openfn/language-common@latest'
         credential: null
         body: |
           // Add operations here
+
       Test-Data-Mapping:
         name: Test Data Mapping
         adaptor: '@openfn/language-common@latest'
         credential: null
         body: |
           // Add operations here
+
       Test-Authentication:
         name: Test Authentication
         adaptor: '@openfn/language-http@latest'
         credential: null
         body: |
           // Add operations here
+
       Test-Pagination:
         name: Test Pagination
         adaptor: '@openfn/language-http@latest'
         credential: null
         body: |
           // Add operations here
+
       Test-Bulk-Operations:
         name: Test Bulk Operations
         adaptor: '@openfn/language-common@latest'
         credential: null
         body: |
           // Add operations here
+
       Test-Error-Handling:
         name: Test Error Handling
         adaptor: '@openfn/language-common@latest'
         credential: null
         body: |
           // Add operations here
+
       Test-SFTP-Read:
         name: Test SFTP Read
         adaptor: '@openfn/language-sftp@latest'
         credential: null
         body: |
           // Add operations here
+
       Test-SFTP-Write:
         name: Test SFTP Write
         adaptor: '@openfn/language-sftp@latest'
         credential: null
         body: |
           // Add operations here
+
       Test-Google-Sheets-Read:
         name: Test Google Sheets Read
         adaptor: '@openfn/language-googlesheets@latest'
         credential: null
         body: |
           // Add operations here
+
       Test-Google-Sheets-Write:
         name: Test Google Sheets Write
         adaptor: '@openfn/language-googlesheets@latest'
         credential: null
         body: |
           // Add operations here
+
       Test-Logging:
         name: Test Logging
         adaptor: '@openfn/language-common@latest'
         credential: null
         body: |
           // Add operations here
+
       Test-Notifications:
         name: Test Notifications
         adaptor: '@openfn/language-http@latest'
         credential: null
         body: |
           // Add operations here
+
       Generate-Test-Report:
         name: Generate Test Report
         adaptor: '@openfn/language-common@latest'
         credential: null
         body: |
           // Add operations here
+
     triggers:
       webhook:
         type: webhook
@@ -8688,44 +8850,9 @@ workflows:
         target_job: Test-Data-Transformation
         condition_type: on_job_success
         enabled: true
-      Test-Data-Transformation->Test-Conditional-Logic:
-        source_job: Test-Data-Transformation
-        target_job: Test-Conditional-Logic
-        condition_type: on_job_success
-        enabled: true
-      Test-Conditional-Logic->Test-PostgreSQL-Read:
-        source_job: Test-Conditional-Logic
-        target_job: Test-PostgreSQL-Read
-        condition_type: on_job_success
-        enabled: true
-      Test-PostgreSQL-Read->Test-PostgreSQL-Write:
-        source_job: Test-PostgreSQL-Read
-        target_job: Test-PostgreSQL-Write
-        condition_type: on_job_success
-        enabled: true
-      Test-PostgreSQL-Write->Test-Data-Validation:
-        source_job: Test-PostgreSQL-Write
-        target_job: Test-Data-Validation
-        condition_type: on_job_success
-        enabled: true
-      Test-Data-Validation->Test-Data-Mapping:
-        source_job: Test-Data-Validation
-        target_job: Test-Data-Mapping
-        condition_type: on_job_success
-        enabled: true
-      Test-Data-Mapping->Test-Authentication:
-        source_job: Test-Data-Mapping
-        target_job: Test-Authentication
-        condition_type: on_job_success
-        enabled: true
-      Test-Authentication->Test-Pagination:
-        source_job: Test-Authentication
-        target_job: Test-Pagination
-        condition_type: on_job_success
-        enabled: true
-      Test-Pagination->Test-Bulk-Operations:
-        source_job: Test-Pagination
-        target_job: Test-Bulk-Operations
+      Test-SFTP-Read->Test-SFTP-Write:
+        source_job: Test-SFTP-Read
+        target_job: Test-SFTP-Write
         condition_type: on_job_success
         enabled: true
       Test-Bulk-Operations->Test-Error-Handling:
@@ -8733,24 +8860,54 @@ workflows:
         target_job: Test-Error-Handling
         condition_type: always
         enabled: true
-      Test-Error-Handling->Test-SFTP-Read:
-        source_job: Test-Error-Handling
-        target_job: Test-SFTP-Read
+      Test-Pagination->Test-Bulk-Operations:
+        source_job: Test-Pagination
+        target_job: Test-Bulk-Operations
         condition_type: on_job_success
         enabled: true
-      Test-SFTP-Read->Test-SFTP-Write:
-        source_job: Test-SFTP-Read
-        target_job: Test-SFTP-Write
+      Test-Authentication->Test-Pagination:
+        source_job: Test-Authentication
+        target_job: Test-Pagination
         condition_type: on_job_success
         enabled: true
-      Test-SFTP-Write->Test-Google-Sheets-Read:
-        source_job: Test-SFTP-Write
-        target_job: Test-Google-Sheets-Read
+      Test-Data-Mapping->Test-Authentication:
+        source_job: Test-Data-Mapping
+        target_job: Test-Authentication
         condition_type: on_job_success
         enabled: true
-      Test-Google-Sheets-Read->Test-Google-Sheets-Write:
-        source_job: Test-Google-Sheets-Read
-        target_job: Test-Google-Sheets-Write
+      Test-Data-Validation->Test-Data-Mapping:
+        source_job: Test-Data-Validation
+        target_job: Test-Data-Mapping
+        condition_type: on_job_success
+        enabled: true
+      Test-PostgreSQL-Write->Test-Data-Validation:
+        source_job: Test-PostgreSQL-Write
+        target_job: Test-Data-Validation
+        condition_type: on_job_success
+        enabled: true
+      Test-PostgreSQL-Read->Test-PostgreSQL-Write:
+        source_job: Test-PostgreSQL-Read
+        target_job: Test-PostgreSQL-Write
+        condition_type: on_job_success
+        enabled: true
+      Test-Conditional-Logic->Test-PostgreSQL-Read:
+        source_job: Test-Conditional-Logic
+        target_job: Test-PostgreSQL-Read
+        condition_type: on_job_success
+        enabled: true
+      Test-Data-Transformation->Test-Conditional-Logic:
+        source_job: Test-Data-Transformation
+        target_job: Test-Conditional-Logic
+        condition_type: on_job_success
+        enabled: true
+      Test-Notifications->Generate-Test-Report:
+        source_job: Test-Notifications
+        target_job: Generate-Test-Report
+        condition_type: always
+        enabled: true
+      Test-Logging->Test-Notifications:
+        source_job: Test-Logging
+        target_job: Test-Notifications
         condition_type: on_job_success
         enabled: true
       Test-Google-Sheets-Write->Test-Logging:
@@ -8758,15 +8915,20 @@ workflows:
         target_job: Test-Logging
         condition_type: on_job_success
         enabled: true
-      Test-Logging->Test-Notifications:
-        source_job: Test-Logging
-        target_job: Test-Notifications
+      Test-Google-Sheets-Read->Test-Google-Sheets-Write:
+        source_job: Test-Google-Sheets-Read
+        target_job: Test-Google-Sheets-Write
         condition_type: on_job_success
         enabled: true
-      Test-Notifications->Generate-Test-Report:
-        source_job: Test-Notifications
-        target_job: Generate-Test-Report
-        condition_type: always
+      Test-SFTP-Write->Test-Google-Sheets-Read:
+        source_job: Test-SFTP-Write
+        target_job: Test-Google-Sheets-Read
+        condition_type: on_job_success
+        enabled: true
+      Test-Error-Handling->Test-SFTP-Read:
+        source_job: Test-Error-Handling
+        target_job: Test-SFTP-Read
+        condition_type: on_job_success
         enabled: true
   "Self-Testing-QA-Health-Check-(pasted-yaml)-1":
     name: 'Self-Testing QA Health Check (pasted yaml) 1'
@@ -8833,6 +8995,7 @@ workflows:
                 };
               });
           });
+
       httpbin-post:
         name: httpbin-post
         adaptor: '@openfn/language-http@latest'
@@ -8899,6 +9062,7 @@ workflows:
                 return { ...state, qaResults: [...qaResults, result] };
               });
           });
+
       httpbin-status:
         name: httpbin-status
         adaptor: '@openfn/language-http@latest'
@@ -8964,6 +9128,7 @@ workflows:
               });
             }
           });
+
       httpbin-headers:
         name: httpbin-headers
         adaptor: '@openfn/language-http@latest'
@@ -9027,6 +9192,7 @@ workflows:
                 return append({ passed: false, detail });
               });
           });
+
       jsonplaceholder-list:
         name: jsonplaceholder-list
         adaptor: '@openfn/language-http@latest'
@@ -9090,6 +9256,7 @@ workflows:
                 };
               });
           });
+
       jsonplaceholder-create:
         name: jsonplaceholder-create
         adaptor: '@openfn/language-http@latest'
@@ -9157,6 +9324,7 @@ workflows:
                 return { ...state, qaResults: [...qaResults, result] };
               });
           });
+
       github-repo:
         name: github-repo
         adaptor: '@openfn/language-http@latest'
@@ -9217,6 +9385,7 @@ workflows:
                 return { ...state, qaResults };
               });
           });
+
       random-user:
         name: random-user
         adaptor: '@openfn/language-http@latest'
@@ -9287,6 +9456,7 @@ workflows:
                 return { ...state, qaResults };
               });
           });
+
       dog-image:
         name: dog-image
         adaptor: '@openfn/language-http@latest'
@@ -9348,6 +9518,7 @@ workflows:
                 return { ...state, qaResults };
               });
           });
+
       cat-fact:
         name: cat-fact
         adaptor: '@openfn/language-http@latest'
@@ -9398,6 +9569,7 @@ workflows:
                 return { ...state, qaResults: [...qaResults, result] };
               });
           });
+
       numbers-trivia:
         name: numbers-trivia
         adaptor: '@openfn/language-http@latest'
@@ -9459,6 +9631,7 @@ workflows:
                 };
               });
           });
+
       iss-location:
         name: iss-location
         adaptor: '@openfn/language-http@latest'
@@ -9519,6 +9692,7 @@ workflows:
                 });
               });
           });
+
       crypto-price:
         name: crypto-price
         adaptor: '@openfn/language-http@latest'
@@ -9578,6 +9752,7 @@ workflows:
                 });
               });
           });
+
       bored-activity:
         name: bored-activity
         adaptor: '@openfn/language-http@latest'
@@ -9640,6 +9815,7 @@ workflows:
                 };
               });
           });
+
       public-holidays:
         name: public-holidays
         adaptor: '@openfn/language-http@latest'
@@ -9706,6 +9882,7 @@ workflows:
                 return { ...state, qaResults: [...qaResults, result] };
               });
           });
+
       advice-slip:
         name: advice-slip
         adaptor: '@openfn/language-http@latest'
@@ -9793,6 +9970,7 @@ workflows:
                 });
               });
           });
+
       universities-search:
         name: universities-search
         adaptor: '@openfn/language-http@latest'
@@ -9859,6 +10037,7 @@ workflows:
                 return { ...state, qaResults };
               });
           });
+
       intentional-fail:
         name: intentional-fail
         adaptor: '@openfn/language-http@latest'
@@ -9886,6 +10065,7 @@ workflows:
 
             return { ...state, qaResults };
           });
+
       qa-summary:
         name: qa-summary
         adaptor: '@openfn/language-http@latest'
@@ -9924,6 +10104,7 @@ workflows:
 
             return { ...state, qaSummary: summary };
           });
+
       notify-failures:
         name: notify-failures
         adaptor: '@openfn/language-gmail@latest'
@@ -10037,85 +10218,21 @@ workflows:
             }
             return state;
           });
+
     triggers:
       cron:
         type: cron
         cron_expression: '0 * * * *'
         enabled: false
     edges:
-      cron->httpbin-get:
-        source_trigger: cron
-        target_job: httpbin-get
-        condition_type: always
-        enabled: true
-      httpbin-get->httpbin-post:
-        source_job: httpbin-get
-        target_job: httpbin-post
-        condition_type: on_job_success
-        enabled: true
-      httpbin-post->httpbin-status:
-        source_job: httpbin-post
-        target_job: httpbin-status
-        condition_type: on_job_success
-        enabled: true
-      httpbin-status->httpbin-headers:
-        source_job: httpbin-status
-        target_job: httpbin-headers
-        condition_type: on_job_success
-        enabled: true
-      httpbin-headers->jsonplaceholder-list:
-        source_job: httpbin-headers
-        target_job: jsonplaceholder-list
-        condition_type: on_job_success
-        enabled: true
-      jsonplaceholder-list->jsonplaceholder-create:
-        source_job: jsonplaceholder-list
-        target_job: jsonplaceholder-create
-        condition_type: on_job_success
-        enabled: true
-      jsonplaceholder-create->github-repo:
-        source_job: jsonplaceholder-create
-        target_job: github-repo
-        condition_type: on_job_success
-        enabled: true
-      github-repo->random-user:
-        source_job: github-repo
-        target_job: random-user
-        condition_type: on_job_success
-        enabled: true
-      random-user->dog-image:
-        source_job: random-user
-        target_job: dog-image
-        condition_type: on_job_success
-        enabled: true
       dog-image->cat-fact:
         source_job: dog-image
         target_job: cat-fact
         condition_type: on_job_success
         enabled: true
-      cat-fact->numbers-trivia:
-        source_job: cat-fact
-        target_job: numbers-trivia
-        condition_type: on_job_success
-        enabled: true
-      numbers-trivia->iss-location:
-        source_job: numbers-trivia
-        target_job: iss-location
-        condition_type: on_job_success
-        enabled: true
-      iss-location->crypto-price:
-        source_job: iss-location
-        target_job: crypto-price
-        condition_type: on_job_success
-        enabled: true
-      crypto-price->bored-activity:
-        source_job: crypto-price
-        target_job: bored-activity
-        condition_type: on_job_success
-        enabled: true
-      bored-activity->public-holidays:
-        source_job: bored-activity
-        target_job: public-holidays
+      advice-slip->universities-search:
+        source_job: advice-slip
+        target_job: universities-search
         condition_type: on_job_success
         enabled: true
       public-holidays->advice-slip:
@@ -10123,10 +10240,75 @@ workflows:
         target_job: advice-slip
         condition_type: on_job_success
         enabled: true
-      advice-slip->universities-search:
-        source_job: advice-slip
-        target_job: universities-search
+      bored-activity->public-holidays:
+        source_job: bored-activity
+        target_job: public-holidays
         condition_type: on_job_success
+        enabled: true
+      crypto-price->bored-activity:
+        source_job: crypto-price
+        target_job: bored-activity
+        condition_type: on_job_success
+        enabled: true
+      iss-location->crypto-price:
+        source_job: iss-location
+        target_job: crypto-price
+        condition_type: on_job_success
+        enabled: true
+      numbers-trivia->iss-location:
+        source_job: numbers-trivia
+        target_job: iss-location
+        condition_type: on_job_success
+        enabled: true
+      cat-fact->numbers-trivia:
+        source_job: cat-fact
+        target_job: numbers-trivia
+        condition_type: on_job_success
+        enabled: true
+      random-user->dog-image:
+        source_job: random-user
+        target_job: dog-image
+        condition_type: on_job_success
+        enabled: true
+      github-repo->random-user:
+        source_job: github-repo
+        target_job: random-user
+        condition_type: on_job_success
+        enabled: true
+      jsonplaceholder-create->github-repo:
+        source_job: jsonplaceholder-create
+        target_job: github-repo
+        condition_type: on_job_success
+        enabled: true
+      jsonplaceholder-list->jsonplaceholder-create:
+        source_job: jsonplaceholder-list
+        target_job: jsonplaceholder-create
+        condition_type: on_job_success
+        enabled: true
+      httpbin-headers->jsonplaceholder-list:
+        source_job: httpbin-headers
+        target_job: jsonplaceholder-list
+        condition_type: on_job_success
+        enabled: true
+      httpbin-status->httpbin-headers:
+        source_job: httpbin-status
+        target_job: httpbin-headers
+        condition_type: on_job_success
+        enabled: true
+      httpbin-post->httpbin-status:
+        source_job: httpbin-post
+        target_job: httpbin-status
+        condition_type: on_job_success
+        enabled: true
+      httpbin-get->httpbin-post:
+        source_job: httpbin-get
+        target_job: httpbin-post
+        condition_type: on_job_success
+        enabled: true
+      cron->httpbin-get:
+        source_trigger: cron
+        target_job: httpbin-get
+        condition_type: always
         enabled: true
       universities-search->intentional-fail:
         source_job: universities-search
@@ -10182,6 +10364,7 @@ workflows:
               },
             };
           });
+
       httpbin-headers:
         name: httpbin-headers
         adaptor: '@openfn/language-http@latest'
@@ -10245,6 +10428,7 @@ workflows:
                 return append({ passed: false, detail });
               });
           });
+
       crypto-price:
         name: crypto-price
         adaptor: '@openfn/language-http@latest'
@@ -10304,6 +10488,7 @@ workflows:
                 });
               });
           });
+
       notify-failures:
         name: notify-failures
         adaptor: '@openfn/language-gmail@latest'
@@ -10428,6 +10613,7 @@ workflows:
             }
             return state;
           });
+
       httpbin-get:
         name: httpbin-get
         adaptor: '@openfn/language-http@latest'
@@ -10525,6 +10711,7 @@ workflows:
                 };
               });
           });
+
       advice-slip:
         name: advice-slip
         adaptor: '@openfn/language-http@latest'
@@ -10612,6 +10799,7 @@ workflows:
                 });
               });
           });
+
       universities-search:
         name: universities-search
         adaptor: '@openfn/language-http@latest'
@@ -10678,6 +10866,7 @@ workflows:
                 return { ...state, qaResults };
               });
           });
+
       qa-summary:
         name: qa-summary
         adaptor: '@openfn/language-http@latest'
@@ -10718,6 +10907,7 @@ workflows:
 
             return { ...state, qaSummary: summary };
           });
+
       httpbin-post:
         name: httpbin-post
         adaptor: '@openfn/language-http@latest'
@@ -10784,6 +10974,7 @@ workflows:
                 return { ...state, qaResults: [...qaResults, result] };
               });
           });
+
       httpbin-status:
         name: httpbin-status
         adaptor: '@openfn/language-http@latest'
@@ -10849,6 +11040,7 @@ workflows:
               });
             }
           });
+
       jsonplaceholder-list:
         name: jsonplaceholder-list
         adaptor: '@openfn/language-http@latest'
@@ -10912,6 +11104,7 @@ workflows:
                 };
               });
           });
+
       jsonplaceholder-create:
         name: jsonplaceholder-create
         adaptor: '@openfn/language-http@latest'
@@ -10979,6 +11172,7 @@ workflows:
                 return { ...state, qaResults: [...qaResults, result] };
               });
           });
+
       github-repo:
         name: github-repo
         adaptor: '@openfn/language-http@latest'
@@ -11039,6 +11233,7 @@ workflows:
                 return { ...state, qaResults };
               });
           });
+
       random-user:
         name: random-user
         adaptor: '@openfn/language-http@latest'
@@ -11109,6 +11304,7 @@ workflows:
                 return { ...state, qaResults };
               });
           });
+
       dog-image:
         name: dog-image
         adaptor: '@openfn/language-http@latest'
@@ -11170,6 +11366,7 @@ workflows:
                 return { ...state, qaResults };
               });
           });
+
       numbers-trivia:
         name: numbers-trivia
         adaptor: '@openfn/language-http@latest'
@@ -11231,6 +11428,7 @@ workflows:
                 };
               });
           });
+
       public-holidays:
         name: public-holidays
         adaptor: '@openfn/language-http@latest'
@@ -11297,6 +11495,7 @@ workflows:
                 return { ...state, qaResults: [...qaResults, result] };
               });
           });
+
       cat-fact:
         name: cat-fact
         adaptor: '@openfn/language-http@latest'
@@ -11347,6 +11546,7 @@ workflows:
                 return { ...state, qaResults: [...qaResults, result] };
               });
           });
+
       iss-location:
         name: iss-location
         adaptor: '@openfn/language-http@latest'
@@ -11407,6 +11607,7 @@ workflows:
                 });
               });
           });
+
       bored-activity:
         name: bored-activity
         adaptor: '@openfn/language-http@latest'
@@ -11469,6 +11670,7 @@ workflows:
                 };
               });
           });
+
       intentional-fail:
         name: intentional-fail
         adaptor: '@openfn/language-http@latest'
@@ -11496,100 +11698,31 @@ workflows:
 
             return { ...state, qaResults };
           });
+
     triggers:
       webhook:
         type: webhook
         webhook_reply: before_start
         enabled: false
     edges:
-      webhook->measure-and-strip-input:
-        source_trigger: webhook
-        target_job: measure-and-strip-input
-        condition_type: always
-        enabled: true
-      measure-and-strip-input->httpbin-get:
-        source_job: measure-and-strip-input
-        target_job: httpbin-get
-        condition_type: on_job_success
-        enabled: true
-      httpbin-get->httpbin-post:
-        source_job: httpbin-get
-        target_job: httpbin-post
-        condition_type: on_job_success
-        enabled: true
-      httpbin-post->httpbin-status:
-        source_job: httpbin-post
-        target_job: httpbin-status
-        condition_type: on_job_success
-        enabled: true
-      httpbin-status->httpbin-headers:
-        source_job: httpbin-status
-        target_job: httpbin-headers
-        condition_type: on_job_success
-        enabled: true
-      httpbin-headers->jsonplaceholder-list:
-        source_job: httpbin-headers
-        target_job: jsonplaceholder-list
-        condition_type: on_job_success
-        enabled: true
-      jsonplaceholder-list->jsonplaceholder-create:
-        source_job: jsonplaceholder-list
-        target_job: jsonplaceholder-create
-        condition_type: on_job_success
-        enabled: true
-      jsonplaceholder-create->github-repo:
-        source_job: jsonplaceholder-create
-        target_job: github-repo
-        condition_type: on_job_success
-        enabled: true
-      github-repo->random-user:
-        source_job: github-repo
-        target_job: random-user
-        condition_type: on_job_success
-        enabled: true
       random-user->dog-image:
         source_job: random-user
         target_job: dog-image
         condition_type: on_job_success
         enabled: true
-      dog-image->cat-fact:
-        source_job: dog-image
-        target_job: cat-fact
-        condition_type: on_job_success
+      webhook->measure-and-strip-input:
+        source_trigger: webhook
+        target_job: measure-and-strip-input
+        condition_type: always
         enabled: true
-      cat-fact->numbers-trivia:
-        source_job: cat-fact
-        target_job: numbers-trivia
-        condition_type: on_job_success
+      qa-summary->notify-failures:
+        source_job: qa-summary
+        target_job: notify-failures
+        condition_type: always
         enabled: true
-      numbers-trivia->iss-location:
-        source_job: numbers-trivia
-        target_job: iss-location
-        condition_type: on_job_success
-        enabled: true
-      iss-location->crypto-price:
-        source_job: iss-location
-        target_job: crypto-price
-        condition_type: on_job_success
-        enabled: true
-      crypto-price->bored-activity:
-        source_job: crypto-price
-        target_job: bored-activity
-        condition_type: on_job_success
-        enabled: true
-      bored-activity->public-holidays:
-        source_job: bored-activity
-        target_job: public-holidays
-        condition_type: on_job_success
-        enabled: true
-      public-holidays->advice-slip:
-        source_job: public-holidays
-        target_job: advice-slip
-        condition_type: on_job_success
-        enabled: true
-      advice-slip->universities-search:
-        source_job: advice-slip
-        target_job: universities-search
+      intentional-fail->qa-summary:
+        source_job: intentional-fail
+        target_job: qa-summary
         condition_type: on_job_success
         enabled: true
       universities-search->intentional-fail:
@@ -11597,15 +11730,85 @@ workflows:
         target_job: intentional-fail
         condition_type: on_job_success
         enabled: true
-      intentional-fail->qa-summary:
-        source_job: intentional-fail
-        target_job: qa-summary
+      advice-slip->universities-search:
+        source_job: advice-slip
+        target_job: universities-search
         condition_type: on_job_success
         enabled: true
-      qa-summary->notify-failures:
-        source_job: qa-summary
-        target_job: notify-failures
-        condition_type: always
+      public-holidays->advice-slip:
+        source_job: public-holidays
+        target_job: advice-slip
+        condition_type: on_job_success
+        enabled: true
+      bored-activity->public-holidays:
+        source_job: bored-activity
+        target_job: public-holidays
+        condition_type: on_job_success
+        enabled: true
+      crypto-price->bored-activity:
+        source_job: crypto-price
+        target_job: bored-activity
+        condition_type: on_job_success
+        enabled: true
+      iss-location->crypto-price:
+        source_job: iss-location
+        target_job: crypto-price
+        condition_type: on_job_success
+        enabled: true
+      numbers-trivia->iss-location:
+        source_job: numbers-trivia
+        target_job: iss-location
+        condition_type: on_job_success
+        enabled: true
+      cat-fact->numbers-trivia:
+        source_job: cat-fact
+        target_job: numbers-trivia
+        condition_type: on_job_success
+        enabled: true
+      dog-image->cat-fact:
+        source_job: dog-image
+        target_job: cat-fact
+        condition_type: on_job_success
+        enabled: true
+      github-repo->random-user:
+        source_job: github-repo
+        target_job: random-user
+        condition_type: on_job_success
+        enabled: true
+      jsonplaceholder-create->github-repo:
+        source_job: jsonplaceholder-create
+        target_job: github-repo
+        condition_type: on_job_success
+        enabled: true
+      jsonplaceholder-list->jsonplaceholder-create:
+        source_job: jsonplaceholder-list
+        target_job: jsonplaceholder-create
+        condition_type: on_job_success
+        enabled: true
+      httpbin-headers->jsonplaceholder-list:
+        source_job: httpbin-headers
+        target_job: jsonplaceholder-list
+        condition_type: on_job_success
+        enabled: true
+      httpbin-status->httpbin-headers:
+        source_job: httpbin-status
+        target_job: httpbin-headers
+        condition_type: on_job_success
+        enabled: true
+      httpbin-post->httpbin-status:
+        source_job: httpbin-post
+        target_job: httpbin-status
+        condition_type: on_job_success
+        enabled: true
+      httpbin-get->httpbin-post:
+        source_job: httpbin-get
+        target_job: httpbin-post
+        condition_type: on_job_success
+        enabled: true
+      measure-and-strip-input->httpbin-get:
+        source_job: measure-and-strip-input
+        target_job: httpbin-get
+        condition_type: on_job_success
         enabled: true
   v2.15.13-pre-1:
     name: v2.15.13-pre 1
@@ -11618,6 +11821,7 @@ workflows:
           // Check out the Job Writing Guide for help getting started:
           // https://docs.openfn.org/documentation/jobs/job-writing-guide
           get('https://docs.openfn.org/documentation');
+
       Common:
         name: Common
         adaptor: '@openfn/language-common@3.2.2'
@@ -11625,78 +11829,91 @@ workflows:
         body: |
           // Check out the Job Writing Guide for help getting started:
           // https://docs.openfn.org/documentation/jobs/job-writing-guide
+
       whatsapp:
         name: whatsapp
         adaptor: '@openfn/language-whatsapp@latest'
         credential: null
         body: |
           // Add operations here
+
       Send-data-to-Salesforce:
         name: Send data to Salesforce
         adaptor: '@openfn/language-salesforce@latest'
         credential: null
         body: |
           //something cool coming
+
       step-3:
         name: step 3
         adaptor: '@openfn/language-common@latest'
         credential: null
         body: |
           // Add operations here
+
       Process-Level-2A:
         name: Process Level 2A
         adaptor: '@openfn/language-common@latest'
         credential: null
         body: |
           // Add operations here
+
       Process-Level-2B:
         name: Process Level 2B
         adaptor: '@openfn/language-common@latest'
         credential: null
         body: |
           // Add operations here
+
       Process-Level-3A:
         name: Process Level 3A
         adaptor: '@openfn/language-common@latest'
         credential: null
         body: |
           // Add operations here
+
       Process-Level-3B:
         name: Process Level 3B
         adaptor: '@openfn/language-common@latest'
         credential: null
         body: |
           // Add operations here
+
       Process-Level-3C:
         name: Process Level 3C
         adaptor: '@openfn/language-common@latest'
         credential: null
         body: |
           // Add operations here
+
       Process-Level-3D:
         name: Process Level 3D
         adaptor: '@openfn/language-common@latest'
         credential: null
         body: |
           // Add operations here
+
       Process-Level-4A:
         name: Process Level 4A
         adaptor: '@openfn/language-common@latest'
         credential: null
         body: |
           // Add operations here
+
       Process-Level-4B:
         name: Process Level 4B
         adaptor: '@openfn/language-common@latest'
         credential: null
         body: |
           // Add operations here
+
       Process-Level-4C:
         name: Process Level 4C
         adaptor: '@openfn/language-common@latest'
         credential: null
         body: |
           // Add operations here
+
       Fhir:
         name: Fhir
         adaptor: '@openfn/language-fhir@5.0.14'
@@ -11711,29 +11928,24 @@ workflows:
         webhook_reply: before_start
         enabled: true
     edges:
-      webhook->Get-data:
-        source_trigger: webhook
-        target_job: Get-data
-        condition_type: always
-        enabled: true
-      Get-data->Common:
-        source_job: Get-data
-        target_job: Common
+      Process-Level-3C->Process-Level-4C:
+        source_job: Process-Level-3C
+        target_job: Process-Level-4C
         condition_type: on_job_success
         enabled: true
-      Common->whatsapp:
-        source_job: Common
-        target_job: whatsapp
-        condition_type: on_job_failure
-        enabled: true
-      Common->Send-data-to-Salesforce:
-        source_job: Common
-        target_job: Send-data-to-Salesforce
+      Process-Level-3A->Fhir:
+        source_job: Process-Level-3A
+        target_job: Fhir
         condition_type: on_job_success
         enabled: true
-      Send-data-to-Salesforce->step-3:
-        source_job: Send-data-to-Salesforce
-        target_job: step-3
+      Process-Level-3A->Process-Level-4A:
+        source_job: Process-Level-3A
+        target_job: Process-Level-4A
+        condition_type: on_job_success
+        enabled: true
+      Process-Level-3B->Process-Level-4B:
+        source_job: Process-Level-3B
+        target_job: Process-Level-4B
         condition_type: on_job_success
         enabled: true
       step-3->Process-Level-2A:
@@ -11766,24 +11978,29 @@ workflows:
         target_job: Process-Level-3D
         condition_type: on_job_success
         enabled: true
-      Process-Level-3A->Process-Level-4A:
-        source_job: Process-Level-3A
-        target_job: Process-Level-4A
+      webhook->Get-data:
+        source_trigger: webhook
+        target_job: Get-data
+        condition_type: always
+        enabled: true
+      Get-data->Common:
+        source_job: Get-data
+        target_job: Common
         condition_type: on_job_success
         enabled: true
-      Process-Level-3B->Process-Level-4B:
-        source_job: Process-Level-3B
-        target_job: Process-Level-4B
+      Common->whatsapp:
+        source_job: Common
+        target_job: whatsapp
+        condition_type: on_job_failure
+        enabled: true
+      Common->Send-data-to-Salesforce:
+        source_job: Common
+        target_job: Send-data-to-Salesforce
         condition_type: on_job_success
         enabled: true
-      Process-Level-3C->Process-Level-4C:
-        source_job: Process-Level-3C
-        target_job: Process-Level-4C
-        condition_type: on_job_success
-        enabled: true
-      Process-Level-3A->Fhir:
-        source_job: Process-Level-3A
-        target_job: Fhir
+      Send-data-to-Salesforce->step-3:
+        source_job: Send-data-to-Salesforce
+        target_job: step-3
         condition_type: on_job_success
         enabled: true
   DING-DONG-Notification-Workflow:
@@ -11795,12 +12012,14 @@ workflows:
         credential: null
         body: |
           // Add operations here
+
       Log-to-Spreadsheet:
         name: Log to Spreadsheet
         adaptor: '@openfn/language-googlesheets@latest'
         credential: null
         body: |
           // Add operations here
+
     triggers:
       cron:
         type: cron
@@ -11828,6 +12047,7 @@ workflows:
           // Check out the Job Writing Guide for help getting started:
           // https://docs.openfn.org/documentation/jobs/job-writing-guide
           // test text
+
       Step-2---if-fail:
         name: Step 2 - if fail
         adaptor: '@openfn/language-common@3.3.4'
@@ -11889,6 +12109,7 @@ workflows:
           // Check out the Job Writing Guide for help getting started:
           // https://docs.openfn.org/documentation/jobs/job-writing-guide
           get('https://docs.openfn.org/documentation');
+
       Common:
         name: Common
         adaptor: '@openfn/language-common@3.2.2'
@@ -11896,78 +12117,91 @@ workflows:
         body: |
           // Check out the Job Writing Guide for help getting started:
           // https://docs.openfn.org/documentation/jobs/job-writing-guide
+
       whatsapp:
         name: whatsapp
         adaptor: '@openfn/language-whatsapp@latest'
         credential: null
         body: |
           // Add operations here
+
       Send-data-to-Salesforce:
         name: Send data to Salesforce
         adaptor: '@openfn/language-salesforce@latest'
         credential: null
         body: |
           //something cool coming
+
       step-3:
         name: step 3
         adaptor: '@openfn/language-common@latest'
         credential: null
         body: |
           // Add operations here
+
       Process-Level-2A:
         name: Process Level 2A
         adaptor: '@openfn/language-common@latest'
         credential: null
         body: |
           // Add operations here
+
       Process-Level-2B:
         name: Process Level 2B
         adaptor: '@openfn/language-common@latest'
         credential: null
         body: |
           // Add operations here
+
       Process-Level-3A:
         name: Process Level 3A
         adaptor: '@openfn/language-common@latest'
         credential: null
         body: |
           // Add operations here
+
       Process-Level-3B:
         name: Process Level 3B
         adaptor: '@openfn/language-common@latest'
         credential: null
         body: |
           // Add operations here
+
       Process-Level-3C:
         name: Process Level 3C
         adaptor: '@openfn/language-common@latest'
         credential: null
         body: |
           // Add operations here
+
       Process-Level-3D:
         name: Process Level 3D
         adaptor: '@openfn/language-common@latest'
         credential: null
         body: |
           // Add operations here
+
       Process-Level-4A:
         name: Process Level 4A
         adaptor: '@openfn/language-common@latest'
         credential: null
         body: |
           // Add operations here
+
       Process-Level-4B:
         name: Process Level 4B
         adaptor: '@openfn/language-common@latest'
         credential: null
         body: |
           // Add operations here
+
       Process-Level-4C:
         name: Process Level 4C
         adaptor: '@openfn/language-common@latest'
         credential: null
         body: |
           // Add operations here
+
       Fhir:
         name: Fhir
         adaptor: '@openfn/language-fhir@5.0.14'
@@ -11990,49 +12224,9 @@ workflows:
         webhook_reply: before_start
         enabled: false
     edges:
-      webhook->Get-data:
-        source_trigger: webhook
-        target_job: Get-data
-        condition_type: always
-        enabled: true
-      Get-data->Common:
-        source_job: Get-data
-        target_job: Common
-        condition_type: on_job_success
-        enabled: true
-      Common->whatsapp:
-        source_job: Common
-        target_job: whatsapp
-        condition_type: on_job_failure
-        enabled: true
-      Common->Send-data-to-Salesforce:
-        source_job: Common
-        target_job: Send-data-to-Salesforce
-        condition_type: on_job_success
-        enabled: true
-      Send-data-to-Salesforce->step-3:
-        source_job: Send-data-to-Salesforce
-        target_job: step-3
-        condition_type: on_job_success
-        enabled: true
-      step-3->Process-Level-2A:
-        source_job: step-3
-        target_job: Process-Level-2A
-        condition_type: on_job_success
-        enabled: true
-      step-3->Process-Level-2B:
-        source_job: step-3
-        target_job: Process-Level-2B
-        condition_type: on_job_success
-        enabled: true
-      Process-Level-2A->Process-Level-3A:
-        source_job: Process-Level-2A
-        target_job: Process-Level-3A
-        condition_type: on_job_success
-        enabled: true
-      Process-Level-2A->Process-Level-3B:
-        source_job: Process-Level-2A
-        target_job: Process-Level-3B
+      Process-Level-3A->Fhir:
+        source_job: Process-Level-3A
+        target_job: Fhir
         condition_type: on_job_success
         enabled: true
       Process-Level-2B->Process-Level-3C:
@@ -12040,14 +12234,54 @@ workflows:
         target_job: Process-Level-3C
         condition_type: on_job_success
         enabled: true
+      Process-Level-2A->Process-Level-3B:
+        source_job: Process-Level-2A
+        target_job: Process-Level-3B
+        condition_type: on_job_success
+        enabled: true
+      Process-Level-2A->Process-Level-3A:
+        source_job: Process-Level-2A
+        target_job: Process-Level-3A
+        condition_type: on_job_success
+        enabled: true
+      step-3->Process-Level-2B:
+        source_job: step-3
+        target_job: Process-Level-2B
+        condition_type: on_job_success
+        enabled: true
+      step-3->Process-Level-2A:
+        source_job: step-3
+        target_job: Process-Level-2A
+        condition_type: on_job_success
+        enabled: true
+      Send-data-to-Salesforce->step-3:
+        source_job: Send-data-to-Salesforce
+        target_job: step-3
+        condition_type: on_job_success
+        enabled: true
+      Common->Send-data-to-Salesforce:
+        source_job: Common
+        target_job: Send-data-to-Salesforce
+        condition_type: on_job_success
+        enabled: true
+      Common->whatsapp:
+        source_job: Common
+        target_job: whatsapp
+        condition_type: on_job_failure
+        enabled: true
+      Get-data->Common:
+        source_job: Get-data
+        target_job: Common
+        condition_type: on_job_success
+        enabled: true
+      webhook->Get-data:
+        source_trigger: webhook
+        target_job: Get-data
+        condition_type: always
+        enabled: true
       Process-Level-2B->Process-Level-3D:
         source_job: Process-Level-2B
         target_job: Process-Level-3D
-        condition_type: on_job_success
-        enabled: true
-      Process-Level-3A->Process-Level-4A:
-        source_job: Process-Level-3A
-        target_job: Process-Level-4A
         condition_type: on_job_success
         enabled: true
       Process-Level-3B->Process-Level-4B:
@@ -12055,14 +12289,14 @@ workflows:
         target_job: Process-Level-4B
         condition_type: on_job_success
         enabled: true
+      Process-Level-3A->Process-Level-4A:
+        source_job: Process-Level-3A
+        target_job: Process-Level-4A
+        condition_type: on_job_success
+        enabled: true
       Process-Level-3C->Process-Level-4C:
         source_job: Process-Level-3C
         target_job: Process-Level-4C
-        condition_type: on_job_success
-        enabled: true
-      Process-Level-3A->Fhir:
-        source_job: Process-Level-3A
-        target_job: Fhir
         condition_type: on_job_success
         enabled: true
       Process-Level-4C->Dhis2:
@@ -12161,12 +12395,14 @@ workflows:
         credential: null
         body: |
           // Add operations here
+
       Log-to-Spreadsheet:
         name: Log to Spreadsheet
         adaptor: '@openfn/language-googlesheets@latest'
         credential: null
         body: |
           // Add operations here
+
     triggers:
       cron:
         type: cron
@@ -12192,186 +12428,249 @@ workflows:
         credential: null
         body: |
           // Add operations here
+
       Fetch-JSONPlaceholder-Users:
         name: Fetch JSONPlaceholder Users
         adaptor: '@openfn/language-http@latest'
         credential: null
         body: |
           // Add operations here
+
       Fetch-JSONPlaceholder-Posts:
         name: Fetch JSONPlaceholder Posts
         adaptor: '@openfn/language-http@latest'
         credential: null
         body: |
           // Add operations here
+
       Create-JSONPlaceholder-Post:
         name: Create JSONPlaceholder Post
         adaptor: '@openfn/language-http@latest'
         credential: null
         body: |
           // Add operations here
+
       Update-JSONPlaceholder-Post:
         name: Update JSONPlaceholder Post
         adaptor: '@openfn/language-http@latest'
         credential: null
         body: |
           // Add operations here
+
       Delete-JSONPlaceholder-Post:
         name: Delete JSONPlaceholder Post
         adaptor: '@openfn/language-http@latest'
         credential: null
         body: |
           // Add operations here
+
       Fetch-Open-Meteo-Weather:
         name: Fetch Open-Meteo Weather
         adaptor: '@openfn/language-http@latest'
         credential: null
         body: |
           // Add operations here
+
       Fetch-RestCountries-Data:
         name: Fetch RestCountries Data
         adaptor: '@openfn/language-http@latest'
         credential: null
         body: |
           // Add operations here
+
       Transform-Country-Data:
         name: Transform Country Data
         adaptor: '@openfn/language-common@latest'
         credential: null
         body: |
           // Add operations here
+
       Fetch-PokeAPI-Data:
         name: Fetch PokeAPI Data
         adaptor: '@openfn/language-http@latest'
         credential: null
         body: |
           // Add operations here
+
       Fetch-Cat-Fact:
         name: Fetch Cat Fact
         adaptor: '@openfn/language-http@latest'
         credential: null
         body: |
           // Add operations here
+
       Fetch-Dog-Image:
         name: Fetch Dog Image
         adaptor: '@openfn/language-http@latest'
         credential: null
         body: |
           // Add operations here
+
       Fetch-Joke-API:
         name: Fetch Joke API
         adaptor: '@openfn/language-http@latest'
         credential: null
         body: |
           // Add operations here
+
       Fetch-Random-User:
         name: Fetch Random User
         adaptor: '@openfn/language-http@latest'
         credential: null
         body: |
           // Add operations here
+
       Process-Random-User:
         name: Process Random User
         adaptor: '@openfn/language-common@latest'
         credential: null
         body: |
           // Add operations here
+
       Fetch-GitHub-Public-Repos:
         name: Fetch GitHub Public Repos
         adaptor: '@openfn/language-http@latest'
         credential: null
         body: |
           // Add operations here
+
       Process-GitHub-Data:
         name: Process GitHub Data
         adaptor: '@openfn/language-common@latest'
         credential: null
         body: |
           // Add operations here
+
       Fetch-Open-Library-Books:
         name: Fetch Open Library Books
         adaptor: '@openfn/language-http@latest'
         credential: null
         body: |
           // Add operations here
+
       Process-Book-Data:
         name: Process Book Data
         adaptor: '@openfn/language-common@latest'
         credential: null
         body: |
           // Add operations here
+
       Simulate-Job-Error:
         name: Simulate Job Error
         adaptor: '@openfn/language-common@latest'
         credential: null
         body: |
           // Add operations here
+
       Handle-Simulated-Error:
         name: Handle Simulated Error
         adaptor: '@openfn/language-common@latest'
         credential: null
         body: |
           // Add operations here
+
       Test-Conditional-Branching:
         name: Test Conditional Branching
         adaptor: '@openfn/language-common@latest'
         credential: null
         body: |
           // Add operations here
+
       Execute-Branch-A:
         name: Execute Branch A
         adaptor: '@openfn/language-http@latest'
         credential: null
         body: |
           // Add operations here
+
       Execute-Branch-B:
         name: Execute Branch B
         adaptor: '@openfn/language-http@latest'
         credential: null
         body: |
           // Add operations here
+
       Fetch-IP-Geolocation:
         name: Fetch IP Geolocation
         adaptor: '@openfn/language-http@latest'
         credential: null
         body: |
           // Add operations here
+
       Process-IP-Data:
         name: Process IP Data
         adaptor: '@openfn/language-common@latest'
         credential: null
         body: |
           // Add operations here
+
       Aggregate-Results-Group-One:
         name: Aggregate Results Group One
         adaptor: '@openfn/language-common@latest'
         credential: null
         body: |
           // Add operations here
+
       Aggregate-Results-Group-Two:
         name: Aggregate Results Group Two
         adaptor: '@openfn/language-common@latest'
         credential: null
         body: |
           // Add operations here
+
       Final-Validation:
         name: Final Validation
         adaptor: '@openfn/language-common@latest'
         credential: null
         body: |
           // Add operations here
+
       Log-Workflow-Summary:
         name: Log Workflow Summary
         adaptor: '@openfn/language-common@latest'
         credential: null
         body: |
           // Add operations here
+
     triggers:
       webhook:
         type: webhook
         webhook_reply: before_start
         enabled: false
     edges:
+      Create-JSONPlaceholder-Post->Update-JSONPlaceholder-Post:
+        source_job: Create-JSONPlaceholder-Post
+        target_job: Update-JSONPlaceholder-Post
+        condition_type: on_job_success
+        enabled: true
+      Aggregate-Results-Group-Two->Final-Validation:
+        source_job: Aggregate-Results-Group-Two
+        target_job: Final-Validation
+        condition_type: on_job_success
+        enabled: true
+      Final-Validation->Log-Workflow-Summary:
+        source_job: Final-Validation
+        target_job: Log-Workflow-Summary
+        condition_type: on_job_success
+        enabled: true
+      Test-Conditional-Branching->Execute-Branch-A:
+        source_job: Test-Conditional-Branching
+        target_job: Execute-Branch-A
+        condition_type: js_expression
+        condition_label: null
+        condition_expression: |
+          state.branch === "A"
+
+        enabled: true
+      Test-Conditional-Branching->Execute-Branch-B:
+        source_job: Test-Conditional-Branching
+        target_job: Execute-Branch-B
+        condition_type: js_expression
+        condition_label: null
+        condition_expression: |
+          state.branch !== "A"
+
+        enabled: true
       webhook->Initialize-Workflow:
         source_trigger: webhook
         target_job: Initialize-Workflow
@@ -12427,9 +12726,9 @@ workflows:
         target_job: Create-JSONPlaceholder-Post
         condition_type: on_job_success
         enabled: true
-      Create-JSONPlaceholder-Post->Update-JSONPlaceholder-Post:
-        source_job: Create-JSONPlaceholder-Post
-        target_job: Update-JSONPlaceholder-Post
+      Aggregate-Results-Group-One->Final-Validation:
+        source_job: Aggregate-Results-Group-One
+        target_job: Final-Validation
         condition_type: on_job_success
         enabled: true
       Update-JSONPlaceholder-Post->Delete-JSONPlaceholder-Post:
@@ -12517,22 +12816,6 @@ workflows:
         target_job: Aggregate-Results-Group-Two
         condition_type: on_job_success
         enabled: true
-      Test-Conditional-Branching->Execute-Branch-A:
-        source_job: Test-Conditional-Branching
-        target_job: Execute-Branch-A
-        condition_type: js_expression
-        condition_label: null
-        condition_expression: |
-          state.branch === "A"
-        enabled: true
-      Test-Conditional-Branching->Execute-Branch-B:
-        source_job: Test-Conditional-Branching
-        target_job: Execute-Branch-B
-        condition_type: js_expression
-        condition_label: null
-        condition_expression: |
-          state.branch !== "A"
-        enabled: true
       Execute-Branch-A->Final-Validation:
         source_job: Execute-Branch-A
         target_job: Final-Validation
@@ -12551,21 +12834,6 @@ workflows:
       Process-IP-Data->Final-Validation:
         source_job: Process-IP-Data
         target_job: Final-Validation
-        condition_type: on_job_success
-        enabled: true
-      Aggregate-Results-Group-One->Final-Validation:
-        source_job: Aggregate-Results-Group-One
-        target_job: Final-Validation
-        condition_type: on_job_success
-        enabled: true
-      Aggregate-Results-Group-Two->Final-Validation:
-        source_job: Aggregate-Results-Group-Two
-        target_job: Final-Validation
-        condition_type: on_job_success
-        enabled: true
-      Final-Validation->Log-Workflow-Summary:
-        source_job: Final-Validation
-        target_job: Log-Workflow-Summary
         condition_type: on_job_success
         enabled: true
   Scheduled-workflow-1:
@@ -12699,6 +12967,7 @@ workflows:
 
             return { ...state, catPoem: { poemText } };
           });
+
       post-to-discord:
         name: post-to-discord
         adaptor: '@openfn/language-http@latest'
@@ -12717,15 +12986,15 @@ workflows:
         webhook_reply: before_start
         enabled: false
     edges:
-      webhook->generate-cat-poem:
-        source_trigger: webhook
-        target_job: generate-cat-poem
-        condition_type: always
-        enabled: true
       generate-cat-poem->post-to-discord:
         source_job: generate-cat-poem
         target_job: post-to-discord
         condition_type: on_job_success
+        enabled: true
+      webhook->generate-cat-poem:
+        source_trigger: webhook
+        target_job: generate-cat-poem
+        condition_type: always
         enabled: true
   Google-Sheets-Bugs-to-GitHub-Issues:
     name: Google Sheets Bugs to GitHub Issues
@@ -12736,27 +13005,29 @@ workflows:
         credential: null
         body: |
           // Add operations here
+
       Create-GitHub-Issues:
         name: Create GitHub Issues
         adaptor: '@openfn/language-http@latest'
         credential: null
         body: |
           // Add operations here
+
     triggers:
       cron:
         type: cron
         cron_expression: '0 0 * * *'
         enabled: false
     edges:
-      cron->Fetch-bugs-from-Google-Sheets:
-        source_trigger: cron
-        target_job: Fetch-bugs-from-Google-Sheets
-        condition_type: always
-        enabled: true
       Fetch-bugs-from-Google-Sheets->Create-GitHub-Issues:
         source_job: Fetch-bugs-from-Google-Sheets
         target_job: Create-GitHub-Issues
         condition_type: on_job_success
+        enabled: true
+      cron->Fetch-bugs-from-Google-Sheets:
+        source_trigger: cron
+        target_job: Fetch-bugs-from-Google-Sheets
+        condition_type: always
         enabled: true
   10-Node-Data-Pipeline-Demo-1-rename:
     name: 10-Node Data Pipeline Demo 1 rename
@@ -12767,30 +13038,35 @@ workflows:
         credential: null
         body: |
           // Add operations here
+
       Handle-DB-Error:
         name: Handle DB Error
         adaptor: '@openfn/language-common@latest'
         credential: null
         body: |
           // Add operations here
+
       Handle-Transform-Error:
         name: Handle Transform Error
         adaptor: '@openfn/language-common@latest'
         credential: null
         body: |
           // Add operations here
+
       Archive-Results:
         name: Archive Results
         adaptor: '@openfn/language-http@latest'
         credential: null
         body: |
           // Add operations here
+
       Fetch-External-Data:
         name: Fetch External Data
         adaptor: '@openfn/language-http@latest'
         credential: null
         body: |
           // Add operations here
+
       Validate-Incoming-Payload:
         name: Validate Incoming Payload
         adaptor: '@openfn/language-common@latest'
@@ -12804,54 +13080,43 @@ workflows:
         credential: null
         body: |
           // Add operations here
+
       Transform-and-Enrich-Data:
         name: Transform and Enrich Data
         adaptor: '@openfn/language-common@latest'
         credential: null
         body: |
           // Add operations here
+
       Generate-Final-Report:
         name: Generate Final Report
         adaptor: '@openfn/language-common@latest'
         credential: null
         body: |
           // Add operations here
+
       Read-Back-and-Verify:
         name: Read Back and Verify
         adaptor: '@openfn/language-postgresql@latest'
         credential: null
         body: |
           // Add operations here
+
     triggers:
       webhook:
         type: webhook
         webhook_reply: before_start
         enabled: false
     edges:
-      Write-to-Database->Handle-DB-Error:
-        source_job: Write-to-Database
-        target_job: Handle-DB-Error
-        condition_type: on_job_failure
-        enabled: true
-      Transform-and-Enrich-Data->Write-to-Database:
+      Transform-and-Enrich-Data->Handle-Transform-Error:
         source_job: Transform-and-Enrich-Data
-        target_job: Write-to-Database
-        condition_type: on_job_success
-        enabled: true
-      Read-Back-and-Verify->Post-to-Reporting-API:
-        source_job: Read-Back-and-Verify
-        target_job: Post-to-Reporting-API
-        condition_type: on_job_success
+        target_job: Handle-Transform-Error
+        condition_type: on_job_failure
         enabled: true
       Write-to-Database->Read-Back-and-Verify:
         source_job: Write-to-Database
         target_job: Read-Back-and-Verify
         condition_type: on_job_success
-        enabled: true
-      Transform-and-Enrich-Data->Handle-Transform-Error:
-        source_job: Transform-and-Enrich-Data
-        target_job: Handle-Transform-Error
-        condition_type: on_job_failure
         enabled: true
       Validate-Incoming-Payload->Fetch-External-Data:
         source_job: Validate-Incoming-Payload
@@ -12863,9 +13128,24 @@ workflows:
         target_job: Validate-Incoming-Payload
         condition_type: always
         enabled: true
+      Write-to-Database->Handle-DB-Error:
+        source_job: Write-to-Database
+        target_job: Handle-DB-Error
+        condition_type: on_job_failure
+        enabled: true
+      Generate-Final-Report->Archive-Results:
+        source_job: Generate-Final-Report
+        target_job: Archive-Results
+        condition_type: on_job_success
+        enabled: true
       Fetch-External-Data->Transform-and-Enrich-Data:
         source_job: Fetch-External-Data
         target_job: Transform-and-Enrich-Data
+        condition_type: on_job_success
+        enabled: true
+      Transform-and-Enrich-Data->Write-to-Database:
+        source_job: Transform-and-Enrich-Data
+        target_job: Write-to-Database
         condition_type: on_job_success
         enabled: true
       Post-to-Reporting-API->Generate-Final-Report:
@@ -12873,9 +13153,9 @@ workflows:
         target_job: Generate-Final-Report
         condition_type: on_job_success
         enabled: true
-      Generate-Final-Report->Archive-Results:
-        source_job: Generate-Final-Report
-        target_job: Archive-Results
+      Read-Back-and-Verify->Post-to-Reporting-API:
+        source_job: Read-Back-and-Verify
+        target_job: Post-to-Reporting-API
         condition_type: on_job_success
         enabled: true
   Self-Testing-QA-Health-Check-1:
@@ -12917,6 +13197,7 @@ workflows:
               },
             };
           });
+
       httpbin-headers:
         name: httpbin-headers
         adaptor: '@openfn/language-http@latest'
@@ -12980,6 +13261,7 @@ workflows:
                 return append({ passed: false, detail });
               });
           });
+
       crypto-price:
         name: crypto-price
         adaptor: '@openfn/language-http@latest'
@@ -13039,6 +13321,7 @@ workflows:
                 });
               });
           });
+
       notify-failures:
         name: notify-failures
         adaptor: '@openfn/language-gmail@latest'
@@ -13163,6 +13446,7 @@ workflows:
             }
             return state;
           });
+
       httpbin-get:
         name: httpbin-get
         adaptor: '@openfn/language-http@latest'
@@ -13259,6 +13543,7 @@ workflows:
                 };
               });
           });
+
       advice-slip:
         name: advice-slip
         adaptor: '@openfn/language-http@latest'
@@ -13346,6 +13631,7 @@ workflows:
                 });
               });
           });
+
       universities-search:
         name: universities-search
         adaptor: '@openfn/language-http@latest'
@@ -13412,6 +13698,7 @@ workflows:
                 return { ...state, qaResults };
               });
           });
+
       qa-summary:
         name: qa-summary
         adaptor: '@openfn/language-http@latest'
@@ -13452,6 +13739,7 @@ workflows:
 
             return { ...state, qaSummary: summary };
           });
+
       httpbin-post:
         name: httpbin-post
         adaptor: '@openfn/language-http@latest'
@@ -13518,6 +13806,7 @@ workflows:
                 return { ...state, qaResults: [...qaResults, result] };
               });
           });
+
       httpbin-status:
         name: httpbin-status
         adaptor: '@openfn/language-http@latest'
@@ -13583,6 +13872,7 @@ workflows:
               });
             }
           });
+
       jsonplaceholder-list:
         name: jsonplaceholder-list
         adaptor: '@openfn/language-http@latest'
@@ -13646,6 +13936,7 @@ workflows:
                 };
               });
           });
+
       jsonplaceholder-create:
         name: jsonplaceholder-create
         adaptor: '@openfn/language-http@latest'
@@ -13713,6 +14004,7 @@ workflows:
                 return { ...state, qaResults: [...qaResults, result] };
               });
           });
+
       github-repo:
         name: github-repo
         adaptor: '@openfn/language-http@latest'
@@ -13773,6 +14065,7 @@ workflows:
                 return { ...state, qaResults };
               });
           });
+
       random-user:
         name: random-user
         adaptor: '@openfn/language-http@latest'
@@ -13843,6 +14136,7 @@ workflows:
                 return { ...state, qaResults };
               });
           });
+
       dog-image:
         name: dog-image
         adaptor: '@openfn/language-http@latest'
@@ -13904,6 +14198,7 @@ workflows:
                 return { ...state, qaResults };
               });
           });
+
       numbers-trivia:
         name: numbers-trivia
         adaptor: '@openfn/language-http@latest'
@@ -13965,6 +14260,7 @@ workflows:
                 };
               });
           });
+
       public-holidays:
         name: public-holidays
         adaptor: '@openfn/language-http@latest'
@@ -14031,6 +14327,7 @@ workflows:
                 return { ...state, qaResults: [...qaResults, result] };
               });
           });
+
       cat-fact:
         name: cat-fact
         adaptor: '@openfn/language-http@latest'
@@ -14081,6 +14378,7 @@ workflows:
                 return { ...state, qaResults: [...qaResults, result] };
               });
           });
+
       iss-location:
         name: iss-location
         adaptor: '@openfn/language-http@latest'
@@ -14141,6 +14439,7 @@ workflows:
                 });
               });
           });
+
       bored-activity:
         name: bored-activity
         adaptor: '@openfn/language-http@latest'
@@ -14203,6 +14502,7 @@ workflows:
                 };
               });
           });
+
       intentional-fail:
         name: intentional-fail
         adaptor: '@openfn/language-http@latest'
@@ -14230,16 +14530,87 @@ workflows:
 
             return { ...state, qaResults };
           });
+
     triggers:
       cron:
         type: cron
         cron_expression: '0 8 * * 1-5'
         enabled: false
     edges:
-      cron->measure-and-strip-input:
-        source_trigger: cron
-        target_job: measure-and-strip-input
+      bored-activity->public-holidays:
+        source_job: bored-activity
+        target_job: public-holidays
+        condition_type: on_job_success
+        enabled: true
+      crypto-price->bored-activity:
+        source_job: crypto-price
+        target_job: bored-activity
+        condition_type: on_job_success
+        enabled: true
+      iss-location->crypto-price:
+        source_job: iss-location
+        target_job: crypto-price
+        condition_type: on_job_success
+        enabled: true
+      numbers-trivia->iss-location:
+        source_job: numbers-trivia
+        target_job: iss-location
+        condition_type: on_job_success
+        enabled: true
+      cat-fact->numbers-trivia:
+        source_job: cat-fact
+        target_job: numbers-trivia
+        condition_type: on_job_success
+        enabled: true
+      dog-image->cat-fact:
+        source_job: dog-image
+        target_job: cat-fact
+        condition_type: on_job_success
+        enabled: true
+      random-user->dog-image:
+        source_job: random-user
+        target_job: dog-image
+        condition_type: on_job_success
+        enabled: true
+      github-repo->random-user:
+        source_job: github-repo
+        target_job: random-user
+        condition_type: on_job_success
+        enabled: true
+      jsonplaceholder-create->github-repo:
+        source_job: jsonplaceholder-create
+        target_job: github-repo
+        condition_type: on_job_success
+        enabled: true
+      jsonplaceholder-list->jsonplaceholder-create:
+        source_job: jsonplaceholder-list
+        target_job: jsonplaceholder-create
+        condition_type: on_job_success
+        enabled: true
+      httpbin-headers->jsonplaceholder-list:
+        source_job: httpbin-headers
+        target_job: jsonplaceholder-list
+        condition_type: on_job_success
+        enabled: true
+      httpbin-status->httpbin-headers:
+        source_job: httpbin-status
+        target_job: httpbin-headers
+        condition_type: on_job_success
+        enabled: true
+      qa-summary->notify-failures:
+        source_job: qa-summary
+        target_job: notify-failures
         condition_type: always
+        enabled: true
+      intentional-fail->qa-summary:
+        source_job: intentional-fail
+        target_job: qa-summary
+        condition_type: on_job_success
+        enabled: true
+      httpbin-post->httpbin-status:
+        source_job: httpbin-post
+        target_job: httpbin-status
+        condition_type: on_job_success
         enabled: true
       measure-and-strip-input->httpbin-get:
         source_job: measure-and-strip-input
@@ -14251,75 +14622,10 @@ workflows:
         target_job: httpbin-post
         condition_type: on_job_success
         enabled: true
-      httpbin-post->httpbin-status:
-        source_job: httpbin-post
-        target_job: httpbin-status
-        condition_type: on_job_success
-        enabled: true
-      httpbin-status->httpbin-headers:
-        source_job: httpbin-status
-        target_job: httpbin-headers
-        condition_type: on_job_success
-        enabled: true
-      httpbin-headers->jsonplaceholder-list:
-        source_job: httpbin-headers
-        target_job: jsonplaceholder-list
-        condition_type: on_job_success
-        enabled: true
-      jsonplaceholder-list->jsonplaceholder-create:
-        source_job: jsonplaceholder-list
-        target_job: jsonplaceholder-create
-        condition_type: on_job_success
-        enabled: true
-      jsonplaceholder-create->github-repo:
-        source_job: jsonplaceholder-create
-        target_job: github-repo
-        condition_type: on_job_success
-        enabled: true
-      github-repo->random-user:
-        source_job: github-repo
-        target_job: random-user
-        condition_type: on_job_success
-        enabled: true
-      random-user->dog-image:
-        source_job: random-user
-        target_job: dog-image
-        condition_type: on_job_success
-        enabled: true
-      dog-image->cat-fact:
-        source_job: dog-image
-        target_job: cat-fact
-        condition_type: on_job_success
-        enabled: true
-      cat-fact->numbers-trivia:
-        source_job: cat-fact
-        target_job: numbers-trivia
-        condition_type: on_job_success
-        enabled: true
-      numbers-trivia->iss-location:
-        source_job: numbers-trivia
-        target_job: iss-location
-        condition_type: on_job_success
-        enabled: true
-      iss-location->crypto-price:
-        source_job: iss-location
-        target_job: crypto-price
-        condition_type: on_job_success
-        enabled: true
-      crypto-price->bored-activity:
-        source_job: crypto-price
-        target_job: bored-activity
-        condition_type: on_job_success
-        enabled: true
-      bored-activity->public-holidays:
-        source_job: bored-activity
-        target_job: public-holidays
-        condition_type: on_job_success
-        enabled: true
-      public-holidays->advice-slip:
-        source_job: public-holidays
-        target_job: advice-slip
-        condition_type: on_job_success
+      cron->measure-and-strip-input:
+        source_trigger: cron
+        target_job: measure-and-strip-input
+        condition_type: always
         enabled: true
       universities-search->intentional-fail:
         source_job: universities-search
@@ -14331,15 +14637,10 @@ workflows:
         target_job: universities-search
         condition_type: on_job_success
         enabled: true
-      intentional-fail->qa-summary:
-        source_job: intentional-fail
-        target_job: qa-summary
+      public-holidays->advice-slip:
+        source_job: public-holidays
+        target_job: advice-slip
         condition_type: on_job_success
-        enabled: true
-      qa-summary->notify-failures:
-        source_job: qa-summary
-        target_job: notify-failures
-        condition_type: always
         enabled: true
   OpenFn-Platform-Test-Workflow-1:
     name: OpenFn Platform Test Workflow 1
@@ -14527,6 +14828,7 @@ workflows:
             console.log('Job 4 passed: each/group/uuid/encode tests OK');
             return state;
           });
+
       Handle-HTTP-Failure:
         name: Handle HTTP Failure
         adaptor: '@openfn/language-common@latest'
@@ -14679,20 +14981,20 @@ workflows:
         webhook_reply: before_start
         enabled: false
     edges:
-      webhook->Validate-Input:
-        source_trigger: webhook
-        target_job: Validate-Input
-        condition_type: always
+      Validate-Input->Handle-Validation-Failure:
+        source_job: Validate-Input
+        target_job: Handle-Validation-Failure
+        condition_type: on_job_failure
         enabled: true
       Validate-Input->Make-HTTP-Request:
         source_job: Validate-Input
         target_job: Make-HTTP-Request
         condition_type: on_job_success
         enabled: true
-      Validate-Input->Handle-Validation-Failure:
-        source_job: Validate-Input
-        target_job: Handle-Validation-Failure
-        condition_type: on_job_failure
+      webhook->Validate-Input:
+        source_trigger: webhook
+        target_job: Validate-Input
+        condition_type: always
         enabled: true
       Make-HTTP-Request->Process-HTTP-Response:
         source_job: Make-HTTP-Request
@@ -14774,6 +15076,7 @@ workflows:
                 };
               });
           });
+
       httpbin-post:
         name: httpbin-post
         adaptor: '@openfn/language-http@latest'
@@ -14840,6 +15143,7 @@ workflows:
                 return { ...state, qaResults: [...qaResults, result] };
               });
           });
+
       httpbin-status:
         name: httpbin-status
         adaptor: '@openfn/language-http@latest'
@@ -14905,6 +15209,7 @@ workflows:
               });
             }
           });
+
       httpbin-headers:
         name: httpbin-headers
         adaptor: '@openfn/language-http@latest'
@@ -14968,6 +15273,7 @@ workflows:
                 return append({ passed: false, detail });
               });
           });
+
       jsonplaceholder-list:
         name: jsonplaceholder-list
         adaptor: '@openfn/language-http@latest'
@@ -15031,6 +15337,7 @@ workflows:
                 };
               });
           });
+
       jsonplaceholder-create:
         name: jsonplaceholder-create
         adaptor: '@openfn/language-http@latest'
@@ -15098,6 +15405,7 @@ workflows:
                 return { ...state, qaResults: [...qaResults, result] };
               });
           });
+
       github-repo:
         name: github-repo
         adaptor: '@openfn/language-http@latest'
@@ -15158,6 +15466,7 @@ workflows:
                 return { ...state, qaResults };
               });
           });
+
       random-user:
         name: random-user
         adaptor: '@openfn/language-http@latest'
@@ -15228,6 +15537,7 @@ workflows:
                 return { ...state, qaResults };
               });
           });
+
       dog-image:
         name: dog-image
         adaptor: '@openfn/language-http@latest'
@@ -15289,6 +15599,7 @@ workflows:
                 return { ...state, qaResults };
               });
           });
+
       cat-fact:
         name: cat-fact
         adaptor: '@openfn/language-http@latest'
@@ -15339,6 +15650,7 @@ workflows:
                 return { ...state, qaResults: [...qaResults, result] };
               });
           });
+
       numbers-trivia:
         name: numbers-trivia
         adaptor: '@openfn/language-http@latest'
@@ -15400,6 +15712,7 @@ workflows:
                 };
               });
           });
+
       iss-location:
         name: iss-location
         adaptor: '@openfn/language-http@latest'
@@ -15460,6 +15773,7 @@ workflows:
                 });
               });
           });
+
       crypto-price:
         name: crypto-price
         adaptor: '@openfn/language-http@latest'
@@ -15519,6 +15833,7 @@ workflows:
                 });
               });
           });
+
       bored-activity:
         name: bored-activity
         adaptor: '@openfn/language-http@latest'
@@ -15581,6 +15896,7 @@ workflows:
                 };
               });
           });
+
       public-holidays:
         name: public-holidays
         adaptor: '@openfn/language-http@latest'
@@ -15647,6 +15963,7 @@ workflows:
                 return { ...state, qaResults: [...qaResults, result] };
               });
           });
+
       advice-slip:
         name: advice-slip
         adaptor: '@openfn/language-http@latest'
@@ -15734,6 +16051,7 @@ workflows:
                 });
               });
           });
+
       universities-search:
         name: universities-search
         adaptor: '@openfn/language-http@latest'
@@ -15800,6 +16118,7 @@ workflows:
                 return { ...state, qaResults };
               });
           });
+
       intentional-fail:
         name: intentional-fail
         adaptor: '@openfn/language-http@latest'
@@ -15827,6 +16146,7 @@ workflows:
 
             return { ...state, qaResults };
           });
+
       qa-summary:
         name: qa-summary
         adaptor: '@openfn/language-http@latest'
@@ -15865,6 +16185,7 @@ workflows:
 
             return { ...state, qaSummary: summary };
           });
+
       notify-failures:
         name: notify-failures
         adaptor: '@openfn/language-gmail@latest'
@@ -15978,100 +16299,16 @@ workflows:
             }
             return state;
           });
+
     triggers:
       cron:
         type: cron
         cron_expression: '0 * * * *'
         enabled: false
     edges:
-      cron->httpbin-get:
-        source_trigger: cron
-        target_job: httpbin-get
-        condition_type: always
-        enabled: true
-      httpbin-get->httpbin-post:
-        source_job: httpbin-get
-        target_job: httpbin-post
-        condition_type: on_job_success
-        enabled: true
-      httpbin-post->httpbin-status:
-        source_job: httpbin-post
-        target_job: httpbin-status
-        condition_type: on_job_success
-        enabled: true
-      httpbin-status->httpbin-headers:
-        source_job: httpbin-status
-        target_job: httpbin-headers
-        condition_type: on_job_success
-        enabled: true
-      httpbin-headers->jsonplaceholder-list:
-        source_job: httpbin-headers
-        target_job: jsonplaceholder-list
-        condition_type: on_job_success
-        enabled: true
-      jsonplaceholder-list->jsonplaceholder-create:
-        source_job: jsonplaceholder-list
-        target_job: jsonplaceholder-create
-        condition_type: on_job_success
-        enabled: true
-      jsonplaceholder-create->github-repo:
-        source_job: jsonplaceholder-create
-        target_job: github-repo
-        condition_type: on_job_success
-        enabled: true
-      github-repo->random-user:
-        source_job: github-repo
-        target_job: random-user
-        condition_type: on_job_success
-        enabled: true
-      random-user->dog-image:
-        source_job: random-user
-        target_job: dog-image
-        condition_type: on_job_success
-        enabled: true
-      dog-image->cat-fact:
-        source_job: dog-image
-        target_job: cat-fact
-        condition_type: on_job_success
-        enabled: true
-      cat-fact->numbers-trivia:
-        source_job: cat-fact
-        target_job: numbers-trivia
-        condition_type: on_job_success
-        enabled: true
       numbers-trivia->iss-location:
         source_job: numbers-trivia
         target_job: iss-location
-        condition_type: on_job_success
-        enabled: true
-      iss-location->crypto-price:
-        source_job: iss-location
-        target_job: crypto-price
-        condition_type: on_job_success
-        enabled: true
-      crypto-price->bored-activity:
-        source_job: crypto-price
-        target_job: bored-activity
-        condition_type: on_job_success
-        enabled: true
-      bored-activity->public-holidays:
-        source_job: bored-activity
-        target_job: public-holidays
-        condition_type: on_job_success
-        enabled: true
-      public-holidays->advice-slip:
-        source_job: public-holidays
-        target_job: advice-slip
-        condition_type: on_job_success
-        enabled: true
-      advice-slip->universities-search:
-        source_job: advice-slip
-        target_job: universities-search
-        condition_type: on_job_success
-        enabled: true
-      universities-search->intentional-fail:
-        source_job: universities-search
-        target_job: intentional-fail
         condition_type: on_job_success
         enabled: true
       intentional-fail->qa-summary:
@@ -16084,6 +16321,91 @@ workflows:
         target_job: notify-failures
         condition_type: always
         enabled: true
+      universities-search->intentional-fail:
+        source_job: universities-search
+        target_job: intentional-fail
+        condition_type: on_job_success
+        enabled: true
+      random-user->dog-image:
+        source_job: random-user
+        target_job: dog-image
+        condition_type: on_job_success
+        enabled: true
+      github-repo->random-user:
+        source_job: github-repo
+        target_job: random-user
+        condition_type: on_job_success
+        enabled: true
+      httpbin-headers->jsonplaceholder-list:
+        source_job: httpbin-headers
+        target_job: jsonplaceholder-list
+        condition_type: on_job_success
+        enabled: true
+      httpbin-status->httpbin-headers:
+        source_job: httpbin-status
+        target_job: httpbin-headers
+        condition_type: on_job_success
+        enabled: true
+      advice-slip->universities-search:
+        source_job: advice-slip
+        target_job: universities-search
+        condition_type: on_job_success
+        enabled: true
+      cat-fact->numbers-trivia:
+        source_job: cat-fact
+        target_job: numbers-trivia
+        condition_type: on_job_success
+        enabled: true
+      httpbin-get->httpbin-post:
+        source_job: httpbin-get
+        target_job: httpbin-post
+        condition_type: on_job_success
+        enabled: true
+      jsonplaceholder-create->github-repo:
+        source_job: jsonplaceholder-create
+        target_job: github-repo
+        condition_type: on_job_success
+        enabled: true
+      jsonplaceholder-list->jsonplaceholder-create:
+        source_job: jsonplaceholder-list
+        target_job: jsonplaceholder-create
+        condition_type: on_job_success
+        enabled: true
+      cron->httpbin-get:
+        source_trigger: cron
+        target_job: httpbin-get
+        condition_type: always
+        enabled: true
+      httpbin-post->httpbin-status:
+        source_job: httpbin-post
+        target_job: httpbin-status
+        condition_type: on_job_success
+        enabled: true
+      public-holidays->advice-slip:
+        source_job: public-holidays
+        target_job: advice-slip
+        condition_type: on_job_success
+        enabled: true
+      dog-image->cat-fact:
+        source_job: dog-image
+        target_job: cat-fact
+        condition_type: on_job_success
+        enabled: true
+      bored-activity->public-holidays:
+        source_job: bored-activity
+        target_job: public-holidays
+        condition_type: on_job_success
+        enabled: true
+      crypto-price->bored-activity:
+        source_job: crypto-price
+        target_job: bored-activity
+        condition_type: on_job_success
+        enabled: true
+      iss-location->crypto-price:
+        source_job: iss-location
+        target_job: crypto-price
+        condition_type: on_job_success
+        enabled: true
   "Self-Testing-Workflow-(10-Nodes)":
     name: 'Self-Testing Workflow (10 Nodes)'
     jobs:
@@ -16093,81 +16415,76 @@ workflows:
         credential: null
         body: |
           // Add operations here
+
       Test-Data-Transformation:
         name: Test Data Transformation
         adaptor: '@openfn/language-common@latest'
         credential: null
         body: |
           // Add operations here
+
       Validate-Transformed-Data:
         name: Validate Transformed Data
         adaptor: '@openfn/language-common@latest'
         credential: null
         body: |
           // Add operations here
+
       Test-Array-Operations:
         name: Test Array Operations
         adaptor: '@openfn/language-common@latest'
         credential: null
         body: |
           // Add operations here
+
       Validate-Array-Results:
         name: Validate Array Results
         adaptor: '@openfn/language-common@latest'
         credential: null
         body: |
           // Add operations here
+
       Trigger-Intentional-Failure:
         name: Trigger Intentional Failure
         adaptor: '@openfn/language-common@latest'
         credential: null
         body: |
           // Add operations here
+
       Handle-Expected-Failure:
         name: Handle Expected Failure
         adaptor: '@openfn/language-common@latest'
         credential: null
         body: |
           // Add operations here
+
       Test-String-Operations:
         name: Test String Operations
         adaptor: '@openfn/language-common@latest'
         credential: null
         body: |
           // Add operations here
+
       Test-Numeric-Calculations:
         name: Test Numeric Calculations
         adaptor: '@openfn/language-common@latest'
         credential: null
         body: |
           // Add operations here
+
       Generate-Test-Report:
         name: Generate Test Report
         adaptor: '@openfn/language-common@latest'
         credential: null
         body: |
           // Add operations here
+
     triggers:
       webhook:
         type: webhook
         webhook_reply: before_start
         enabled: false
     edges:
-      webhook->Initialize-Test-Suite:
-        source_trigger: webhook
-        target_job: Initialize-Test-Suite
-        condition_type: always
-        enabled: true
-      Initialize-Test-Suite->Test-Data-Transformation:
-        source_job: Initialize-Test-Suite
-        target_job: Test-Data-Transformation
-        condition_type: on_job_success
-        enabled: true
-      Test-Data-Transformation->Validate-Transformed-Data:
-        source_job: Test-Data-Transformation
-        target_job: Validate-Transformed-Data
-        condition_type: on_job_success
-        enabled: true
       Validate-Transformed-Data->Test-Array-Operations:
         source_job: Validate-Transformed-Data
         target_job: Test-Array-Operations
@@ -16201,6 +16518,21 @@ workflows:
       Test-Numeric-Calculations->Generate-Test-Report:
         source_job: Test-Numeric-Calculations
         target_job: Generate-Test-Report
+        condition_type: on_job_success
+        enabled: true
+      webhook->Initialize-Test-Suite:
+        source_trigger: webhook
+        target_job: Initialize-Test-Suite
+        condition_type: always
+        enabled: true
+      Initialize-Test-Suite->Test-Data-Transformation:
+        source_job: Initialize-Test-Suite
+        target_job: Test-Data-Transformation
+        condition_type: on_job_success
+        enabled: true
+      Test-Data-Transformation->Validate-Transformed-Data:
+        source_job: Test-Data-Transformation
+        target_job: Validate-Transformed-Data
         condition_type: on_job_success
         enabled: true
   "Q3/Q4-\"Data-Sync\"-Workflow-(v2.0)-—-Test-#47-<PROD>-[EMEA-&-APAC]-@-50%-capacity:-rev'd-09/17/26;-cost=$1,200.00-&-status≠'done'-—-ünïcødé-çhëck:-日本語-emoji-🚀✅-newline\\n-end?!":
@@ -16244,6 +16576,7 @@ workflows:
               },
             };
           });
+
       httpbin-headers:
         name: httpbin-headers
         adaptor: '@openfn/language-http@latest'
@@ -16307,6 +16640,7 @@ workflows:
                 return append({ passed: false, detail });
               });
           });
+
       crypto-price:
         name: crypto-price
         adaptor: '@openfn/language-http@latest'
@@ -16366,6 +16700,7 @@ workflows:
                 });
               });
           });
+
       notify-failures:
         name: notify-failures
         adaptor: '@openfn/language-gmail@latest'
@@ -16490,6 +16825,7 @@ workflows:
             }
             return state;
           });
+
       "患者確認":
         name: '患者確認'
         adaptor: '@openfn/language-http@latest'
@@ -16586,6 +16922,7 @@ workflows:
                 };
               });
           });
+
       advice-slip:
         name: advice-slip
         adaptor: '@openfn/language-http@latest'
@@ -16673,6 +17010,7 @@ workflows:
                 });
               });
           });
+
       universities-search:
         name: universities-search
         adaptor: '@openfn/language-http@latest'
@@ -16739,6 +17077,7 @@ workflows:
                 return { ...state, qaResults };
               });
           });
+
       qa-summary:
         name: qa-summary
         adaptor: '@openfn/language-http@latest'
@@ -16779,6 +17118,7 @@ workflows:
 
             return { ...state, qaSummary: summary };
           });
+
       "فحص-المريض":
         name: 'فحص المريض'
         adaptor: '@openfn/language-http@latest'
@@ -16845,6 +17185,7 @@ workflows:
                 return { ...state, qaResults: [...qaResults, result] };
               });
           });
+
       "Test-\"Sync\"-v2.0-<PROD>-[EMEA]-@50%-—-cøst=$1,200-&-done≠true-🚀":
         name: 'Test "Sync" v2.0 <PROD> [EMEA] @50% — cøst=$1,200 & done≠true 🚀'
         adaptor: '@openfn/language-http@latest'
@@ -16910,6 +17251,7 @@ workflows:
               });
             }
           });
+
       jsonplaceholder-list:
         name: jsonplaceholder-list
         adaptor: '@openfn/language-http@latest'
@@ -16973,6 +17315,7 @@ workflows:
                 };
               });
           });
+
       jsonplaceholder-create:
         name: jsonplaceholder-create
         adaptor: '@openfn/language-http@latest'
@@ -17040,6 +17383,7 @@ workflows:
                 return { ...state, qaResults: [...qaResults, result] };
               });
           });
+
       github-repo:
         name: github-repo
         adaptor: '@openfn/language-http@latest'
@@ -17100,6 +17444,7 @@ workflows:
                 return { ...state, qaResults };
               });
           });
+
       random-user:
         name: random-user
         adaptor: '@openfn/language-http@latest'
@@ -17170,6 +17515,7 @@ workflows:
                 return { ...state, qaResults };
               });
           });
+
       dog-image:
         name: dog-image
         adaptor: '@openfn/language-http@latest'
@@ -17231,6 +17577,7 @@ workflows:
                 return { ...state, qaResults };
               });
           });
+
       numbers-trivia:
         name: numbers-trivia
         adaptor: '@openfn/language-http@latest'
@@ -17292,6 +17639,7 @@ workflows:
                 };
               });
           });
+
       public-holidays:
         name: public-holidays
         adaptor: '@openfn/language-http@latest'
@@ -17358,6 +17706,7 @@ workflows:
                 return { ...state, qaResults: [...qaResults, result] };
               });
           });
+
       cat-fact:
         name: cat-fact
         adaptor: '@openfn/language-http@latest'
@@ -17408,6 +17757,7 @@ workflows:
                 return { ...state, qaResults: [...qaResults, result] };
               });
           });
+
       iss-location:
         name: iss-location
         adaptor: '@openfn/language-http@latest'
@@ -17468,6 +17818,7 @@ workflows:
                 });
               });
           });
+
       bored-activity:
         name: bored-activity
         adaptor: '@openfn/language-http@latest'
@@ -17530,6 +17881,7 @@ workflows:
                 };
               });
           });
+
       intentional-fail:
         name: intentional-fail
         adaptor: '@openfn/language-http@latest'
@@ -17557,100 +17909,26 @@ workflows:
 
             return { ...state, qaResults };
           });
+
     triggers:
       webhook:
         type: webhook
         webhook_reply: before_start
         enabled: true
     edges:
-      "webhook->Vérifier-l'état-du-dossier":
-        source_trigger: webhook
-        target_job: 'Vérifier-l''état-du-dossier'
-        condition_type: always
-        enabled: true
       "Vérifier-l'état-du-dossier->患者確認":
         source_job: 'Vérifier-l''état-du-dossier'
         target_job: '患者確認'
         condition_type: on_job_success
         enabled: true
-      "患者確認->فحص-المريض":
-        source_job: '患者確認'
-        target_job: 'فحص-المريض'
-        condition_type: on_job_success
+      qa-summary->notify-failures:
+        source_job: qa-summary
+        target_job: notify-failures
+        condition_type: always
         enabled: true
-      "فحص-المريض->Test-\"Sync\"-v2.0-<PROD>-[EMEA]-@50%-—-cøst=$1,200-&-done≠true-🚀":
-        source_job: 'فحص-المريض'
-        target_job: 'Test-"Sync"-v2.0-<PROD>-[EMEA]-@50%-—-cøst=$1,200-&-done≠true-🚀'
-        condition_type: on_job_success
-        enabled: true
-      "Test-\"Sync\"-v2.0-<PROD>-[EMEA]-@50%-—-cøst=$1,200-&-done≠true-🚀->httpbin-headers":
-        source_job: 'Test-"Sync"-v2.0-<PROD>-[EMEA]-@50%-—-cøst=$1,200-&-done≠true-🚀'
-        target_job: httpbin-headers
-        condition_type: on_job_success
-        enabled: true
-      httpbin-headers->jsonplaceholder-list:
-        source_job: httpbin-headers
-        target_job: jsonplaceholder-list
-        condition_type: on_job_success
-        enabled: true
-      jsonplaceholder-list->jsonplaceholder-create:
-        source_job: jsonplaceholder-list
-        target_job: jsonplaceholder-create
-        condition_type: on_job_success
-        enabled: true
-      jsonplaceholder-create->github-repo:
-        source_job: jsonplaceholder-create
-        target_job: github-repo
-        condition_type: on_job_success
-        enabled: true
-      github-repo->random-user:
-        source_job: github-repo
-        target_job: random-user
-        condition_type: on_job_success
-        enabled: true
-      random-user->dog-image:
-        source_job: random-user
-        target_job: dog-image
-        condition_type: on_job_success
-        enabled: true
-      dog-image->cat-fact:
-        source_job: dog-image
-        target_job: cat-fact
-        condition_type: on_job_success
-        enabled: true
-      cat-fact->numbers-trivia:
-        source_job: cat-fact
-        target_job: numbers-trivia
-        condition_type: on_job_success
-        enabled: true
-      numbers-trivia->iss-location:
-        source_job: numbers-trivia
-        target_job: iss-location
-        condition_type: on_job_success
-        enabled: true
-      iss-location->crypto-price:
-        source_job: iss-location
-        target_job: crypto-price
-        condition_type: on_job_success
-        enabled: true
-      crypto-price->bored-activity:
-        source_job: crypto-price
-        target_job: bored-activity
-        condition_type: on_job_success
-        enabled: true
-      bored-activity->public-holidays:
-        source_job: bored-activity
-        target_job: public-holidays
-        condition_type: on_job_success
-        enabled: true
-      public-holidays->advice-slip:
-        source_job: public-holidays
-        target_job: advice-slip
-        condition_type: on_job_success
-        enabled: true
-      advice-slip->universities-search:
-        source_job: advice-slip
-        target_job: universities-search
+      intentional-fail->qa-summary:
+        source_job: intentional-fail
+        target_job: qa-summary
         condition_type: on_job_success
         enabled: true
       universities-search->intentional-fail:
@@ -17658,14 +17936,89 @@ workflows:
         target_job: intentional-fail
         condition_type: on_job_success
         enabled: true
-      intentional-fail->qa-summary:
-        source_job: intentional-fail
-        target_job: qa-summary
+      advice-slip->universities-search:
+        source_job: advice-slip
+        target_job: universities-search
         condition_type: on_job_success
         enabled: true
-      qa-summary->notify-failures:
-        source_job: qa-summary
-        target_job: notify-failures
+      public-holidays->advice-slip:
+        source_job: public-holidays
+        target_job: advice-slip
+        condition_type: on_job_success
+        enabled: true
+      bored-activity->public-holidays:
+        source_job: bored-activity
+        target_job: public-holidays
+        condition_type: on_job_success
+        enabled: true
+      crypto-price->bored-activity:
+        source_job: crypto-price
+        target_job: bored-activity
+        condition_type: on_job_success
+        enabled: true
+      iss-location->crypto-price:
+        source_job: iss-location
+        target_job: crypto-price
+        condition_type: on_job_success
+        enabled: true
+      numbers-trivia->iss-location:
+        source_job: numbers-trivia
+        target_job: iss-location
+        condition_type: on_job_success
+        enabled: true
+      cat-fact->numbers-trivia:
+        source_job: cat-fact
+        target_job: numbers-trivia
+        condition_type: on_job_success
+        enabled: true
+      dog-image->cat-fact:
+        source_job: dog-image
+        target_job: cat-fact
+        condition_type: on_job_success
+        enabled: true
+      random-user->dog-image:
+        source_job: random-user
+        target_job: dog-image
+        condition_type: on_job_success
+        enabled: true
+      github-repo->random-user:
+        source_job: github-repo
+        target_job: random-user
+        condition_type: on_job_success
+        enabled: true
+      jsonplaceholder-create->github-repo:
+        source_job: jsonplaceholder-create
+        target_job: github-repo
+        condition_type: on_job_success
+        enabled: true
+      jsonplaceholder-list->jsonplaceholder-create:
+        source_job: jsonplaceholder-list
+        target_job: jsonplaceholder-create
+        condition_type: on_job_success
+        enabled: true
+      httpbin-headers->jsonplaceholder-list:
+        source_job: httpbin-headers
+        target_job: jsonplaceholder-list
+        condition_type: on_job_success
+        enabled: true
+      "Test-\"Sync\"-v2.0-<PROD>-[EMEA]-@50%-—-cøst=$1,200-&-done≠true-🚀->httpbin-headers":
+        source_job: 'Test-"Sync"-v2.0-<PROD>-[EMEA]-@50%-—-cøst=$1,200-&-done≠true-🚀'
+        target_job: httpbin-headers
+        condition_type: on_job_success
+        enabled: true
+      "فحص-المريض->Test-\"Sync\"-v2.0-<PROD>-[EMEA]-@50%-—-cøst=$1,200-&-done≠true-🚀":
+        source_job: 'فحص-المريض'
+        target_job: 'Test-"Sync"-v2.0-<PROD>-[EMEA]-@50%-—-cøst=$1,200-&-done≠true-🚀'
+        condition_type: on_job_success
+        enabled: true
+      "患者確認->فحص-المريض":
+        source_job: '患者確認'
+        target_job: 'فحص-المريض'
+        condition_type: on_job_success
+        enabled: true
+      "webhook->Vérifier-l'état-du-dossier":
+        source_trigger: webhook
+        target_job: 'Vérifier-l''état-du-dossier'
         condition_type: always
         enabled: true
   GitHub-Customer-Bug-Workflow:
@@ -17677,54 +18030,44 @@ workflows:
         credential: null
         body: |
           // Add operations here
+
       Lookup-Customer-in-PostgreSQL:
         name: Lookup Customer in PostgreSQL
         adaptor: '@openfn/language-postgresql@latest'
         credential: null
         body: |
           // Add operations here
+
       Add-Row-to-Bug-Tracker-Sheet:
         name: Add Row to Bug Tracker Sheet
         adaptor: '@openfn/language-googlesheets@latest'
         credential: null
         body: |
           // Add operations here
+
       Post-to-Slack:
         name: Post to Slack
         adaptor: '@openfn/language-http@latest'
         credential: null
         body: |
           // Add operations here
+
       Send-Enterprise-Email-Confirmation:
         name: Send Enterprise Email Confirmation
         adaptor: '@openfn/language-http@latest'
         credential: null
         body: |
           // Add operations here
+
     triggers:
       webhook:
         type: webhook
         webhook_reply: before_start
         enabled: false
     edges:
-      webhook->Process-Issue-Details:
-        source_trigger: webhook
-        target_job: Process-Issue-Details
-        condition_type: always
-        enabled: true
       Process-Issue-Details->Lookup-Customer-in-PostgreSQL:
         source_job: Process-Issue-Details
         target_job: Lookup-Customer-in-PostgreSQL
-        condition_type: on_job_success
-        enabled: true
-      Lookup-Customer-in-PostgreSQL->Add-Row-to-Bug-Tracker-Sheet:
-        source_job: Lookup-Customer-in-PostgreSQL
-        target_job: Add-Row-to-Bug-Tracker-Sheet
-        condition_type: on_job_success
-        enabled: true
-      Lookup-Customer-in-PostgreSQL->Post-to-Slack:
-        source_job: Lookup-Customer-in-PostgreSQL
-        target_job: Post-to-Slack
         condition_type: on_job_success
         enabled: true
       Lookup-Customer-in-PostgreSQL->Send-Enterprise-Email-Confirmation:
@@ -17734,6 +18077,22 @@ workflows:
         condition_label: null
         condition_expression: |
           state.customer.tier === "Enterprise"
+
+        enabled: true
+      Lookup-Customer-in-PostgreSQL->Post-to-Slack:
+        source_job: Lookup-Customer-in-PostgreSQL
+        target_job: Post-to-Slack
+        condition_type: on_job_success
+        enabled: true
+      Lookup-Customer-in-PostgreSQL->Add-Row-to-Bug-Tracker-Sheet:
+        source_job: Lookup-Customer-in-PostgreSQL
+        target_job: Add-Row-to-Bug-Tracker-Sheet
+        condition_type: on_job_success
+        enabled: true
+      webhook->Process-Issue-Details:
+        source_trigger: webhook
+        target_job: Process-Issue-Details
+        condition_type: always
         enabled: true
   "Flujo-de-atención-al-ciudadano":
     name: 'Flujo de atención al ciudadano'
@@ -17774,6 +18133,7 @@ workflows:
               },
             };
           });
+
       httpbin-headers:
         name: httpbin-headers
         adaptor: '@openfn/language-http@latest'
@@ -17837,6 +18197,7 @@ workflows:
                 return append({ passed: false, detail });
               });
           });
+
       crypto-price:
         name: crypto-price
         adaptor: '@openfn/language-http@latest'
@@ -17896,6 +18257,7 @@ workflows:
                 });
               });
           });
+
       notify-failures:
         name: notify-failures
         adaptor: '@openfn/language-gmail@latest'
@@ -18020,6 +18382,7 @@ workflows:
             }
             return state;
           });
+
       "患者確認":
         name: '患者確認'
         adaptor: '@openfn/language-http@latest'
@@ -18116,6 +18479,7 @@ workflows:
                 };
               });
           });
+
       advice-slip:
         name: advice-slip
         adaptor: '@openfn/language-http@latest'
@@ -18203,6 +18567,7 @@ workflows:
                 });
               });
           });
+
       universities-search:
         name: universities-search
         adaptor: '@openfn/language-http@latest'
@@ -18269,6 +18634,7 @@ workflows:
                 return { ...state, qaResults };
               });
           });
+
       qa-summary:
         name: qa-summary
         adaptor: '@openfn/language-http@latest'
@@ -18309,6 +18675,7 @@ workflows:
 
             return { ...state, qaSummary: summary };
           });
+
       "فحص-المريض":
         name: 'فحص المريض'
         adaptor: '@openfn/language-http@latest'
@@ -18375,6 +18742,7 @@ workflows:
                 return { ...state, qaResults: [...qaResults, result] };
               });
           });
+
       httpbin-status:
         name: httpbin-status
         adaptor: '@openfn/language-http@latest'
@@ -18440,6 +18808,7 @@ workflows:
               });
             }
           });
+
       jsonplaceholder-list:
         name: jsonplaceholder-list
         adaptor: '@openfn/language-http@latest'
@@ -18503,6 +18872,7 @@ workflows:
                 };
               });
           });
+
       jsonplaceholder-create:
         name: jsonplaceholder-create
         adaptor: '@openfn/language-http@latest'
@@ -18570,6 +18940,7 @@ workflows:
                 return { ...state, qaResults: [...qaResults, result] };
               });
           });
+
       github-repo:
         name: github-repo
         adaptor: '@openfn/language-http@latest'
@@ -18630,6 +19001,7 @@ workflows:
                 return { ...state, qaResults };
               });
           });
+
       random-user:
         name: random-user
         adaptor: '@openfn/language-http@latest'
@@ -18700,6 +19072,7 @@ workflows:
                 return { ...state, qaResults };
               });
           });
+
       dog-image:
         name: dog-image
         adaptor: '@openfn/language-http@latest'
@@ -18761,6 +19134,7 @@ workflows:
                 return { ...state, qaResults };
               });
           });
+
       numbers-trivia:
         name: numbers-trivia
         adaptor: '@openfn/language-http@latest'
@@ -18822,6 +19196,7 @@ workflows:
                 };
               });
           });
+
       public-holidays:
         name: public-holidays
         adaptor: '@openfn/language-http@latest'
@@ -18888,6 +19263,7 @@ workflows:
                 return { ...state, qaResults: [...qaResults, result] };
               });
           });
+
       cat-fact:
         name: cat-fact
         adaptor: '@openfn/language-http@latest'
@@ -18938,6 +19314,7 @@ workflows:
                 return { ...state, qaResults: [...qaResults, result] };
               });
           });
+
       iss-location:
         name: iss-location
         adaptor: '@openfn/language-http@latest'
@@ -18998,6 +19375,7 @@ workflows:
                 });
               });
           });
+
       bored-activity:
         name: bored-activity
         adaptor: '@openfn/language-http@latest'
@@ -19060,6 +19438,7 @@ workflows:
                 };
               });
           });
+
       intentional-fail:
         name: intentional-fail
         adaptor: '@openfn/language-http@latest'
@@ -19087,20 +19466,16 @@ workflows:
 
             return { ...state, qaResults };
           });
+
     triggers:
       webhook:
         type: webhook
         webhook_reply: before_start
         enabled: true
     edges:
-      "webhook->Vérifier-l'état-du-dossier":
-        source_trigger: webhook
-        target_job: 'Vérifier-l''état-du-dossier'
-        condition_type: always
-        enabled: true
-      "Vérifier-l'état-du-dossier->患者確認":
-        source_job: 'Vérifier-l''état-du-dossier'
-        target_job: '患者確認'
+      "فحص-المريض->httpbin-status":
+        source_job: 'فحص-المريض'
+        target_job: httpbin-status
         condition_type: on_job_success
         enabled: true
       "患者確認->فحص-المريض":
@@ -19108,9 +19483,19 @@ workflows:
         target_job: 'فحص-المريض'
         condition_type: on_job_success
         enabled: true
-      "فحص-المريض->httpbin-status":
-        source_job: 'فحص-المريض'
-        target_job: httpbin-status
+      "Vérifier-l'état-du-dossier->患者確認":
+        source_job: 'Vérifier-l''état-du-dossier'
+        target_job: '患者確認'
+        condition_type: on_job_success
+        enabled: true
+      "webhook->Vérifier-l'état-du-dossier":
+        source_trigger: webhook
+        target_job: 'Vérifier-l''état-du-dossier'
+        condition_type: always
+        enabled: true
+      jsonplaceholder-list->jsonplaceholder-create:
+        source_job: jsonplaceholder-list
+        target_job: jsonplaceholder-create
         condition_type: on_job_success
         enabled: true
       httpbin-status->httpbin-headers:
@@ -19118,29 +19503,9 @@ workflows:
         target_job: httpbin-headers
         condition_type: on_job_success
         enabled: true
-      httpbin-headers->jsonplaceholder-list:
-        source_job: httpbin-headers
-        target_job: jsonplaceholder-list
-        condition_type: on_job_success
-        enabled: true
-      jsonplaceholder-list->jsonplaceholder-create:
-        source_job: jsonplaceholder-list
-        target_job: jsonplaceholder-create
-        condition_type: on_job_success
-        enabled: true
-      jsonplaceholder-create->github-repo:
-        source_job: jsonplaceholder-create
-        target_job: github-repo
-        condition_type: on_job_success
-        enabled: true
-      github-repo->random-user:
-        source_job: github-repo
-        target_job: random-user
-        condition_type: on_job_success
-        enabled: true
-      random-user->dog-image:
-        source_job: random-user
-        target_job: dog-image
+      cat-fact->numbers-trivia:
+        source_job: cat-fact
+        target_job: numbers-trivia
         condition_type: on_job_success
         enabled: true
       dog-image->cat-fact:
@@ -19148,44 +19513,24 @@ workflows:
         target_job: cat-fact
         condition_type: on_job_success
         enabled: true
-      cat-fact->numbers-trivia:
-        source_job: cat-fact
-        target_job: numbers-trivia
+      random-user->dog-image:
+        source_job: random-user
+        target_job: dog-image
         condition_type: on_job_success
         enabled: true
-      numbers-trivia->iss-location:
-        source_job: numbers-trivia
-        target_job: iss-location
+      github-repo->random-user:
+        source_job: github-repo
+        target_job: random-user
         condition_type: on_job_success
         enabled: true
-      iss-location->crypto-price:
-        source_job: iss-location
-        target_job: crypto-price
+      jsonplaceholder-create->github-repo:
+        source_job: jsonplaceholder-create
+        target_job: github-repo
         condition_type: on_job_success
         enabled: true
-      crypto-price->bored-activity:
-        source_job: crypto-price
-        target_job: bored-activity
-        condition_type: on_job_success
-        enabled: true
-      bored-activity->public-holidays:
-        source_job: bored-activity
-        target_job: public-holidays
-        condition_type: on_job_success
-        enabled: true
-      public-holidays->advice-slip:
-        source_job: public-holidays
-        target_job: advice-slip
-        condition_type: on_job_success
-        enabled: true
-      advice-slip->universities-search:
-        source_job: advice-slip
-        target_job: universities-search
-        condition_type: on_job_success
-        enabled: true
-      universities-search->intentional-fail:
-        source_job: universities-search
-        target_job: intentional-fail
+      httpbin-headers->jsonplaceholder-list:
+        source_job: httpbin-headers
+        target_job: jsonplaceholder-list
         condition_type: on_job_success
         enabled: true
       intentional-fail->qa-summary:
@@ -19198,6 +19543,41 @@ workflows:
         target_job: notify-failures
         condition_type: always
         enabled: true
+      universities-search->intentional-fail:
+        source_job: universities-search
+        target_job: intentional-fail
+        condition_type: on_job_success
+        enabled: true
+      advice-slip->universities-search:
+        source_job: advice-slip
+        target_job: universities-search
+        condition_type: on_job_success
+        enabled: true
+      public-holidays->advice-slip:
+        source_job: public-holidays
+        target_job: advice-slip
+        condition_type: on_job_success
+        enabled: true
+      bored-activity->public-holidays:
+        source_job: bored-activity
+        target_job: public-holidays
+        condition_type: on_job_success
+        enabled: true
+      crypto-price->bored-activity:
+        source_job: crypto-price
+        target_job: bored-activity
+        condition_type: on_job_success
+        enabled: true
+      iss-location->crypto-price:
+        source_job: iss-location
+        target_job: crypto-price
+        condition_type: on_job_success
+        enabled: true
+      numbers-trivia->iss-location:
+        source_job: numbers-trivia
+        target_job: iss-location
+        condition_type: on_job_success
+        enabled: true
   OpenFn-Platform-Self-Test-1:
     name: OpenFn Platform Self-Test 1
     jobs:
@@ -19207,36 +19587,42 @@ workflows:
         credential: null
         body: |
           // Add operations here
+
       Test-Data-Transform:
         name: Test Data Transform
         adaptor: '@openfn/language-common@latest'
         credential: null
         body: |
           // Add operations here
+
       Test-HTTP-POST:
         name: Test HTTP POST
         adaptor: '@openfn/language-http@latest'
         credential: null
         body: |
           // Add operations here
+
       Test-Success-Branch:
         name: Test Success Branch
         adaptor: '@openfn/language-common@latest'
         credential: null
         body: |
           // Add operations here
+
       Test-Deliberate-Failure:
         name: Test Deliberate Failure
         adaptor: '@openfn/language-common@latest'
         credential: null
         body: |
           // Add operations here
+
       Test-Failure-Branch:
         name: Test Failure Branch
         adaptor: '@openfn/language-common@latest'
         credential: null
         body: |
           // Add operations here
+
     triggers:
       webhook:
         type: webhook
@@ -19248,14 +19634,14 @@ workflows:
         target_job: Test-HTTP-GET
         condition_type: always
         enabled: true
-      Test-HTTP-GET->Test-Data-Transform:
-        source_job: Test-HTTP-GET
-        target_job: Test-Data-Transform
-        condition_type: on_job_success
-        enabled: true
       Test-Data-Transform->Test-HTTP-POST:
         source_job: Test-Data-Transform
         target_job: Test-HTTP-POST
+        condition_type: on_job_success
+        enabled: true
+      Test-HTTP-GET->Test-Data-Transform:
+        source_job: Test-HTTP-GET
+        target_job: Test-Data-Transform
         condition_type: on_job_success
         enabled: true
       Test-HTTP-POST->Test-Success-Branch:
@@ -19304,12 +19690,14 @@ workflows:
         credential: null
         body: |
           // Add operations here
+
       Post-to-Discord:
         name: Post to Discord
         adaptor: '@openfn/language-http@latest'
         credential: null
         body: |
           // Add operations here
+
     triggers:
       cron:
         type: cron
