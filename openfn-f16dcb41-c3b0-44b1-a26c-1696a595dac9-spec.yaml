@@ -5182,6 +5182,7 @@ workflows:
                 };
               });
           });
+
       httpbin-post:
         name: httpbin-post
         adaptor: '@openfn/language-http@latest'
@@ -5248,6 +5249,7 @@ workflows:
                 return { ...state, qaResults: [...qaResults, result] };
               });
           });
+
       httpbin-status:
         name: httpbin-status
         adaptor: '@openfn/language-http@latest'
@@ -5313,6 +5315,7 @@ workflows:
               });
             }
           });
+
       httpbin-headers:
         name: httpbin-headers
         adaptor: '@openfn/language-http@latest'
@@ -5376,6 +5379,7 @@ workflows:
                 return append({ passed: false, detail });
               });
           });
+
       jsonplaceholder-list:
         name: jsonplaceholder-list
         adaptor: '@openfn/language-http@latest'
@@ -5439,6 +5443,7 @@ workflows:
                 };
               });
           });
+
       jsonplaceholder-create:
         name: jsonplaceholder-create
         adaptor: '@openfn/language-http@latest'
@@ -5506,6 +5511,7 @@ workflows:
                 return { ...state, qaResults: [...qaResults, result] };
               });
           });
+
       github-repo:
         name: github-repo
         adaptor: '@openfn/language-http@latest'
@@ -5566,6 +5572,7 @@ workflows:
                 return { ...state, qaResults };
               });
           });
+
       random-user:
         name: random-user
         adaptor: '@openfn/language-http@latest'
@@ -5636,6 +5643,7 @@ workflows:
                 return { ...state, qaResults };
               });
           });
+
       dog-image:
         name: dog-image
         adaptor: '@openfn/language-http@latest'
@@ -5697,6 +5705,7 @@ workflows:
                 return { ...state, qaResults };
               });
           });
+
       cat-fact:
         name: cat-fact
         adaptor: '@openfn/language-http@latest'
@@ -5747,6 +5756,7 @@ workflows:
                 return { ...state, qaResults: [...qaResults, result] };
               });
           });
+
       numbers-trivia:
         name: numbers-trivia
         adaptor: '@openfn/language-http@latest'
@@ -5808,6 +5818,7 @@ workflows:
                 };
               });
           });
+
       iss-location:
         name: iss-location
         adaptor: '@openfn/language-http@latest'
@@ -5868,6 +5879,7 @@ workflows:
                 });
               });
           });
+
       crypto-price:
         name: crypto-price
         adaptor: '@openfn/language-http@latest'
@@ -5927,6 +5939,7 @@ workflows:
                 });
               });
           });
+
       bored-activity:
         name: bored-activity
         adaptor: '@openfn/language-http@latest'
@@ -5989,6 +6002,7 @@ workflows:
                 };
               });
           });
+
       public-holidays:
         name: public-holidays
         adaptor: '@openfn/language-http@latest'
@@ -6055,6 +6069,7 @@ workflows:
                 return { ...state, qaResults: [...qaResults, result] };
               });
           });
+
       advice-slip:
         name: advice-slip
         adaptor: '@openfn/language-http@latest'
@@ -6142,6 +6157,7 @@ workflows:
                 });
               });
           });
+
       universities-search:
         name: universities-search
         adaptor: '@openfn/language-http@latest'
@@ -6208,6 +6224,7 @@ workflows:
                 return { ...state, qaResults };
               });
           });
+
       qa-summary:
         name: qa-summary
         adaptor: '@openfn/language-http@latest'
@@ -6248,6 +6265,7 @@ workflows:
 
             return { ...state, qaSummary: summary };
           });
+
       notify-failures:
         name: notify-failures
         adaptor: '@openfn/language-gmail@latest'
@@ -6372,6 +6390,7 @@ workflows:
             }
             return state;
           });
+
       intentional-fail:
         name: intentional-fail
         adaptor: '@openfn/language-http@latest'
@@ -6399,6 +6418,7 @@ workflows:
 
             return { ...state, qaResults };
           });
+
       measure-and-strip-input:
         name: measure-and-strip-input
         adaptor: '@openfn/language-common@latest'
@@ -6435,6 +6455,7 @@ workflows:
               },
             };
           });
+
     triggers:
       webhook:
         type: webhook
@@ -6442,41 +6463,6 @@ workflows:
         webhook_reply: before_start
         enabled: true
     edges:
-      httpbin-get->httpbin-post:
-        source_job: httpbin-get
-        target_job: httpbin-post
-        condition_type: on_job_success
-        enabled: true
-      httpbin-post->httpbin-status:
-        source_job: httpbin-post
-        target_job: httpbin-status
-        condition_type: on_job_success
-        enabled: true
-      httpbin-status->httpbin-headers:
-        source_job: httpbin-status
-        target_job: httpbin-headers
-        condition_type: on_job_success
-        enabled: true
-      httpbin-headers->jsonplaceholder-list:
-        source_job: httpbin-headers
-        target_job: jsonplaceholder-list
-        condition_type: on_job_success
-        enabled: true
-      jsonplaceholder-list->jsonplaceholder-create:
-        source_job: jsonplaceholder-list
-        target_job: jsonplaceholder-create
-        condition_type: on_job_success
-        enabled: true
-      github-repo->random-user:
-        source_job: github-repo
-        target_job: random-user
-        condition_type: on_job_success
-        enabled: true
-      random-user->dog-image:
-        source_job: random-user
-        target_job: dog-image
-        condition_type: on_job_success
-        enabled: true
       dog-image->cat-fact:
         source_job: dog-image
         target_job: cat-fact
@@ -6487,24 +6473,34 @@ workflows:
         target_job: numbers-trivia
         condition_type: on_job_success
         enabled: true
-      numbers-trivia->iss-location:
-        source_job: numbers-trivia
-        target_job: iss-location
+      github-repo->random-user:
+        source_job: github-repo
+        target_job: random-user
         condition_type: on_job_success
         enabled: true
-      iss-location->crypto-price:
-        source_job: iss-location
-        target_job: crypto-price
+      jsonplaceholder-list->jsonplaceholder-create:
+        source_job: jsonplaceholder-list
+        target_job: jsonplaceholder-create
         condition_type: on_job_success
         enabled: true
-      crypto-price->bored-activity:
-        source_job: crypto-price
-        target_job: bored-activity
+      httpbin-headers->jsonplaceholder-list:
+        source_job: httpbin-headers
+        target_job: jsonplaceholder-list
         condition_type: on_job_success
         enabled: true
-      bored-activity->public-holidays:
-        source_job: bored-activity
-        target_job: public-holidays
+      httpbin-status->httpbin-headers:
+        source_job: httpbin-status
+        target_job: httpbin-headers
+        condition_type: on_job_success
+        enabled: true
+      httpbin-post->httpbin-status:
+        source_job: httpbin-post
+        target_job: httpbin-status
+        condition_type: on_job_success
+        enabled: true
+      httpbin-get->httpbin-post:
+        source_job: httpbin-get
+        target_job: httpbin-post
         condition_type: on_job_success
         enabled: true
       advice-slip->universities-search:
@@ -6512,29 +6508,54 @@ workflows:
         target_job: universities-search
         condition_type: on_job_success
         enabled: true
+      bored-activity->public-holidays:
+        source_job: bored-activity
+        target_job: public-holidays
+        condition_type: on_job_success
+        enabled: true
+      crypto-price->bored-activity:
+        source_job: crypto-price
+        target_job: bored-activity
+        condition_type: on_job_success
+        enabled: true
+      iss-location->crypto-price:
+        source_job: iss-location
+        target_job: crypto-price
+        condition_type: on_job_success
+        enabled: true
+      numbers-trivia->iss-location:
+        source_job: numbers-trivia
+        target_job: iss-location
+        condition_type: on_job_success
+        enabled: true
+      random-user->dog-image:
+        source_job: random-user
+        target_job: dog-image
+        condition_type: on_job_success
+        enabled: true
       qa-summary->notify-failures:
         source_job: qa-summary
         target_job: notify-failures
         condition_type: always
-        enabled: true
-      universities-search->intentional-fail:
-        source_job: universities-search
-        target_job: intentional-fail
-        condition_type: on_job_success
         enabled: true
       intentional-fail->qa-summary:
         source_job: intentional-fail
         target_job: qa-summary
         condition_type: on_job_success
         enabled: true
-      jsonplaceholder-create->github-repo:
-        source_job: jsonplaceholder-create
-        target_job: github-repo
+      universities-search->intentional-fail:
+        source_job: universities-search
+        target_job: intentional-fail
         condition_type: on_job_success
         enabled: true
       public-holidays->advice-slip:
         source_job: public-holidays
         target_job: advice-slip
+        condition_type: on_job_success
+        enabled: true
+      jsonplaceholder-create->github-repo:
+        source_job: jsonplaceholder-create
+        target_job: github-repo
         condition_type: on_job_success
         enabled: true
       webhook->measure-and-strip-input:
