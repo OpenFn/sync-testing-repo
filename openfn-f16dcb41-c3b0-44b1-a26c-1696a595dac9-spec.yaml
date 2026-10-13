@@ -14663,6 +14663,31 @@ workflows:
         target_job: advice-slip
         condition_type: on_job_success
         enabled: true
+  Merge-conflict-test-for-Sandbox:
+    name: Merge conflict test for Sandbox
+    jobs:
+      Transform-data:
+        name: Transform data
+        adaptor: '@openfn/language-http@7.3.3'
+        credential: null
+        body: |
+          // Validate and transform the data you've received...
+          fn(state => {
+            console.log("Do some data transformation here");
+            return state;
+          })
+
+    triggers:
+      webhook:
+        type: webhook
+        webhook_reply: before_start
+        enabled: true
+    edges:
+      webhook->Transform-data:
+        source_trigger: webhook
+        target_job: Transform-data
+        condition_type: always
+        enabled: true
   OpenFn-Platform-Test-Workflow-1:
     name: OpenFn Platform Test Workflow 1
     jobs:

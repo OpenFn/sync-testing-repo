@@ -5,7 +5,7 @@
   "description": "This is Megan's testing space\n",
   "color": null,
   "inserted_at": "2026-06-25T07:29:24Z",
-  "updated_at": "2026-10-13T13:06:20Z",
+  "updated_at": "2026-10-13T13:21:17Z",
   "channels": {},
   "parent_id": null,
   "concurrency": 4,
@@ -62,7 +62,7 @@
       "owner": "megan@openfn.org"
     }
   },
-  "requires_mfa": true,
+  "requires_mfa": false,
   "workflows": {
     "Scheduled-workflow": {
       "id": "0a85b1fc-1160-4609-89ee-84e1e0d34fe9",
@@ -7524,6 +7524,38 @@
           "target_job_id": "d9bf7bb6-ee19-4712-8589-4c38e496a2e6",
           "source_job_id": "0ddc69e6-c316-49a3-832b-2a76bdb3e062",
           "condition_type": "on_job_success"
+        }
+      }
+    },
+    "Merge-conflict-test-for-Sandbox": {
+      "id": "6efe5f43-95d1-4ab9-b15e-7576199bead9",
+      "name": "Merge conflict test for Sandbox",
+      "inserted_at": "2026-10-13T13:21:17.554109Z",
+      "lock_version": 4,
+      "triggers": {
+        "webhook": {
+          "enabled": true,
+          "id": "1c15d29f-236f-48b4-82b7-b08f546b8fa1",
+          "type": "webhook",
+          "webhook_reply": "before_start"
+        }
+      },
+      "jobs": {
+        "Transform-data": {
+          "id": "9a91bb49-31cc-4516-8232-3064697e4313",
+          "name": "Transform data",
+          "body": "// Validate and transform the data you've received...\nfn(state => {\n  console.log(\"Do some data transformation here\");\n  return state;\n})\n",
+          "project_credential_id": null,
+          "adaptor": "@openfn/language-http@7.3.3"
+        }
+      },
+      "edges": {
+        "webhook->Transform-data": {
+          "enabled": true,
+          "id": "39aba82e-a2c2-4fda-804c-72989efeef7d",
+          "target_job_id": "9a91bb49-31cc-4516-8232-3064697e4313",
+          "source_trigger_id": "1c15d29f-236f-48b4-82b7-b08f546b8fa1",
+          "condition_type": "always"
         }
       }
     }
