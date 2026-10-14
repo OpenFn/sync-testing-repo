@@ -1625,69 +1625,19 @@ workflows:
           });
 
     triggers:
-      cron:
-        type: cron
-        cron_expression: '00 09 * * 01'
+      webhook:
+        type: webhook
+        webhook_reply: before_start
         enabled: true
     edges:
-      httpbin-post->httpbin-status:
-        source_job: httpbin-post
-        target_job: httpbin-status
-        condition_type: on_job_success
+      webhook->measure-and-strip-input:
+        source_trigger: webhook
+        target_job: measure-and-strip-input
+        condition_type: always
         enabled: true
       measure-and-strip-input->httpbin-get:
         source_job: measure-and-strip-input
         target_job: httpbin-get
-        condition_type: on_job_success
-        enabled: true
-      cron->measure-and-strip-input:
-        source_trigger: cron
-        target_job: measure-and-strip-input
-        condition_type: always
-        enabled: true
-      public-holidays->advice-slip:
-        source_job: public-holidays
-        target_job: advice-slip
-        condition_type: on_job_success
-        enabled: true
-      bored-activity->public-holidays:
-        source_job: bored-activity
-        target_job: public-holidays
-        condition_type: on_job_success
-        enabled: true
-      dog-image->cat-fact:
-        source_job: dog-image
-        target_job: cat-fact
-        condition_type: on_job_success
-        enabled: true
-      random-user->dog-image:
-        source_job: random-user
-        target_job: dog-image
-        condition_type: on_job_success
-        enabled: true
-      github-repo->random-user:
-        source_job: github-repo
-        target_job: random-user
-        condition_type: on_job_success
-        enabled: true
-      jsonplaceholder-create->github-repo:
-        source_job: jsonplaceholder-create
-        target_job: github-repo
-        condition_type: on_job_success
-        enabled: true
-      jsonplaceholder-list->jsonplaceholder-create:
-        source_job: jsonplaceholder-list
-        target_job: jsonplaceholder-create
-        condition_type: on_job_success
-        enabled: true
-      httpbin-headers->jsonplaceholder-list:
-        source_job: httpbin-headers
-        target_job: jsonplaceholder-list
-        condition_type: on_job_success
-        enabled: true
-      httpbin-status->httpbin-headers:
-        source_job: httpbin-status
-        target_job: httpbin-headers
         condition_type: on_job_success
         enabled: true
       httpbin-get->httpbin-post:
@@ -1695,19 +1645,44 @@ workflows:
         target_job: httpbin-post
         condition_type: on_job_success
         enabled: true
-      crypto-price->bored-activity:
-        source_job: crypto-price
-        target_job: bored-activity
+      httpbin-post->httpbin-status:
+        source_job: httpbin-post
+        target_job: httpbin-status
         condition_type: on_job_success
         enabled: true
-      iss-location->crypto-price:
-        source_job: iss-location
-        target_job: crypto-price
+      httpbin-status->httpbin-headers:
+        source_job: httpbin-status
+        target_job: httpbin-headers
         condition_type: on_job_success
         enabled: true
-      numbers-trivia->iss-location:
-        source_job: numbers-trivia
-        target_job: iss-location
+      httpbin-headers->jsonplaceholder-list:
+        source_job: httpbin-headers
+        target_job: jsonplaceholder-list
+        condition_type: on_job_success
+        enabled: true
+      jsonplaceholder-list->jsonplaceholder-create:
+        source_job: jsonplaceholder-list
+        target_job: jsonplaceholder-create
+        condition_type: on_job_success
+        enabled: true
+      jsonplaceholder-create->github-repo:
+        source_job: jsonplaceholder-create
+        target_job: github-repo
+        condition_type: on_job_success
+        enabled: true
+      github-repo->random-user:
+        source_job: github-repo
+        target_job: random-user
+        condition_type: on_job_success
+        enabled: true
+      random-user->dog-image:
+        source_job: random-user
+        target_job: dog-image
+        condition_type: on_job_success
+        enabled: true
+      dog-image->cat-fact:
+        source_job: dog-image
+        target_job: cat-fact
         condition_type: on_job_success
         enabled: true
       cat-fact->numbers-trivia:
@@ -1715,14 +1690,34 @@ workflows:
         target_job: numbers-trivia
         condition_type: on_job_success
         enabled: true
-      qa-summary->notify-failures:
-        source_job: qa-summary
-        target_job: notify-failures
-        condition_type: always
+      numbers-trivia->iss-location:
+        source_job: numbers-trivia
+        target_job: iss-location
+        condition_type: on_job_success
         enabled: true
-      intentional-fail->qa-summary:
-        source_job: intentional-fail
-        target_job: qa-summary
+      iss-location->crypto-price:
+        source_job: iss-location
+        target_job: crypto-price
+        condition_type: on_job_success
+        enabled: true
+      crypto-price->bored-activity:
+        source_job: crypto-price
+        target_job: bored-activity
+        condition_type: on_job_success
+        enabled: true
+      bored-activity->public-holidays:
+        source_job: bored-activity
+        target_job: public-holidays
+        condition_type: on_job_success
+        enabled: true
+      public-holidays->advice-slip:
+        source_job: public-holidays
+        target_job: advice-slip
+        condition_type: on_job_success
+        enabled: true
+      advice-slip->universities-search:
+        source_job: advice-slip
+        target_job: universities-search
         condition_type: on_job_success
         enabled: true
       universities-search->intentional-fail:
@@ -1730,10 +1725,15 @@ workflows:
         target_job: intentional-fail
         condition_type: on_job_success
         enabled: true
-      advice-slip->universities-search:
-        source_job: advice-slip
-        target_job: universities-search
+      intentional-fail->qa-summary:
+        source_job: intentional-fail
+        target_job: qa-summary
         condition_type: on_job_success
+        enabled: true
+      qa-summary->notify-failures:
+        source_job: qa-summary
+        target_job: notify-failures
+        condition_type: always
         enabled: true
   DING-DONG-Notification-Workflow-1-rename-3:
     name: DING DONG Notification Workflow 1 rename 3
@@ -12055,6 +12055,70 @@ workflows:
       Send-Notification->Log-to-Spreadsheet:
         source_job: Send-Notification
         target_job: Log-to-Spreadsheet
+        condition_type: on_job_success
+        enabled: true
+  Event-based-workflow-1-rename:
+    name: Event-based workflow 1 rename
+    jobs:
+      Transform-data:
+        name: Transform data
+        adaptor: '@openfn/language-common@latest'
+        credential: null
+        body: |
+          // Validate and transform the data you've received...
+          fn(state => {
+            console.log("Do some data transformation here");
+            return state;
+          })
+
+      Http:
+        name: Http
+        adaptor: '@openfn/language-http@7.3.3'
+        credential: 'megan@openfn.org-Megan-QA-test-(can-be-deleted)'
+        body: |
+          // Check out the Job Writing Guide for help getting started:
+          // https://docs.openfn.org/documentation/jobs/job-writing-guide
+
+      Http-2:
+        name: Http 2
+        adaptor: '@openfn/language-http@7.3.3'
+        credential: null
+        body: |
+          // Check out the Job Writing Guide for help getting started:
+          // https://docs.openfn.org/documentation/jobs/job-writing-guide
+
+      Http-1:
+        name: Http 1
+        adaptor: '@openfn/language-http@7.3.3'
+        credential: null
+        body: |
+          // Check out the Job Writing Guide for help getting started:
+          // https://docs.openfn.org/documentation/jobs/job-writing-guide
+
+    triggers:
+      webhook:
+        type: webhook
+        webhook_reply: before_start
+        enabled: true
+    edges:
+      webhook->Transform-data:
+        source_trigger: webhook
+        target_job: Transform-data
+        condition_type: always
+        enabled: true
+      Transform-data->Http:
+        source_job: Transform-data
+        target_job: Http
+        condition_type: on_job_success
+        enabled: true
+      Http->Http-2:
+        source_job: Http
+        target_job: Http-2
+        condition_type: on_job_failure
+        enabled: true
+      Http->Http-1:
+        source_job: Http
+        target_job: Http-1
         condition_type: on_job_success
         enabled: true
   A-2.18-test-workflow:

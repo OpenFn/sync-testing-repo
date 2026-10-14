@@ -5,7 +5,7 @@
   "description": "This is Megan's testing space\n",
   "color": null,
   "inserted_at": "2026-06-25T07:29:24Z",
-  "updated_at": "2026-10-13T13:21:17Z",
+  "updated_at": "2026-10-13T13:24:27Z",
   "channels": {},
   "parent_id": null,
   "concurrency": 4,
@@ -6604,318 +6604,6 @@
         }
       }
     },
-    "Self-Testing-QA-Health-Check-2-rename-2": {
-      "id": "1786034c-5e56-42a5-b936-037a32b15d8a",
-      "name": "Self-Testing QA Health Check 2 rename 2",
-      "inserted_at": "2026-10-12T22:12:45.268496Z",
-      "lock_version": 8,
-      "triggers": {
-        "cron": {
-          "enabled": true,
-          "id": "f4e43f9a-d398-4359-8e1c-88d717b1f43f",
-          "type": "cron",
-          "cron_expression": "00 09 * * 01"
-        }
-      },
-      "jobs": {
-        "measure-and-strip-input": {
-          "id": "25258d2f-e49d-41fa-81a3-4da072c9a998",
-          "name": "measure-and-strip-input",
-          "body": "// Hello World!\n// Measure the incoming custom input, then strip it so the big payload\n// doesn't get dragged through the rest of the chain (avoids OOM \"killed\").\nfn(state => {\n  const original = state.data || {};\n\n  // Measure the raw payload size\n  const json = JSON.stringify(original);\n  const bytes = json.length;\n  const mb = (bytes / 1024 / 1024).toFixed(2);\n\n  // Try to count rows if the test payload used { data: { rows: [...] } }\n  const rowCount = Array.isArray(original.rows) ? original.rows.length : null;\n\n  console.log(\n    `Custom input payload: ${mb} MB` +\n      (rowCount !== null ? `, ${rowCount} rows` : '')\n  );\n\n  // Replace the big payload with a lightweight summary so downstream\n  // steps carry a tiny state through the whole chain.\n  return {\n    ...state,\n    data: {\n      inputSizeCheck: {\n        bytes,\n        mb: Number(mb),\n        rowCount,\n      },\n    },\n  };\n});\n",
-          "project_credential_id": null,
-          "adaptor": "@openfn/language-common@latest"
-        },
-        "httpbin-headers": {
-          "id": "ef6f3b48-de1f-4a10-8678-e0056ade006e",
-          "name": "httpbin-headers",
-          "body": "// httpbin-headers QA health check\n// Sends a GET request to https://httpbin.org/headers\n// Verifies the response contains a headers object that includes a Host header\n// Appends a result to the shared state.qaResults array (never overwrites existing entries)\n// Does not throw on failure - records passed:false with detail instead\n\nfn(state => {\n  const endpoint = 'https://httpbin.org/headers';\n  const name = 'httpbin-headers';\n\n  const append = result => ({\n    ...state,\n    qaResults: [...(state.qaResults || []), { name, endpoint, ...result }],\n  });\n\n  return get(endpoint)(state)\n    .then(nextState => {\n      let passed = false;\n      let detail = '';\n\n      const headers = nextState.data && nextState.data.headers;\n      if (headers && typeof headers === 'object' && headers.Host) {\n        passed = true;\n        detail = `Host header present: ${headers.Host}`;\n      } else if (headers && typeof headers === 'object') {\n        detail = 'headers object found but no Host header';\n      } else {\n        detail = 'no headers object in response';\n      }\n\n      return {\n        ...nextState,\n        qaResults: [\n          ...(nextState.qaResults || []),\n          { name, endpoint, passed, detail },\n        ],\n      };\n    })\n    .catch(error => {\n      let detail;\n      const response = error && error.response;\n\n      if (response && response.status) {\n        const status = response.status;\n        const statusText = response.statusText || '';\n        let body = response.data;\n        if (body && typeof body === 'object') {\n          body = JSON.stringify(body);\n        }\n        detail = `HTTP ${status} ${statusText}`.trim();\n        if (body) detail += ` - body: ${body}`;\n      } else {\n        detail = `network error: ${error && error.message ? error.message : String(error)}`;\n      }\n\n      return append({ passed: false, detail });\n    });\n});\n",
-          "project_credential_id": null,
-          "adaptor": "@openfn/language-http@latest"
-        },
-        "crypto-price": {
-          "id": "b729c16e-0886-4a0f-8801-0ab9e3ae45ff",
-          "name": "crypto-price",
-          "body": "// crypto-price QA health-check node\n// Fetches the current Bitcoin price in USD from CoinGecko\n// Verifies bitcoin.usd is a positive number\n// Appends a result object to the shared state.qaResults array (never overwrites existing entries)\n// Never throws: HTTP/network failures are caught and recorded as passed:false\n\nfn(state => {\n  const endpoint =\n    'https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd';\n\n  const append = (base, result) => ({\n    ...base,\n    qaResults: [...(base.qaResults || []), result],\n  });\n\n  return get(endpoint, {\n    headers: { 'User-Agent': 'OpenFn-QA-HealthCheck/1.0' },\n  })(state)\n    .then(s => {\n      // Existing check logic, unchanged\n      const price = s.data?.bitcoin?.usd;\n      const passed = typeof price === 'number' && price > 0;\n\n      return append(s, {\n        name: 'crypto-price',\n        endpoint,\n        passed,\n        detail: price,\n      });\n    })\n    .catch(error => {\n      const response = error.response;\n      let detail;\n\n      if (response) {\n        const status = response.status ?? response.statusCode ?? '';\n        const statusText = response.statusText || response.statusMessage || '';\n        const body =\n          typeof response.data === 'object'\n            ? JSON.stringify(response.data)\n            : String(response.data ?? '');\n        detail = `HTTP ${status} ${statusText} - ${body}`.trim();\n      } else {\n        detail = `Network error: ${error.message}`;\n      }\n\n      return append(state, {\n        name: 'crypto-price',\n        endpoint,\n        passed: false,\n        detail,\n      });\n    });\n});\n",
-          "project_credential_id": null,
-          "adaptor": "@openfn/language-http@latest"
-        },
-        "notify-failures": {
-          "id": "a668f00a-3fbd-4baa-8dbf-4d37d7ea566d",
-          "name": "notify-failures",
-          "body": "// notify-failures: Compile a QA failure report and email it to megan@openfn.org.\n// - Reads state.qaResults (array of {name, endpoint, passed, detail}).\n// - Reads state.errors (object keyed by step id: {message, details, operationName, line, ...}).\n// - Always emails a full breakdown. Never throws.\n\nfn(state => {\n  const results = state.qaResults || [];\n  const errors = state.errors || {};\n\n  const passed = results.filter(r => r.passed);\n  const failedResults = results.filter(r => !r.passed);\n  const errorEntries = Object.entries(errors);\n\n  const totalFailures = failedResults.length + errorEntries.length;\n\n  const summaryLine = `QA Health Check: ${passed.length}/${results.length} checks passed, ${failedResults.length} failed` +\n    (errorEntries.length ? `, ${errorEntries.length} step error(s)` : '');\n\n  // Dog image URL captured by the dog-image check\n  const dogResult = results.find(r => r.name === 'dog-image');\n  const dogUrl = dogResult && dogResult.passed ? dogResult.detail : null;\n\n  const line = '='.repeat(60);\n  const sub = '-'.repeat(60);\n\n  const parts = [];\n  parts.push(line);\n  parts.push('QA HEALTH CHECK REPORT');\n  parts.push(new Date().toISOString());\n  parts.push(summaryLine);\n  if (dogUrl) {\n    parts.push('');\n    parts.push(`Dog of the day: ${dogUrl}`);\n  }\n  parts.push(line);\n  parts.push('');\n\n  // FAILED section\n  parts.push(`FAILED (${totalFailures})`);\n  parts.push(sub);\n  if (totalFailures === 0) {\n    parts.push('No failures. \\u{1F389}');\n  } else {\n    failedResults.forEach(r => {\n      parts.push(`\\u2718 ${r.name}`);\n      parts.push(`  Endpoint: ${r.endpoint || 'n/a'}`);\n      parts.push(`  Detail:   ${r.detail || 'n/a'}`);\n      parts.push('');\n    });\n\n    errorEntries.forEach(([stepId, err]) => {\n      const details = err.details || {};\n      const bodyText = details.body != null\n        ? (typeof details.body === 'string' ? details.body : JSON.stringify(details.body, null, 2))\n        : 'n/a';\n      parts.push(`\\u26A0 STEP ERROR: ${stepId}`);\n      parts.push(`  Operation: ${err.operationName || 'n/a'}${err.line ? ' (line ' + err.line + ')' : ''}`);\n      parts.push(`  Status:    ${details.statusCode != null ? details.statusCode : 'n/a'}`);\n      parts.push(`  Message:   ${err.message || 'n/a'}`);\n      parts.push(`  Body:      ${bodyText}`);\n      parts.push('');\n    });\n  }\n\n  parts.push('');\n\n  // PASSED section\n  parts.push(`PASSED (${passed.length})`);\n  parts.push(sub);\n  if (passed.length === 0) {\n    parts.push('No successful checks.');\n  } else {\n    passed.forEach(r => {\n      parts.push(`\\u2714 ${r.name}`);\n      parts.push(`  Endpoint: ${r.endpoint || 'n/a'}`);\n      parts.push(`  Detail:   ${r.detail || 'n/a'}`);\n      parts.push('');\n    });\n  }\n\n  parts.push('');\n\n  // CONSOLE.LOG TEST section\n  parts.push('CONSOLE.LOG TEST');\n  parts.push(sub);\n  parts.push(\"Open this run's logs and search for the marker line 'CONSOLE_LOG_TEST_MARKER'.\");\n  parts.push('If the marker is present, console.log output is ENABLED for this project.');\n  parts.push('If it is absent, it is DISABLED.');\n  parts.push('');\n\n  parts.push(line);\n  parts.push('Automated QA Health Check \\u00B7 OpenFn');\n  parts.push(line);\n\n  const body = parts.join('\\n');\n\n  const subject = totalFailures > 0\n    ? `QA Health Check FAILED - ${totalFailures} issue(s) found`\n    : `QA Health Check PASSED - all ${results.length} checks OK`;\n\n  console.log(summaryLine);\n  console.log('CONSOLE_LOG_TEST_MARKER');\n\n  return { ...state, report: { subject, body, totalFailures } };\n});\n\nsendMessage({\n  to: 'megan@openfn.org',\n  subject: state => state.report.subject,\n  body: state => state.report.body,\n});\n\n// Ensure the step never fails, even if sending errored\nfn(state => {\n  if (state.errors) {\n    console.log('Notification step encountered errors while sending; continuing without throwing.');\n  }\n  return state;\n});\n",
-          "project_credential_id": null,
-          "adaptor": "@openfn/language-gmail@latest"
-        },
-        "httpbin-get": {
-          "id": "87b06b0e-c8d8-49cb-832a-886213e5cb53",
-          "name": "httpbin-get",
-          "body": "// QA health-check node: httpbin-get\n// - Sends a GET request to https://httpbin.org/get?qa=openfn\n// - Verifies the response echoes back the request (args + url present)\n// - Appends a result object to the shared state.qaResults array\n// - Never throws on failure: records passed:false so later checks still run\n// - just a random piece of text (ignore it)\n\nfn(state => {\n  const name = 'httpbin-get';\n  const endpoint =\n    (state.data && state.data.targetUrl) || 'https://httpbin.org/get?qa=openfn';\n\n  // Ensure the shared results array exists without overwriting entries\n  const qaResults = state.qaResults || [];\n\n  // --- Payload-measurement feature -------------------------------------\n  // Measure the incoming custom input size so a large input is exercised.\n  // Never throws: any failure is caught and recorded instead.\n  try {\n    const json = JSON.stringify(state.data || {});\n    const bytes =\n      typeof Buffer !== 'undefined'\n        ? Buffer.byteLength(json, 'utf8')\n        : new TextEncoder().encode(json).length;\n    const mb = bytes / 1024 / 1024;\n    const rowCount =\n      state.data && Array.isArray(state.data.rows) ? state.data.rows.length : 0;\n\n    console.log(\n      `Custom input payload: ${mb.toFixed(2)} MB, ${rowCount} rows`\n    );\n\n    qaResults.push({\n      name: 'input-size-check',\n      endpoint,\n      passed: true,\n      detail: `Measured custom input: ${mb.toFixed(2)} MB, ${rowCount} rows.`,\n    });\n  } catch (measureError) {\n    qaResults.push({\n      name: 'input-size-check',\n      endpoint,\n      passed: false,\n      detail: `Could not measure custom input: ${measureError.message}`,\n    });\n  }\n\n  // Run the request inside the callback so any failure (non-2xx or network\n  // error) is caught here and never aborts the workflow.\n  return get(endpoint)(state)\n    .then(nextState => {\n      let passed = false;\n      let detail = '';\n\n      const body = nextState.data || {};\n      const echoedQa = body.args && body.args.qa === 'openfn';\n      const echoedUrl =\n        typeof body.url === 'string' && body.url.includes('httpbin.org/get');\n      passed = Boolean(echoedQa && echoedUrl);\n      detail = passed\n        ? 'Response echoed args.qa=openfn and url as expected.'\n        : `Echo check failed. args=${JSON.stringify(body.args)}, url=${body.url}`;\n\n      return {\n        ...nextState,\n        qaResults: [...qaResults, { name, endpoint, passed, detail }],\n      };\n    })\n    .catch(error => {\n      const res = error.response;\n      let detail;\n      if (res) {\n        // HTTP error: include status code, status message and body if present\n        const bodyText =\n          res.body !== undefined\n            ? JSON.stringify(res.body)\n            : res.data !== undefined\n            ? JSON.stringify(res.data)\n            : '(no body)';\n        detail = `HTTP ${res.status} ${res.statusText || ''}. Body: ${bodyText}`;\n      } else {\n        // Network failure or other error with no HTTP response\n        detail = `Network error: ${error.message}`;\n      }\n\n      return {\n        ...state,\n        qaResults: [...qaResults, { name, endpoint, passed: false, detail }],\n      };\n    });\n});\n",
-          "project_credential_id": null,
-          "adaptor": "@openfn/language-http@latest"
-        },
-        "advice-slip": {
-          "id": "701fb52a-860e-4d14-8ced-228f46c4e45b",
-          "name": "advice-slip",
-          "body": "// Node: advice-slip\n// Sends a GET request to https://api.adviceslip.com/advice\n// Verifies the response has a `slip` object with a non-empty `advice` string.\n// The API sometimes returns a JSON string, so parsing is handled gracefully.\n// Appends a QA result { name, endpoint, passed, detail } to state.qaResults\n// without overwriting existing entries and without throwing on failure.\n// The request is wrapped so a non-2xx response or a network error never aborts the run.\n\nfn(state => {\n  const name = 'advice-slip';\n  const endpoint = 'https://api.adviceslip.com/advice';\n  const qaResults = state.qaResults || [];\n\n  const append = (entry, base) => ({\n    ...(base || state),\n    qaResults: [...qaResults, entry],\n  });\n\n  const failFromResponse = res => {\n    const status = res.statusCode;\n    const statusText = res.statusText || '';\n    let body = '';\n    if (res.data !== undefined && res.data !== null && res.data !== '') {\n      body =\n        typeof res.data === 'string' ? res.data : JSON.stringify(res.data);\n    }\n    const detail = `HTTP ${status} ${statusText}`.trim() +\n      (body ? ` - ${body}` : '');\n    return { name, endpoint, passed: false, detail };\n  };\n\n  // validateStatus prevents non-2xx from throwing; .catch handles network errors.\n  return get(endpoint, { validateStatus: () => true })(state)\n    .then(s => {\n      const res = s.response || {};\n      const status = res.statusCode;\n\n      // Non-2xx response: record failure with full explanation.\n      if (typeof status !== 'number' || status < 200 || status >= 300) {\n        return append(failFromResponse({ ...res, data: s.data }), s);\n      }\n\n      // Success: keep the existing check logic.\n      let passed = false;\n      let detail = null;\n\n      try {\n        let body = s.data;\n\n        // Handle case where the API returns text that needs JSON parsing\n        if (typeof body === 'string') {\n          body = JSON.parse(body);\n        }\n\n        const advice = body && body.slip && body.slip.advice;\n\n        if (typeof advice === 'string' && advice.trim().length > 0) {\n          passed = true;\n          detail = advice;\n        } else {\n          detail = 'Missing or empty slip.advice';\n        }\n      } catch (e) {\n        passed = false;\n        detail = `Failed to parse response: ${e.message}`;\n      }\n\n      return append({ name, endpoint, passed, detail }, s);\n    })\n    .catch(e => {\n      // A response present here means an HTTP error; otherwise a network failure.\n      if (e && e.response) {\n        return append(failFromResponse(e.response));\n      }\n      return append({\n        name,\n        endpoint,\n        passed: false,\n        detail: `Request failed: ${e.message}`,\n      });\n    });\n});\n",
-          "project_credential_id": null,
-          "adaptor": "@openfn/language-http@latest"
-        },
-        "universities-search": {
-          "id": "52e0961d-36b8-4f4c-8405-6b00ca0f58f7",
-          "name": "universities-search",
-          "body": "// QA health-check node: universities-search\n// Sends a GET request to the Hipolabs universities API for Kenya.\n// Verifies the response is a non-empty array where each university has a name and country.\n// Appends a pass/fail result object to the shared state.qaResults array.\n// Does not throw on failure - records passed:false instead.\n\nfn(state => {\n  const name = 'universities-search';\n  const endpoint = 'http://universities.hipolabs.com/search?country=Kenya';\n  const qaResults = state.qaResults || [];\n\n  return get(endpoint)(state)\n    .then(nextState => {\n      // Success: run the existing check logic on the response.\n      const data = nextState.data;\n      const isArray = Array.isArray(data);\n      const nonEmpty = isArray && data.length > 0;\n      const allValid =\n        nonEmpty && data.every(u => u && u.name && u.country);\n      const passed = Boolean(nonEmpty && allValid);\n\n      qaResults.push({\n        name,\n        endpoint,\n        passed,\n        detail: String(isArray ? data.length : 0),\n      });\n\n      return { ...nextState, qaResults };\n    })\n    .catch(error => {\n      // Failure: never throw - record passed:false with a full explanation.\n      const response = error && error.response;\n      let detail;\n\n      if (response) {\n        // HTTP error (non-2xx response).\n        const status = response.status;\n        const statusText = response.statusText || '';\n        let body = response.data;\n        if (body && typeof body === 'object') {\n          body = JSON.stringify(body);\n        }\n        detail =\n          `HTTP ${status} ${statusText}`.trim() +\n          (body ? ` - ${body}` : '');\n      } else {\n        // Network error (no response received).\n        detail = `Network error: ${error && error.message ? error.message : String(error)}`;\n      }\n\n      qaResults.push({\n        name,\n        endpoint,\n        passed: false,\n        detail,\n      });\n\n      return { ...state, qaResults };\n    });\n});\n",
-          "project_credential_id": null,
-          "adaptor": "@openfn/language-http@latest"
-        },
-        "qa-summary": {
-          "id": "df99f481-102e-4522-8d93-e504984fa0ae",
-          "name": "qa-summary",
-          "body": "// qa-summary: Final QA reporting node.\n// - Does NOT make any HTTP request.\n// - Reads accumulated results from state.qaResults (each: name, endpoint, passed, detail).\n// - Builds a summary (total, passed, failed, failed names, timestamp) at state.qaSummary.\n// - Logs a readable line per check plus the totals.\n\nfn(state => {\n  console.log('CONSOLE_LOG_TEST_MARKER :: if you can read this line in the run logs, console.log output is ENABLED');\n\n  const results = state.qaResults || [];\n\n  const passed = results.filter(r => r.passed);\n  const failed = results.filter(r => !r.passed);\n\n  const summary = {\n    total: results.length,\n    passed: passed.length,\n    failed: failed.length,\n    failedChecks: failed.map(r => r.name),\n    timestamp: new Date().toISOString(),\n  };\n\n  // Log a readable line per check\n  results.forEach(r => {\n    console.log(`${r.passed ? 'PASS' : 'FAIL'} - ${r.name} (${r.endpoint})${r.detail ? ' :: ' + r.detail : ''}`);\n  });\n\n  // Log the totals\n  console.log(`QA Summary: ${summary.passed}/${summary.total} passed, ${summary.failed} failed`);\n  if (summary.failed > 0) {\n    console.log(`Failed checks: ${summary.failedChecks.join(', ')}`);\n  }\n\n  return { ...state, qaSummary: summary };\n});\n",
-          "project_credential_id": null,
-          "adaptor": "@openfn/language-http@latest"
-        },
-        "httpbin-post": {
-          "id": "03a41d63-0bcd-45a5-8967-30386a3d4efc",
-          "name": "httpbin-post",
-          "body": "// Node: httpbin-post\n// Sends a POST to https://httpbin.org/post with a small JSON body.\n// Verifies the response's `json` field echoes back the body we sent.\n// Appends a QA result to the shared state.qaResults array (never overwrites).\n// Records passed:false on failure instead of throwing.\n\nconst endpoint = 'https://httpbin.org/post';\n\nfn(state => {\n  // ensure the shared array exists without overwriting existing entries\n  const qaResults = state.qaResults || [];\n\n  const body = { qa: 'openfn', ts: Date.now() };\n\n  // Invoke the request inside fn so we can catch any failure.\n  // A non-2xx response or a network error rejects here instead of\n  // aborting the whole workflow.\n  return post(endpoint, body)(state)\n    .then(nextState => {\n      // ---- success: keep the existing check logic ----\n      const echoed = nextState.data && nextState.data.json;\n\n      const passed =\n        !!echoed && echoed.qa === 'openfn' && typeof echoed.ts !== 'undefined';\n\n      const result = {\n        name: 'httpbin-post',\n        endpoint,\n        passed,\n        detail: passed\n          ? 'Response json echoed the posted body.'\n          : `Echo mismatch: ${JSON.stringify(echoed)}`,\n      };\n\n      return { ...nextState, qaResults: [...qaResults, result] };\n    })\n    .catch(error => {\n      // ---- failure: never throw, record passed:false ----\n      const response = error && error.response;\n\n      let detail;\n      if (response) {\n        const bodyText =\n          typeof response.data === 'undefined'\n            ? ''\n            : ` Body: ${JSON.stringify(response.data)}`;\n        detail = `HTTP ${response.status} ${response.statusText || ''}.${bodyText}`.trim();\n      } else {\n        detail = `Network error: ${(error && error.message) || String(error)}`;\n      }\n\n      const result = {\n        name: 'httpbin-post',\n        endpoint,\n        passed: false,\n        detail,\n      };\n\n      return { ...state, qaResults: [...qaResults, result] };\n    });\n});\n",
-          "project_credential_id": null,
-          "adaptor": "@openfn/language-http@latest"
-        },
-        "httpbin-status": {
-          "id": "21a4456f-a6a7-4254-85d2-23906575ece8",
-          "name": "httpbin-status",
-          "body": "// httpbin-status: QA health-check node\n// Sends a GET request to https://httpbin.org/status/200\n// Verifies the returned status code is 200\n// Appends a result object to the shared state.qaResults array (never overwrites existing entries)\n// Any HTTP failure (non-2xx or network error) is caught and recorded - it never aborts the run\n\nfn(state => {\n  const name = 'httpbin-status';\n  const endpoint = 'https://httpbin.org/status/200';\n\n  // append exactly one entry to state.qaResults without overwriting existing ones\n  const append = (s, result) => ({\n    ...s,\n    qaResults: [...(s.qaResults || []), result],\n  });\n\n  try {\n    // parseAs 'text' so we can read the raw body even on failures\n    return get(endpoint, { parseAs: 'text' })(state)\n      .then(nextState => {\n        const status = nextState.response?.statusCode;\n        const passed = status === 200;\n        return append(nextState, {\n          name,\n          endpoint,\n          passed,\n          detail: passed\n            ? 'Returned expected status 200'\n            : `Expected status 200 but got ${status}`,\n        });\n      })\n      .catch(error => {\n        const response = error.response;\n        let detail;\n        if (response) {\n          // non-2xx HTTP response: include status code, status message and body\n          detail = `HTTP ${response.status} ${response.statusText || ''}`.trim();\n          if (response.data !== undefined && response.data !== null && response.data !== '') {\n            const body =\n              typeof response.data === 'string'\n                ? response.data\n                : JSON.stringify(response.data);\n            detail += ` - body: ${body}`;\n          }\n        } else {\n          // network / connection failure: no response, use the error message\n          detail = `Network error: ${error.message}`;\n        }\n        return append(state, { name, endpoint, passed: false, detail });\n      });\n  } catch (error) {\n    // safety net: never throw\n    return append(state, {\n      name,\n      endpoint,\n      passed: false,\n      detail: `Network error: ${error.message}`,\n    });\n  }\n});\n",
-          "project_credential_id": null,
-          "adaptor": "@openfn/language-http@latest"
-        },
-        "jsonplaceholder-list": {
-          "id": "a88c6e2e-b867-4a90-831d-1ce1341aa0d9",
-          "name": "jsonplaceholder-list",
-          "body": "// jsonplaceholder-list\n// QA health-check node: GETs https://jsonplaceholder.typicode.com/posts\n// Verifies the response is a non-empty array whose first item has an id and title.\n// Appends a { name, endpoint, passed, detail } record to the shared state.qaResults array.\n// Never throws on failure and never overwrites existing qaResults entries.\n\nfn(state => {\n  const name = 'jsonplaceholder-list';\n  const endpoint = 'https://jsonplaceholder.typicode.com/posts';\n  const qaResults = Array.isArray(state.qaResults) ? state.qaResults : [];\n\n  return get(endpoint)(state)\n    .then(nextState => {\n      const posts = nextState.data;\n      const isArray = Array.isArray(posts);\n      const count = isArray ? posts.length : 0;\n      const first = isArray ? posts[0] : undefined;\n\n      const passed = Boolean(\n        isArray &&\n        count > 0 &&\n        first &&\n        first.id !== undefined &&\n        first.title !== undefined\n      );\n\n      const detail = passed\n        ? `Received ${count} posts`\n        : `Verification failed (isArray: ${isArray}, count: ${count})`;\n\n      return {\n        ...nextState,\n        qaResults: [...qaResults, { name, endpoint, passed, detail }],\n      };\n    })\n    .catch(error => {\n      const response = error.response;\n      let detail;\n\n      if (response) {\n        const status = response.statusCode ?? response.status ?? '';\n        const message = response.statusMessage ?? '';\n        const body = response.body ?? response.data;\n        const bodyText =\n          body === undefined || body === null || body === ''\n            ? ''\n            : ` - ${typeof body === 'string' ? body : JSON.stringify(body)}`;\n        detail = `HTTP ${status} ${message}${bodyText}`.trim();\n      } else {\n        detail = `Network error: ${error.message}`;\n      }\n\n      return {\n        ...state,\n        qaResults: [...qaResults, { name, endpoint, passed: false, detail }],\n      };\n    });\n});\n",
-          "project_credential_id": null,
-          "adaptor": "@openfn/language-http@latest"
-        },
-        "jsonplaceholder-create": {
-          "id": "e8f972db-72a9-4ef1-88ca-65f4fa4444ce",
-          "name": "jsonplaceholder-create",
-          "body": "// jsonplaceholder-create\n// QA health-check node: POSTs a sample post to the JSONPlaceholder mock API.\n// Verifies the response returns a created resource with an id (mock returns 101).\n// Appends a pass/fail result to the shared state.qaResults array (never overwrites).\n// The request is wrapped so any failure is caught and never aborts the run.\n\nfn(state => {\n  const name = 'jsonplaceholder-create';\n  const endpoint = 'https://jsonplaceholder.typicode.com/posts';\n  const qaResults = state.qaResults || [];\n\n  return post(endpoint, {\n    title: 'qa',\n    body: 'openfn health check',\n    userId: 1,\n  })(state)\n    .then(nextState => {\n      const id = nextState.data && nextState.data.id;\n      const passed = id != null;\n\n      const result = {\n        name,\n        endpoint,\n        passed,\n        detail: passed\n          ? `Created resource with id ${id}`\n          : 'No id returned in response',\n      };\n\n      return { ...nextState, qaResults: [...qaResults, result] };\n    })\n    .catch(error => {\n      const response = error.response;\n      let detail;\n\n      if (response) {\n        const status = response.status;\n        const statusMessage = response.statusText || '';\n        let body = response.data;\n        if (body && typeof body !== 'string') {\n          try {\n            body = JSON.stringify(body);\n          } catch (e) {\n            body = String(body);\n          }\n        }\n        detail = `HTTP ${status} ${statusMessage}`.trim();\n        if (body) detail += ` - ${body}`;\n      } else {\n        detail = `Network error: ${error.message}`;\n      }\n\n      const result = {\n        name,\n        endpoint,\n        passed: false,\n        detail,\n      };\n\n      return { ...state, qaResults: [...qaResults, result] };\n    });\n});\n",
-          "project_credential_id": null,
-          "adaptor": "@openfn/language-http@latest"
-        },
-        "github-repo": {
-          "id": "bc3c6f31-abf3-4e7f-8611-e8f20c17c048",
-          "name": "github-repo",
-          "body": "// github-repo: QA health-check node\n// GETs https://api.github.com/repos/OpenFn/kit with a required User-Agent header.\n// Verifies the response full_name equals 'OpenFn/kit'.\n// Appends a pass/fail result to the shared state.qaResults array without throwing.\n\nfn(state => {\n  const endpoint = 'https://api.github.com/repos/OpenFn/kit';\n  const qaResults = state.qaResults || [];\n\n  return get(endpoint, { headers: { 'User-Agent': 'openfn-qa' } })(state)\n    .then(nextState => {\n      const body = nextState.data || {};\n      const passed = body.full_name === 'OpenFn/kit';\n\n      qaResults.push({\n        name: 'github-repo',\n        endpoint,\n        passed,\n        detail: passed\n          ? `stargazers_count: ${body.stargazers_count}`\n          : `Expected full_name 'OpenFn/kit', got '${body.full_name}'`,\n      });\n\n      return { ...nextState, qaResults };\n    })\n    .catch(error => {\n      // A non-2xx response carries an HTTP response; a network error does not.\n      const response = error.response || (error.body && error) || null;\n      let detail;\n\n      if (response && (response.status || response.statusCode)) {\n        const status = response.status || response.statusCode;\n        const message = response.statusText || response.statusMessage || '';\n        const body = response.body ?? response.data;\n        const bodyText =\n          body == null\n            ? 'no body'\n            : typeof body === 'string'\n            ? body\n            : JSON.stringify(body);\n        detail = `HTTP ${status} ${message} - ${bodyText}`.trim();\n      } else {\n        detail = `Network error: ${error.message || String(error)}`;\n      }\n\n      qaResults.push({\n        name: 'github-repo',\n        endpoint,\n        passed: false,\n        detail,\n      });\n\n      return { ...state, qaResults };\n    });\n});\n",
-          "project_credential_id": null,
-          "adaptor": "@openfn/language-http@latest"
-        },
-        "random-user": {
-          "id": "09f706bb-fc53-4001-8e9d-b5ec27edbf92",
-          "name": "random-user",
-          "body": "// random-user: QA health-check node\n// - Sends a GET request to https://randomuser.me/api/\n// - Verifies the response has a results array with one user having a name and email\n// - Appends a result object to the shared state.qaResults array (never overwrites existing entries)\n// - Records passed:false on failure instead of throwing\n// - A non-2xx response or network error is caught here and never aborts the workflow\n\nfn(state => {\n  const endpoint = 'https://randomuser.me/api/';\n  const name = 'random-user';\n\n  // Run the request inside the fn so any failure can be caught here.\n  return get(endpoint)(state)\n    .then(s => {\n      let passed = false;\n      let detail = '';\n\n      try {\n        const results = s.data && s.data.results;\n        if (!Array.isArray(results)) {\n          detail = 'Response has no results array';\n        } else if (results.length !== 1) {\n          detail = `Expected 1 user, got ${results.length}`;\n        } else {\n          const user = results[0];\n          const hasName = !!(user.name && (user.name.first || user.name.last));\n          const hasEmail = !!user.email;\n          if (hasName && hasEmail) {\n            passed = true;\n            detail = `Found user ${user.name.first} ${user.name.last} <${user.email}>`;\n          } else {\n            detail = `Missing ${!hasName ? 'name' : ''}${!hasName && !hasEmail ? ' and ' : ''}${!hasEmail ? 'email' : ''}`;\n          }\n        }\n      } catch (e) {\n        detail = `Assertion error: ${e.message}`;\n      }\n\n      const qaResults = s.qaResults || [];\n      qaResults.push({ name, endpoint, passed, detail });\n      return { ...s, qaResults };\n    })\n    .catch(err => {\n      // Non-2xx response or network error: never throw, record the failure.\n      const response = err && err.response;\n      let detail;\n\n      if (response) {\n        const status = response.status ?? response.statusCode ?? '?';\n        const statusText = response.statusText ?? response.statusMessage ?? '';\n        const body = response.data ?? response.body;\n        const bodyStr =\n          body === undefined\n            ? ''\n            : ` - body: ${typeof body === 'string' ? body : JSON.stringify(body)}`;\n        detail = `HTTP ${status} ${statusText}${bodyStr}`;\n      } else {\n        detail = `Network error: ${err && err.message ? err.message : String(err)}`;\n      }\n\n      const qaResults = state.qaResults || [];\n      qaResults.push({ name, endpoint, passed: false, detail });\n      return { ...state, qaResults };\n    });\n});\n",
-          "project_credential_id": null,
-          "adaptor": "@openfn/language-http@latest"
-        },
-        "dog-image": {
-          "id": "dcd8a5d6-79f7-4a81-8387-cf7f9b3762ea",
-          "name": "dog-image",
-          "body": "// Node: dog-image\n// QA health-check for the Dog CEO random image API.\n// Sends GET https://dog.ceo/api/breeds/image/random\n// Verifies the response status is 'success' and message is a URL string.\n// Appends a result to state.qaResults without overwriting existing entries.\n// Never aborts the run: any HTTP/network failure is caught and recorded.\n\nfn(state => {\n  const endpoint = 'https://dog.ceo/api/breeds/image/random';\n  const qaResults = state.qaResults || [];\n\n  return get(endpoint)(state)\n    .then(nextState => {\n      const body = nextState.data || {};\n      const url = body.message;\n      const isUrl = typeof url === 'string' && /^https?:\\/\\//.test(url);\n      const passed = body.status === 'success' && isUrl;\n\n      qaResults.push({\n        name: 'dog-image',\n        endpoint,\n        passed,\n        detail: isUrl ? url : null,\n      });\n\n      return { ...nextState, qaResults };\n    })\n    .catch(error => {\n      const response = error.response;\n      let detail;\n\n      if (response) {\n        const status = response.status;\n        const statusText = response.statusText || '';\n        const bodyText =\n          response.data !== undefined\n            ? typeof response.data === 'string'\n              ? response.data\n              : JSON.stringify(response.data)\n            : '';\n        detail = `HTTP ${status} ${statusText}`.trim();\n        if (bodyText) detail += ` - ${bodyText}`;\n      } else {\n        detail = `Network error: ${error.message}`;\n      }\n\n      qaResults.push({\n        name: 'dog-image',\n        endpoint,\n        passed: false,\n        detail,\n      });\n\n      return { ...state, qaResults };\n    });\n});\n",
-          "project_credential_id": null,
-          "adaptor": "@openfn/language-http@latest"
-        },
-        "numbers-trivia": {
-          "id": "b6029f87-3a3d-4ded-8980-6c29c31ee3e6",
-          "name": "numbers-trivia",
-          "body": "// numbers-trivia QA health-check node\n// - Sends a GET request to http://numbersapi.com/random/trivia\n// - Verifies the response body is a non-empty text string of trivia\n// - Appends a result object to the shared state.qaResults array\n// - Never overwrites existing results; never throws on failure\n\nfn(state => {\n  const name = 'numbers-trivia';\n  const endpoint =\n    'https://uselessfacts.jsph.pl/api/v2/facts/random?language=en';\n\n  return get(endpoint)(state)\n    .then(nextState => {\n      // Success: response is JSON with a `text` field\n      const body = nextState.data;\n      const trivia =\n        body && typeof body.text === 'string' ? body.text.trim() : '';\n      const passed = trivia.length > 0;\n\n      const qaResults = nextState.qaResults || [];\n\n      return {\n        ...nextState,\n        qaResults: [\n          ...qaResults,\n          { name, endpoint, passed, detail: trivia },\n        ],\n      };\n    })\n    .catch(error => {\n      // Failure: never throw, append a passed:false entry\n      let detail;\n      if (error && error.statusCode) {\n        detail = `HTTP ${error.statusCode} ${error.statusMessage || ''}`.trim();\n        if (error.body) {\n          detail += `: ${\n            typeof error.body === 'string'\n              ? error.body\n              : JSON.stringify(error.body)\n          }`;\n        }\n      } else {\n        detail = (error && error.message) || String(error);\n      }\n\n      const qaResults = state.qaResults || [];\n\n      return {\n        ...state,\n        qaResults: [\n          ...qaResults,\n          { name, endpoint, passed: false, detail },\n        ],\n      };\n    });\n});\n",
-          "project_credential_id": null,
-          "adaptor": "@openfn/language-http@latest"
-        },
-        "public-holidays": {
-          "id": "1a09627a-fd4d-4c83-8d16-c4556e864447",
-          "name": "public-holidays",
-          "body": "// QA health-check node: public-holidays\n// Sends a GET request to the Nager.Date public holidays API for US 2024.\n// Verifies the response is a non-empty array where each holiday has a date and name.\n// Appends a pass/fail result to the shared state.qaResults array without overwriting existing entries.\n// Any HTTP or network failure is caught and recorded - it never aborts the run.\n\nfn(state => {\n  const endpoint = 'https://date.nager.at/api/v3/PublicHolidays/2024/US';\n\n  return get(endpoint)(state)\n    .then(s => {\n      const holidays = s.data;\n\n      const passed =\n        Array.isArray(holidays) &&\n        holidays.length > 0 &&\n        holidays.every(h => h && h.date && h.name);\n\n      const result = {\n        name: 'public-holidays',\n        endpoint,\n        passed,\n        detail: Array.isArray(holidays) ? holidays.length : 0,\n      };\n\n      const qaResults = s.qaResults || [];\n\n      return { ...s, qaResults: [...qaResults, result] };\n    })\n    .catch(error => {\n      const resp = error.response;\n      let detail;\n\n      if (resp) {\n        const status = resp.status ?? resp.statusCode ?? '';\n        const message = resp.statusText ?? resp.statusMessage ?? '';\n        const body = resp.data ?? resp.body;\n        const bodyStr =\n          body == null\n            ? ''\n            : typeof body === 'string'\n            ? body\n            : JSON.stringify(body);\n        detail = `HTTP ${status} ${message}`.trim();\n        if (bodyStr) detail += ` - ${bodyStr}`;\n      } else {\n        detail = error.message || String(error);\n      }\n\n      const result = {\n        name: 'public-holidays',\n        endpoint,\n        passed: false,\n        detail,\n      };\n\n      const qaResults = state.qaResults || [];\n\n      return { ...state, qaResults: [...qaResults, result] };\n    });\n});\n",
-          "project_credential_id": null,
-          "adaptor": "@openfn/language-http@latest"
-        },
-        "cat-fact": {
-          "id": "acd9d7cd-1a55-47ad-8011-d8f7acc98afa",
-          "name": "cat-fact",
-          "body": "// QA health-check: cat-fact\n// GET https://catfact.ninja/fact\n// Verifies the response contains a non-empty 'fact' string.\n// Appends a result object to state.qaResults (never overwrites existing entries).\n// Records passed:false on failure instead of throwing.\n\nfn(state => {\n  const name = 'cat-fact';\n  const endpoint = 'https://catfact.ninja/fact';\n\n  return get(endpoint)(state)\n    .then(nextState => {\n      const fact = nextState.data && nextState.data.fact;\n      const passed = typeof fact === 'string' && fact.trim().length > 0;\n\n      const result = {\n        name,\n        endpoint,\n        passed,\n        detail: passed ? fact.slice(0, 200) : 'No valid fact returned',\n      };\n\n      const qaResults = nextState.qaResults || [];\n      return { ...nextState, qaResults: [...qaResults, result] };\n    })\n    .catch(error => {\n      let detail;\n      if (error.response) {\n        const { status, statusText, data } = error.response;\n        const body =\n          data == null\n            ? ''\n            : ` - body: ${\n                typeof data === 'string' ? data : JSON.stringify(data)\n              }`;\n        detail = `HTTP ${status} ${statusText || ''}`.trim() + body;\n      } else {\n        detail = `Network error: ${error.message}`;\n      }\n\n      const result = { name, endpoint, passed: false, detail };\n      const qaResults = state.qaResults || [];\n      return { ...state, qaResults: [...qaResults, result] };\n    });\n});\n",
-          "project_credential_id": null,
-          "adaptor": "@openfn/language-http@latest"
-        },
-        "iss-location": {
-          "id": "eb89313d-7be8-4de2-8437-5db440f9da76",
-          "name": "iss-location",
-          "body": "// iss-location: QA health-check node\n// Sends a GET request to the Open Notify ISS location API\n// Verifies the response message is 'success' and includes an iss_position with latitude/longitude\n// Appends a pass/fail result to the shared state.qaResults array (never overwrites existing entries)\n// The request is wrapped so any failure (non-2xx or network error) is caught and recorded, never thrown\n\nfn(state => {\n  const endpoint = 'https://api.wheretheiss.at/v1/satellites/25544';\n  const qaResults = state.qaResults || [];\n\n  const appendResult = result => ({\n    ...state,\n    qaResults: [...qaResults, result],\n  });\n\n  return get(endpoint)(state)\n    .then(next => {\n      const body = next.data || {};\n\n      const passed = body.latitude != null && body.longitude != null;\n\n      return appendResult({\n        name: 'iss-location',\n        endpoint,\n        passed,\n        detail: `latitude=${body.latitude}, longitude=${body.longitude}`,\n      });\n    })\n    .catch(error => {\n      const response = error.response;\n      let detail;\n\n      if (response) {\n        // Non-2xx HTTP response: include status code, status message and body\n        const body =\n          typeof response.body === 'string'\n            ? response.body\n            : JSON.stringify(response.body);\n        detail = `HTTP ${response.statusCode} ${\n          response.statusMessage || ''\n        }`.trim();\n        if (body) detail += ` - ${body}`;\n      } else {\n        // Network / other failure: use the error message\n        detail = `Network error: ${error.message}`;\n      }\n\n      return appendResult({\n        name: 'iss-location',\n        endpoint,\n        passed: false,\n        detail,\n      });\n    });\n});\n",
-          "project_credential_id": null,
-          "adaptor": "@openfn/language-http@latest"
-        },
-        "bored-activity": {
-          "id": "586bdefd-dc3a-44d4-8f79-c3cb82e6d7df",
-          "name": "bored-activity",
-          "body": "// QA health-check node: bored-activity\n// - Sends a GET request to the Bored API activity endpoint\n// - Verifies the response contains a non-empty 'activity' string\n// - Appends a pass/fail result object to the shared state.qaResults array\n// - Never throws on request or assertion failure; records passed:false instead\n\nfn(state => {\n  const name = 'bored-activity';\n  const endpoint = 'https://bored-api.appbrewery.com/random';\n  const qaResults = state.qaResults || [];\n\n  return get(endpoint)(state)\n    .then(nextState => {\n      // Success: keep the existing check logic\n      const activity = nextState.data && nextState.data.activity;\n      const passed =\n        typeof activity === 'string' && activity.trim().length > 0;\n\n      return {\n        ...nextState,\n        qaResults: [\n          ...qaResults,\n          { name, endpoint, passed, detail: activity },\n        ],\n      };\n    })\n    .catch(error => {\n      // Failure: build a full explanation, never throw\n      let detail;\n      const response = error.response || (error.body && error);\n\n      if (response && (response.statusCode || response.status)) {\n        const statusCode = response.statusCode || response.status;\n        const statusMessage = response.statusMessage || '';\n        const body = response.body ?? response.data;\n        const bodyText =\n          body === undefined || body === null\n            ? ''\n            : typeof body === 'string'\n            ? body\n            : JSON.stringify(body);\n        detail = `HTTP ${statusCode} ${statusMessage}`.trim();\n        if (bodyText) detail += ` - ${bodyText}`;\n      } else {\n        // Network / non-HTTP failure\n        detail = error.message || String(error);\n      }\n\n      return {\n        ...state,\n        qaResults: [\n          ...qaResults,\n          { name, endpoint, passed: false, detail },\n        ],\n      };\n    });\n});\n",
-          "project_credential_id": null,
-          "adaptor": "@openfn/language-http@latest"
-        },
-        "intentional-fail": {
-          "id": "4aa1f1bb-fa57-46c0-83c7-91699cb052d5",
-          "name": "intentional-fail",
-          "body": "// QA health-check node: intentional-fail\n// A deliberately-failing check that proves the failure-reporting path works.\n// It performs no real request - it simply records a synthetic failure.\n// Does not throw and completes successfully so the chain continues on on_job_success.\n\nfn(state => {\n  const name = 'intentional-fail';\n  const endpoint = 'n/a - deliberate failure';\n  const qaResults = state.qaResults || [];\n\n  qaResults.push({\n    name,\n    endpoint,\n    passed: false,\n    detail:\n      'Intentional/synthetic failure. This check always reports passed:false ' +\n      'to verify that the QA failure-reporting and notification path works end to end. ' +\n      'No external system was called and no error was thrown.',\n  });\n\n  return { ...state, qaResults };\n});\n",
-          "project_credential_id": null,
-          "adaptor": "@openfn/language-http@latest"
-        }
-      },
-      "edges": {
-        "httpbin-post->httpbin-status": {
-          "enabled": true,
-          "id": "0bbe6dd0-03be-4942-8118-10b8bea455cd",
-          "target_job_id": "21a4456f-a6a7-4254-85d2-23906575ece8",
-          "source_job_id": "03a41d63-0bcd-45a5-8967-30386a3d4efc",
-          "condition_type": "on_job_success"
-        },
-        "measure-and-strip-input->httpbin-get": {
-          "enabled": true,
-          "id": "c1eabe6c-ec07-4d75-82d4-b8fb6942150e",
-          "target_job_id": "87b06b0e-c8d8-49cb-832a-886213e5cb53",
-          "source_job_id": "25258d2f-e49d-41fa-81a3-4da072c9a998",
-          "condition_type": "on_job_success"
-        },
-        "cron->measure-and-strip-input": {
-          "enabled": true,
-          "id": "099d7ef4-aedb-4a95-8211-5774852757a6",
-          "target_job_id": "25258d2f-e49d-41fa-81a3-4da072c9a998",
-          "source_trigger_id": "f4e43f9a-d398-4359-8e1c-88d717b1f43f",
-          "condition_type": "always"
-        },
-        "public-holidays->advice-slip": {
-          "enabled": true,
-          "id": "6662e897-0dcc-4ca7-86a0-13ccff3ec5b3",
-          "target_job_id": "701fb52a-860e-4d14-8ced-228f46c4e45b",
-          "source_job_id": "1a09627a-fd4d-4c83-8d16-c4556e864447",
-          "condition_type": "on_job_success"
-        },
-        "bored-activity->public-holidays": {
-          "enabled": true,
-          "id": "4080fbb9-322c-4b7a-8072-87056971f7cc",
-          "target_job_id": "1a09627a-fd4d-4c83-8d16-c4556e864447",
-          "source_job_id": "586bdefd-dc3a-44d4-8f79-c3cb82e6d7df",
-          "condition_type": "on_job_success"
-        },
-        "dog-image->cat-fact": {
-          "enabled": true,
-          "id": "fa52895f-06da-408a-83c6-29cb08446d15",
-          "target_job_id": "acd9d7cd-1a55-47ad-8011-d8f7acc98afa",
-          "source_job_id": "dcd8a5d6-79f7-4a81-8387-cf7f9b3762ea",
-          "condition_type": "on_job_success"
-        },
-        "random-user->dog-image": {
-          "enabled": true,
-          "id": "3397971e-1862-4f54-8b19-28f4658253bd",
-          "target_job_id": "dcd8a5d6-79f7-4a81-8387-cf7f9b3762ea",
-          "source_job_id": "09f706bb-fc53-4001-8e9d-b5ec27edbf92",
-          "condition_type": "on_job_success"
-        },
-        "github-repo->random-user": {
-          "enabled": true,
-          "id": "f9dbb212-bec1-4ff3-8092-05aa79cb2223",
-          "target_job_id": "09f706bb-fc53-4001-8e9d-b5ec27edbf92",
-          "source_job_id": "bc3c6f31-abf3-4e7f-8611-e8f20c17c048",
-          "condition_type": "on_job_success"
-        },
-        "jsonplaceholder-create->github-repo": {
-          "enabled": true,
-          "id": "8a9f0f06-2259-45a4-80b6-c48cf5c2d5ee",
-          "target_job_id": "bc3c6f31-abf3-4e7f-8611-e8f20c17c048",
-          "source_job_id": "e8f972db-72a9-4ef1-88ca-65f4fa4444ce",
-          "condition_type": "on_job_success"
-        },
-        "jsonplaceholder-list->jsonplaceholder-create": {
-          "enabled": true,
-          "id": "bdad8794-6e9a-4a4a-8eb7-e12892cad26a",
-          "target_job_id": "e8f972db-72a9-4ef1-88ca-65f4fa4444ce",
-          "source_job_id": "a88c6e2e-b867-4a90-831d-1ce1341aa0d9",
-          "condition_type": "on_job_success"
-        },
-        "httpbin-headers->jsonplaceholder-list": {
-          "enabled": true,
-          "id": "2418586a-ef4f-4457-8d87-511a95958d9c",
-          "target_job_id": "a88c6e2e-b867-4a90-831d-1ce1341aa0d9",
-          "source_job_id": "ef6f3b48-de1f-4a10-8678-e0056ade006e",
-          "condition_type": "on_job_success"
-        },
-        "httpbin-status->httpbin-headers": {
-          "enabled": true,
-          "id": "acf6d136-75ae-4359-8ede-33e108b9e42f",
-          "target_job_id": "ef6f3b48-de1f-4a10-8678-e0056ade006e",
-          "source_job_id": "21a4456f-a6a7-4254-85d2-23906575ece8",
-          "condition_type": "on_job_success"
-        },
-        "httpbin-get->httpbin-post": {
-          "enabled": true,
-          "id": "146f7306-89d4-4a9d-8d80-f4bc7f91eb6d",
-          "target_job_id": "03a41d63-0bcd-45a5-8967-30386a3d4efc",
-          "source_job_id": "87b06b0e-c8d8-49cb-832a-886213e5cb53",
-          "condition_type": "on_job_success"
-        },
-        "crypto-price->bored-activity": {
-          "enabled": true,
-          "id": "07df64ff-9b78-409d-89ac-a3da19746ddc",
-          "target_job_id": "586bdefd-dc3a-44d4-8f79-c3cb82e6d7df",
-          "source_job_id": "b729c16e-0886-4a0f-8801-0ab9e3ae45ff",
-          "condition_type": "on_job_success"
-        },
-        "iss-location->crypto-price": {
-          "enabled": true,
-          "id": "c1658246-ffce-47c1-8a60-4149e55322ff",
-          "target_job_id": "b729c16e-0886-4a0f-8801-0ab9e3ae45ff",
-          "source_job_id": "eb89313d-7be8-4de2-8437-5db440f9da76",
-          "condition_type": "on_job_success"
-        },
-        "numbers-trivia->iss-location": {
-          "enabled": true,
-          "id": "dc556d59-f247-4705-8f89-eee1c47d7b30",
-          "target_job_id": "eb89313d-7be8-4de2-8437-5db440f9da76",
-          "source_job_id": "b6029f87-3a3d-4ded-8980-6c29c31ee3e6",
-          "condition_type": "on_job_success"
-        },
-        "cat-fact->numbers-trivia": {
-          "enabled": true,
-          "id": "c8d89c62-68ac-4c80-82ba-8a31baa8866e",
-          "target_job_id": "b6029f87-3a3d-4ded-8980-6c29c31ee3e6",
-          "source_job_id": "acd9d7cd-1a55-47ad-8011-d8f7acc98afa",
-          "condition_type": "on_job_success"
-        },
-        "qa-summary->notify-failures": {
-          "enabled": true,
-          "id": "3b680b7e-a44b-4985-8e03-211b3766154f",
-          "target_job_id": "a668f00a-3fbd-4baa-8dbf-4d37d7ea566d",
-          "source_job_id": "df99f481-102e-4522-8d93-e504984fa0ae",
-          "condition_type": "always"
-        },
-        "intentional-fail->qa-summary": {
-          "enabled": true,
-          "id": "79450de1-6856-41b3-8b18-74110736dcc9",
-          "target_job_id": "df99f481-102e-4522-8d93-e504984fa0ae",
-          "source_job_id": "4aa1f1bb-fa57-46c0-83c7-91699cb052d5",
-          "condition_type": "on_job_success"
-        },
-        "universities-search->intentional-fail": {
-          "enabled": true,
-          "id": "58ef279c-a043-4a7b-81e3-00e77a50afcd",
-          "target_job_id": "4aa1f1bb-fa57-46c0-83c7-91699cb052d5",
-          "source_job_id": "52e0961d-36b8-4f4c-8405-6b00ca0f58f7",
-          "condition_type": "on_job_success"
-        },
-        "advice-slip->universities-search": {
-          "enabled": true,
-          "id": "af11cea5-63c1-49e7-816a-cce0cb4f5c6b",
-          "target_job_id": "52e0961d-36b8-4f4c-8405-6b00ca0f58f7",
-          "source_job_id": "701fb52a-860e-4d14-8ced-228f46c4e45b",
-          "condition_type": "on_job_success"
-        }
-      }
-    },
     "Self-Testing-QA-Health-Check": {
       "id": "878a2dee-5d52-47f6-bd3a-8eee1ebdc3e9",
       "name": "Self-Testing QA Health Check",
@@ -7556,6 +7244,392 @@
           "target_job_id": "9a91bb49-31cc-4516-8232-3064697e4313",
           "source_trigger_id": "1c15d29f-236f-48b4-82b7-b08f546b8fa1",
           "condition_type": "always"
+        }
+      }
+    },
+    "Self-Testing-QA-Health-Check-2-rename-2": {
+      "id": "1786034c-5e56-42a5-b936-037a32b15d8a",
+      "name": "Self-Testing QA Health Check 2 rename 2",
+      "inserted_at": "2026-10-14T09:13:18.503964Z",
+      "lock_version": 9,
+      "triggers": {
+        "webhook": {
+          "enabled": true,
+          "id": "f4e43f9a-d398-4359-8e1c-88d717b1f43f",
+          "type": "webhook",
+          "webhook_reply": "before_start"
+        }
+      },
+      "jobs": {
+        "measure-and-strip-input": {
+          "id": "25258d2f-e49d-41fa-81a3-4da072c9a998",
+          "name": "measure-and-strip-input",
+          "body": "// Hello World!\n// Measure the incoming custom input, then strip it so the big payload\n// doesn't get dragged through the rest of the chain (avoids OOM \"killed\").\nfn(state => {\n  const original = state.data || {};\n\n  // Measure the raw payload size\n  const json = JSON.stringify(original);\n  const bytes = json.length;\n  const mb = (bytes / 1024 / 1024).toFixed(2);\n\n  // Try to count rows if the test payload used { data: { rows: [...] } }\n  const rowCount = Array.isArray(original.rows) ? original.rows.length : null;\n\n  console.log(\n    `Custom input payload: ${mb} MB` +\n      (rowCount !== null ? `, ${rowCount} rows` : '')\n  );\n\n  // Replace the big payload with a lightweight summary so downstream\n  // steps carry a tiny state through the whole chain.\n  return {\n    ...state,\n    data: {\n      inputSizeCheck: {\n        bytes,\n        mb: Number(mb),\n        rowCount,\n      },\n    },\n  };\n});\n",
+          "project_credential_id": null,
+          "adaptor": "@openfn/language-common@latest"
+        },
+        "httpbin-headers": {
+          "id": "ef6f3b48-de1f-4a10-8678-e0056ade006e",
+          "name": "httpbin-headers",
+          "body": "// httpbin-headers QA health check\n// Sends a GET request to https://httpbin.org/headers\n// Verifies the response contains a headers object that includes a Host header\n// Appends a result to the shared state.qaResults array (never overwrites existing entries)\n// Does not throw on failure - records passed:false with detail instead\n\nfn(state => {\n  const endpoint = 'https://httpbin.org/headers';\n  const name = 'httpbin-headers';\n\n  const append = result => ({\n    ...state,\n    qaResults: [...(state.qaResults || []), { name, endpoint, ...result }],\n  });\n\n  return get(endpoint)(state)\n    .then(nextState => {\n      let passed = false;\n      let detail = '';\n\n      const headers = nextState.data && nextState.data.headers;\n      if (headers && typeof headers === 'object' && headers.Host) {\n        passed = true;\n        detail = `Host header present: ${headers.Host}`;\n      } else if (headers && typeof headers === 'object') {\n        detail = 'headers object found but no Host header';\n      } else {\n        detail = 'no headers object in response';\n      }\n\n      return {\n        ...nextState,\n        qaResults: [\n          ...(nextState.qaResults || []),\n          { name, endpoint, passed, detail },\n        ],\n      };\n    })\n    .catch(error => {\n      let detail;\n      const response = error && error.response;\n\n      if (response && response.status) {\n        const status = response.status;\n        const statusText = response.statusText || '';\n        let body = response.data;\n        if (body && typeof body === 'object') {\n          body = JSON.stringify(body);\n        }\n        detail = `HTTP ${status} ${statusText}`.trim();\n        if (body) detail += ` - body: ${body}`;\n      } else {\n        detail = `network error: ${error && error.message ? error.message : String(error)}`;\n      }\n\n      return append({ passed: false, detail });\n    });\n});\n",
+          "project_credential_id": null,
+          "adaptor": "@openfn/language-http@latest"
+        },
+        "crypto-price": {
+          "id": "b729c16e-0886-4a0f-8801-0ab9e3ae45ff",
+          "name": "crypto-price",
+          "body": "// crypto-price QA health-check node\n// Fetches the current Bitcoin price in USD from CoinGecko\n// Verifies bitcoin.usd is a positive number\n// Appends a result object to the shared state.qaResults array (never overwrites existing entries)\n// Never throws: HTTP/network failures are caught and recorded as passed:false\n\nfn(state => {\n  const endpoint =\n    'https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd';\n\n  const append = (base, result) => ({\n    ...base,\n    qaResults: [...(base.qaResults || []), result],\n  });\n\n  return get(endpoint, {\n    headers: { 'User-Agent': 'OpenFn-QA-HealthCheck/1.0' },\n  })(state)\n    .then(s => {\n      // Existing check logic, unchanged\n      const price = s.data?.bitcoin?.usd;\n      const passed = typeof price === 'number' && price > 0;\n\n      return append(s, {\n        name: 'crypto-price',\n        endpoint,\n        passed,\n        detail: price,\n      });\n    })\n    .catch(error => {\n      const response = error.response;\n      let detail;\n\n      if (response) {\n        const status = response.status ?? response.statusCode ?? '';\n        const statusText = response.statusText || response.statusMessage || '';\n        const body =\n          typeof response.data === 'object'\n            ? JSON.stringify(response.data)\n            : String(response.data ?? '');\n        detail = `HTTP ${status} ${statusText} - ${body}`.trim();\n      } else {\n        detail = `Network error: ${error.message}`;\n      }\n\n      return append(state, {\n        name: 'crypto-price',\n        endpoint,\n        passed: false,\n        detail,\n      });\n    });\n});\n",
+          "project_credential_id": null,
+          "adaptor": "@openfn/language-http@latest"
+        },
+        "notify-failures": {
+          "id": "a668f00a-3fbd-4baa-8dbf-4d37d7ea566d",
+          "name": "notify-failures",
+          "body": "// notify-failures: Compile a QA failure report and email it to megan@openfn.org.\n// - Reads state.qaResults (array of {name, endpoint, passed, detail}).\n// - Reads state.errors (object keyed by step id: {message, details, operationName, line, ...}).\n// - Always emails a full breakdown. Never throws.\n\nfn(state => {\n  const results = state.qaResults || [];\n  const errors = state.errors || {};\n\n  const passed = results.filter(r => r.passed);\n  const failedResults = results.filter(r => !r.passed);\n  const errorEntries = Object.entries(errors);\n\n  const totalFailures = failedResults.length + errorEntries.length;\n\n  const summaryLine = `QA Health Check: ${passed.length}/${results.length} checks passed, ${failedResults.length} failed` +\n    (errorEntries.length ? `, ${errorEntries.length} step error(s)` : '');\n\n  // Dog image URL captured by the dog-image check\n  const dogResult = results.find(r => r.name === 'dog-image');\n  const dogUrl = dogResult && dogResult.passed ? dogResult.detail : null;\n\n  const line = '='.repeat(60);\n  const sub = '-'.repeat(60);\n\n  const parts = [];\n  parts.push(line);\n  parts.push('QA HEALTH CHECK REPORT');\n  parts.push(new Date().toISOString());\n  parts.push(summaryLine);\n  if (dogUrl) {\n    parts.push('');\n    parts.push(`Dog of the day: ${dogUrl}`);\n  }\n  parts.push(line);\n  parts.push('');\n\n  // FAILED section\n  parts.push(`FAILED (${totalFailures})`);\n  parts.push(sub);\n  if (totalFailures === 0) {\n    parts.push('No failures. \\u{1F389}');\n  } else {\n    failedResults.forEach(r => {\n      parts.push(`\\u2718 ${r.name}`);\n      parts.push(`  Endpoint: ${r.endpoint || 'n/a'}`);\n      parts.push(`  Detail:   ${r.detail || 'n/a'}`);\n      parts.push('');\n    });\n\n    errorEntries.forEach(([stepId, err]) => {\n      const details = err.details || {};\n      const bodyText = details.body != null\n        ? (typeof details.body === 'string' ? details.body : JSON.stringify(details.body, null, 2))\n        : 'n/a';\n      parts.push(`\\u26A0 STEP ERROR: ${stepId}`);\n      parts.push(`  Operation: ${err.operationName || 'n/a'}${err.line ? ' (line ' + err.line + ')' : ''}`);\n      parts.push(`  Status:    ${details.statusCode != null ? details.statusCode : 'n/a'}`);\n      parts.push(`  Message:   ${err.message || 'n/a'}`);\n      parts.push(`  Body:      ${bodyText}`);\n      parts.push('');\n    });\n  }\n\n  parts.push('');\n\n  // PASSED section\n  parts.push(`PASSED (${passed.length})`);\n  parts.push(sub);\n  if (passed.length === 0) {\n    parts.push('No successful checks.');\n  } else {\n    passed.forEach(r => {\n      parts.push(`\\u2714 ${r.name}`);\n      parts.push(`  Endpoint: ${r.endpoint || 'n/a'}`);\n      parts.push(`  Detail:   ${r.detail || 'n/a'}`);\n      parts.push('');\n    });\n  }\n\n  parts.push('');\n\n  // CONSOLE.LOG TEST section\n  parts.push('CONSOLE.LOG TEST');\n  parts.push(sub);\n  parts.push(\"Open this run's logs and search for the marker line 'CONSOLE_LOG_TEST_MARKER'.\");\n  parts.push('If the marker is present, console.log output is ENABLED for this project.');\n  parts.push('If it is absent, it is DISABLED.');\n  parts.push('');\n\n  parts.push(line);\n  parts.push('Automated QA Health Check \\u00B7 OpenFn');\n  parts.push(line);\n\n  const body = parts.join('\\n');\n\n  const subject = totalFailures > 0\n    ? `QA Health Check FAILED - ${totalFailures} issue(s) found`\n    : `QA Health Check PASSED - all ${results.length} checks OK`;\n\n  console.log(summaryLine);\n  console.log('CONSOLE_LOG_TEST_MARKER');\n\n  return { ...state, report: { subject, body, totalFailures } };\n});\n\nsendMessage({\n  to: 'megan@openfn.org',\n  subject: state => state.report.subject,\n  body: state => state.report.body,\n});\n\n// Ensure the step never fails, even if sending errored\nfn(state => {\n  if (state.errors) {\n    console.log('Notification step encountered errors while sending; continuing without throwing.');\n  }\n  return state;\n});\n",
+          "project_credential_id": null,
+          "adaptor": "@openfn/language-gmail@latest"
+        },
+        "httpbin-get": {
+          "id": "87b06b0e-c8d8-49cb-832a-886213e5cb53",
+          "name": "httpbin-get",
+          "body": "// QA health-check node: httpbin-get\n// - Sends a GET request to https://httpbin.org/get?qa=openfn\n// - Verifies the response echoes back the request (args + url present)\n// - Appends a result object to the shared state.qaResults array\n// - Never throws on failure: records passed:false so later checks still run\n// - just a random piece of text (ignore it)\n\nfn(state => {\n  const name = 'httpbin-get';\n  const endpoint =\n    (state.data && state.data.targetUrl) || 'https://httpbin.org/get?qa=openfn';\n\n  // Ensure the shared results array exists without overwriting entries\n  const qaResults = state.qaResults || [];\n\n  // --- Payload-measurement feature -------------------------------------\n  // Measure the incoming custom input size so a large input is exercised.\n  // Never throws: any failure is caught and recorded instead.\n  try {\n    const json = JSON.stringify(state.data || {});\n    const bytes =\n      typeof Buffer !== 'undefined'\n        ? Buffer.byteLength(json, 'utf8')\n        : new TextEncoder().encode(json).length;\n    const mb = bytes / 1024 / 1024;\n    const rowCount =\n      state.data && Array.isArray(state.data.rows) ? state.data.rows.length : 0;\n\n    console.log(\n      `Custom input payload: ${mb.toFixed(2)} MB, ${rowCount} rows`\n    );\n\n    qaResults.push({\n      name: 'input-size-check',\n      endpoint,\n      passed: true,\n      detail: `Measured custom input: ${mb.toFixed(2)} MB, ${rowCount} rows.`,\n    });\n  } catch (measureError) {\n    qaResults.push({\n      name: 'input-size-check',\n      endpoint,\n      passed: false,\n      detail: `Could not measure custom input: ${measureError.message}`,\n    });\n  }\n\n  // Run the request inside the callback so any failure (non-2xx or network\n  // error) is caught here and never aborts the workflow.\n  return get(endpoint)(state)\n    .then(nextState => {\n      let passed = false;\n      let detail = '';\n\n      const body = nextState.data || {};\n      const echoedQa = body.args && body.args.qa === 'openfn';\n      const echoedUrl =\n        typeof body.url === 'string' && body.url.includes('httpbin.org/get');\n      passed = Boolean(echoedQa && echoedUrl);\n      detail = passed\n        ? 'Response echoed args.qa=openfn and url as expected.'\n        : `Echo check failed. args=${JSON.stringify(body.args)}, url=${body.url}`;\n\n      return {\n        ...nextState,\n        qaResults: [...qaResults, { name, endpoint, passed, detail }],\n      };\n    })\n    .catch(error => {\n      const res = error.response;\n      let detail;\n      if (res) {\n        // HTTP error: include status code, status message and body if present\n        const bodyText =\n          res.body !== undefined\n            ? JSON.stringify(res.body)\n            : res.data !== undefined\n            ? JSON.stringify(res.data)\n            : '(no body)';\n        detail = `HTTP ${res.status} ${res.statusText || ''}. Body: ${bodyText}`;\n      } else {\n        // Network failure or other error with no HTTP response\n        detail = `Network error: ${error.message}`;\n      }\n\n      return {\n        ...state,\n        qaResults: [...qaResults, { name, endpoint, passed: false, detail }],\n      };\n    });\n});\n",
+          "project_credential_id": null,
+          "adaptor": "@openfn/language-http@latest"
+        },
+        "advice-slip": {
+          "id": "701fb52a-860e-4d14-8ced-228f46c4e45b",
+          "name": "advice-slip",
+          "body": "// Node: advice-slip\n// Sends a GET request to https://api.adviceslip.com/advice\n// Verifies the response has a `slip` object with a non-empty `advice` string.\n// The API sometimes returns a JSON string, so parsing is handled gracefully.\n// Appends a QA result { name, endpoint, passed, detail } to state.qaResults\n// without overwriting existing entries and without throwing on failure.\n// The request is wrapped so a non-2xx response or a network error never aborts the run.\n\nfn(state => {\n  const name = 'advice-slip';\n  const endpoint = 'https://api.adviceslip.com/advice';\n  const qaResults = state.qaResults || [];\n\n  const append = (entry, base) => ({\n    ...(base || state),\n    qaResults: [...qaResults, entry],\n  });\n\n  const failFromResponse = res => {\n    const status = res.statusCode;\n    const statusText = res.statusText || '';\n    let body = '';\n    if (res.data !== undefined && res.data !== null && res.data !== '') {\n      body =\n        typeof res.data === 'string' ? res.data : JSON.stringify(res.data);\n    }\n    const detail = `HTTP ${status} ${statusText}`.trim() +\n      (body ? ` - ${body}` : '');\n    return { name, endpoint, passed: false, detail };\n  };\n\n  // validateStatus prevents non-2xx from throwing; .catch handles network errors.\n  return get(endpoint, { validateStatus: () => true })(state)\n    .then(s => {\n      const res = s.response || {};\n      const status = res.statusCode;\n\n      // Non-2xx response: record failure with full explanation.\n      if (typeof status !== 'number' || status < 200 || status >= 300) {\n        return append(failFromResponse({ ...res, data: s.data }), s);\n      }\n\n      // Success: keep the existing check logic.\n      let passed = false;\n      let detail = null;\n\n      try {\n        let body = s.data;\n\n        // Handle case where the API returns text that needs JSON parsing\n        if (typeof body === 'string') {\n          body = JSON.parse(body);\n        }\n\n        const advice = body && body.slip && body.slip.advice;\n\n        if (typeof advice === 'string' && advice.trim().length > 0) {\n          passed = true;\n          detail = advice;\n        } else {\n          detail = 'Missing or empty slip.advice';\n        }\n      } catch (e) {\n        passed = false;\n        detail = `Failed to parse response: ${e.message}`;\n      }\n\n      return append({ name, endpoint, passed, detail }, s);\n    })\n    .catch(e => {\n      // A response present here means an HTTP error; otherwise a network failure.\n      if (e && e.response) {\n        return append(failFromResponse(e.response));\n      }\n      return append({\n        name,\n        endpoint,\n        passed: false,\n        detail: `Request failed: ${e.message}`,\n      });\n    });\n});\n",
+          "project_credential_id": null,
+          "adaptor": "@openfn/language-http@latest"
+        },
+        "universities-search": {
+          "id": "52e0961d-36b8-4f4c-8405-6b00ca0f58f7",
+          "name": "universities-search",
+          "body": "// QA health-check node: universities-search\n// Sends a GET request to the Hipolabs universities API for Kenya.\n// Verifies the response is a non-empty array where each university has a name and country.\n// Appends a pass/fail result object to the shared state.qaResults array.\n// Does not throw on failure - records passed:false instead.\n\nfn(state => {\n  const name = 'universities-search';\n  const endpoint = 'http://universities.hipolabs.com/search?country=Kenya';\n  const qaResults = state.qaResults || [];\n\n  return get(endpoint)(state)\n    .then(nextState => {\n      // Success: run the existing check logic on the response.\n      const data = nextState.data;\n      const isArray = Array.isArray(data);\n      const nonEmpty = isArray && data.length > 0;\n      const allValid =\n        nonEmpty && data.every(u => u && u.name && u.country);\n      const passed = Boolean(nonEmpty && allValid);\n\n      qaResults.push({\n        name,\n        endpoint,\n        passed,\n        detail: String(isArray ? data.length : 0),\n      });\n\n      return { ...nextState, qaResults };\n    })\n    .catch(error => {\n      // Failure: never throw - record passed:false with a full explanation.\n      const response = error && error.response;\n      let detail;\n\n      if (response) {\n        // HTTP error (non-2xx response).\n        const status = response.status;\n        const statusText = response.statusText || '';\n        let body = response.data;\n        if (body && typeof body === 'object') {\n          body = JSON.stringify(body);\n        }\n        detail =\n          `HTTP ${status} ${statusText}`.trim() +\n          (body ? ` - ${body}` : '');\n      } else {\n        // Network error (no response received).\n        detail = `Network error: ${error && error.message ? error.message : String(error)}`;\n      }\n\n      qaResults.push({\n        name,\n        endpoint,\n        passed: false,\n        detail,\n      });\n\n      return { ...state, qaResults };\n    });\n});\n",
+          "project_credential_id": null,
+          "adaptor": "@openfn/language-http@latest"
+        },
+        "qa-summary": {
+          "id": "df99f481-102e-4522-8d93-e504984fa0ae",
+          "name": "qa-summary",
+          "body": "// qa-summary: Final QA reporting node.\n// - Does NOT make any HTTP request.\n// - Reads accumulated results from state.qaResults (each: name, endpoint, passed, detail).\n// - Builds a summary (total, passed, failed, failed names, timestamp) at state.qaSummary.\n// - Logs a readable line per check plus the totals.\n\nfn(state => {\n  console.log('CONSOLE_LOG_TEST_MARKER :: if you can read this line in the run logs, console.log output is ENABLED');\n\n  const results = state.qaResults || [];\n\n  const passed = results.filter(r => r.passed);\n  const failed = results.filter(r => !r.passed);\n\n  const summary = {\n    total: results.length,\n    passed: passed.length,\n    failed: failed.length,\n    failedChecks: failed.map(r => r.name),\n    timestamp: new Date().toISOString(),\n  };\n\n  // Log a readable line per check\n  results.forEach(r => {\n    console.log(`${r.passed ? 'PASS' : 'FAIL'} - ${r.name} (${r.endpoint})${r.detail ? ' :: ' + r.detail : ''}`);\n  });\n\n  // Log the totals\n  console.log(`QA Summary: ${summary.passed}/${summary.total} passed, ${summary.failed} failed`);\n  if (summary.failed > 0) {\n    console.log(`Failed checks: ${summary.failedChecks.join(', ')}`);\n  }\n\n  return { ...state, qaSummary: summary };\n});\n",
+          "project_credential_id": null,
+          "adaptor": "@openfn/language-http@latest"
+        },
+        "httpbin-post": {
+          "id": "03a41d63-0bcd-45a5-8967-30386a3d4efc",
+          "name": "httpbin-post",
+          "body": "// Node: httpbin-post\n// Sends a POST to https://httpbin.org/post with a small JSON body.\n// Verifies the response's `json` field echoes back the body we sent.\n// Appends a QA result to the shared state.qaResults array (never overwrites).\n// Records passed:false on failure instead of throwing.\n\nconst endpoint = 'https://httpbin.org/post';\n\nfn(state => {\n  // ensure the shared array exists without overwriting existing entries\n  const qaResults = state.qaResults || [];\n\n  const body = { qa: 'openfn', ts: Date.now() };\n\n  // Invoke the request inside fn so we can catch any failure.\n  // A non-2xx response or a network error rejects here instead of\n  // aborting the whole workflow.\n  return post(endpoint, body)(state)\n    .then(nextState => {\n      // ---- success: keep the existing check logic ----\n      const echoed = nextState.data && nextState.data.json;\n\n      const passed =\n        !!echoed && echoed.qa === 'openfn' && typeof echoed.ts !== 'undefined';\n\n      const result = {\n        name: 'httpbin-post',\n        endpoint,\n        passed,\n        detail: passed\n          ? 'Response json echoed the posted body.'\n          : `Echo mismatch: ${JSON.stringify(echoed)}`,\n      };\n\n      return { ...nextState, qaResults: [...qaResults, result] };\n    })\n    .catch(error => {\n      // ---- failure: never throw, record passed:false ----\n      const response = error && error.response;\n\n      let detail;\n      if (response) {\n        const bodyText =\n          typeof response.data === 'undefined'\n            ? ''\n            : ` Body: ${JSON.stringify(response.data)}`;\n        detail = `HTTP ${response.status} ${response.statusText || ''}.${bodyText}`.trim();\n      } else {\n        detail = `Network error: ${(error && error.message) || String(error)}`;\n      }\n\n      const result = {\n        name: 'httpbin-post',\n        endpoint,\n        passed: false,\n        detail,\n      };\n\n      return { ...state, qaResults: [...qaResults, result] };\n    });\n});\n",
+          "project_credential_id": null,
+          "adaptor": "@openfn/language-http@latest"
+        },
+        "httpbin-status": {
+          "id": "21a4456f-a6a7-4254-85d2-23906575ece8",
+          "name": "httpbin-status",
+          "body": "// httpbin-status: QA health-check node\n// Sends a GET request to https://httpbin.org/status/200\n// Verifies the returned status code is 200\n// Appends a result object to the shared state.qaResults array (never overwrites existing entries)\n// Any HTTP failure (non-2xx or network error) is caught and recorded - it never aborts the run\n\nfn(state => {\n  const name = 'httpbin-status';\n  const endpoint = 'https://httpbin.org/status/200';\n\n  // append exactly one entry to state.qaResults without overwriting existing ones\n  const append = (s, result) => ({\n    ...s,\n    qaResults: [...(s.qaResults || []), result],\n  });\n\n  try {\n    // parseAs 'text' so we can read the raw body even on failures\n    return get(endpoint, { parseAs: 'text' })(state)\n      .then(nextState => {\n        const status = nextState.response?.statusCode;\n        const passed = status === 200;\n        return append(nextState, {\n          name,\n          endpoint,\n          passed,\n          detail: passed\n            ? 'Returned expected status 200'\n            : `Expected status 200 but got ${status}`,\n        });\n      })\n      .catch(error => {\n        const response = error.response;\n        let detail;\n        if (response) {\n          // non-2xx HTTP response: include status code, status message and body\n          detail = `HTTP ${response.status} ${response.statusText || ''}`.trim();\n          if (response.data !== undefined && response.data !== null && response.data !== '') {\n            const body =\n              typeof response.data === 'string'\n                ? response.data\n                : JSON.stringify(response.data);\n            detail += ` - body: ${body}`;\n          }\n        } else {\n          // network / connection failure: no response, use the error message\n          detail = `Network error: ${error.message}`;\n        }\n        return append(state, { name, endpoint, passed: false, detail });\n      });\n  } catch (error) {\n    // safety net: never throw\n    return append(state, {\n      name,\n      endpoint,\n      passed: false,\n      detail: `Network error: ${error.message}`,\n    });\n  }\n});\n",
+          "project_credential_id": null,
+          "adaptor": "@openfn/language-http@latest"
+        },
+        "jsonplaceholder-list": {
+          "id": "a88c6e2e-b867-4a90-831d-1ce1341aa0d9",
+          "name": "jsonplaceholder-list",
+          "body": "// jsonplaceholder-list\n// QA health-check node: GETs https://jsonplaceholder.typicode.com/posts\n// Verifies the response is a non-empty array whose first item has an id and title.\n// Appends a { name, endpoint, passed, detail } record to the shared state.qaResults array.\n// Never throws on failure and never overwrites existing qaResults entries.\n\nfn(state => {\n  const name = 'jsonplaceholder-list';\n  const endpoint = 'https://jsonplaceholder.typicode.com/posts';\n  const qaResults = Array.isArray(state.qaResults) ? state.qaResults : [];\n\n  return get(endpoint)(state)\n    .then(nextState => {\n      const posts = nextState.data;\n      const isArray = Array.isArray(posts);\n      const count = isArray ? posts.length : 0;\n      const first = isArray ? posts[0] : undefined;\n\n      const passed = Boolean(\n        isArray &&\n        count > 0 &&\n        first &&\n        first.id !== undefined &&\n        first.title !== undefined\n      );\n\n      const detail = passed\n        ? `Received ${count} posts`\n        : `Verification failed (isArray: ${isArray}, count: ${count})`;\n\n      return {\n        ...nextState,\n        qaResults: [...qaResults, { name, endpoint, passed, detail }],\n      };\n    })\n    .catch(error => {\n      const response = error.response;\n      let detail;\n\n      if (response) {\n        const status = response.statusCode ?? response.status ?? '';\n        const message = response.statusMessage ?? '';\n        const body = response.body ?? response.data;\n        const bodyText =\n          body === undefined || body === null || body === ''\n            ? ''\n            : ` - ${typeof body === 'string' ? body : JSON.stringify(body)}`;\n        detail = `HTTP ${status} ${message}${bodyText}`.trim();\n      } else {\n        detail = `Network error: ${error.message}`;\n      }\n\n      return {\n        ...state,\n        qaResults: [...qaResults, { name, endpoint, passed: false, detail }],\n      };\n    });\n});\n",
+          "project_credential_id": null,
+          "adaptor": "@openfn/language-http@latest"
+        },
+        "jsonplaceholder-create": {
+          "id": "e8f972db-72a9-4ef1-88ca-65f4fa4444ce",
+          "name": "jsonplaceholder-create",
+          "body": "// jsonplaceholder-create\n// QA health-check node: POSTs a sample post to the JSONPlaceholder mock API.\n// Verifies the response returns a created resource with an id (mock returns 101).\n// Appends a pass/fail result to the shared state.qaResults array (never overwrites).\n// The request is wrapped so any failure is caught and never aborts the run.\n\nfn(state => {\n  const name = 'jsonplaceholder-create';\n  const endpoint = 'https://jsonplaceholder.typicode.com/posts';\n  const qaResults = state.qaResults || [];\n\n  return post(endpoint, {\n    title: 'qa',\n    body: 'openfn health check',\n    userId: 1,\n  })(state)\n    .then(nextState => {\n      const id = nextState.data && nextState.data.id;\n      const passed = id != null;\n\n      const result = {\n        name,\n        endpoint,\n        passed,\n        detail: passed\n          ? `Created resource with id ${id}`\n          : 'No id returned in response',\n      };\n\n      return { ...nextState, qaResults: [...qaResults, result] };\n    })\n    .catch(error => {\n      const response = error.response;\n      let detail;\n\n      if (response) {\n        const status = response.status;\n        const statusMessage = response.statusText || '';\n        let body = response.data;\n        if (body && typeof body !== 'string') {\n          try {\n            body = JSON.stringify(body);\n          } catch (e) {\n            body = String(body);\n          }\n        }\n        detail = `HTTP ${status} ${statusMessage}`.trim();\n        if (body) detail += ` - ${body}`;\n      } else {\n        detail = `Network error: ${error.message}`;\n      }\n\n      const result = {\n        name,\n        endpoint,\n        passed: false,\n        detail,\n      };\n\n      return { ...state, qaResults: [...qaResults, result] };\n    });\n});\n",
+          "project_credential_id": null,
+          "adaptor": "@openfn/language-http@latest"
+        },
+        "github-repo": {
+          "id": "bc3c6f31-abf3-4e7f-8611-e8f20c17c048",
+          "name": "github-repo",
+          "body": "// github-repo: QA health-check node\n// GETs https://api.github.com/repos/OpenFn/kit with a required User-Agent header.\n// Verifies the response full_name equals 'OpenFn/kit'.\n// Appends a pass/fail result to the shared state.qaResults array without throwing.\n\nfn(state => {\n  const endpoint = 'https://api.github.com/repos/OpenFn/kit';\n  const qaResults = state.qaResults || [];\n\n  return get(endpoint, { headers: { 'User-Agent': 'openfn-qa' } })(state)\n    .then(nextState => {\n      const body = nextState.data || {};\n      const passed = body.full_name === 'OpenFn/kit';\n\n      qaResults.push({\n        name: 'github-repo',\n        endpoint,\n        passed,\n        detail: passed\n          ? `stargazers_count: ${body.stargazers_count}`\n          : `Expected full_name 'OpenFn/kit', got '${body.full_name}'`,\n      });\n\n      return { ...nextState, qaResults };\n    })\n    .catch(error => {\n      // A non-2xx response carries an HTTP response; a network error does not.\n      const response = error.response || (error.body && error) || null;\n      let detail;\n\n      if (response && (response.status || response.statusCode)) {\n        const status = response.status || response.statusCode;\n        const message = response.statusText || response.statusMessage || '';\n        const body = response.body ?? response.data;\n        const bodyText =\n          body == null\n            ? 'no body'\n            : typeof body === 'string'\n            ? body\n            : JSON.stringify(body);\n        detail = `HTTP ${status} ${message} - ${bodyText}`.trim();\n      } else {\n        detail = `Network error: ${error.message || String(error)}`;\n      }\n\n      qaResults.push({\n        name: 'github-repo',\n        endpoint,\n        passed: false,\n        detail,\n      });\n\n      return { ...state, qaResults };\n    });\n});\n",
+          "project_credential_id": null,
+          "adaptor": "@openfn/language-http@latest"
+        },
+        "random-user": {
+          "id": "09f706bb-fc53-4001-8e9d-b5ec27edbf92",
+          "name": "random-user",
+          "body": "// random-user: QA health-check node\n// - Sends a GET request to https://randomuser.me/api/\n// - Verifies the response has a results array with one user having a name and email\n// - Appends a result object to the shared state.qaResults array (never overwrites existing entries)\n// - Records passed:false on failure instead of throwing\n// - A non-2xx response or network error is caught here and never aborts the workflow\n\nfn(state => {\n  const endpoint = 'https://randomuser.me/api/';\n  const name = 'random-user';\n\n  // Run the request inside the fn so any failure can be caught here.\n  return get(endpoint)(state)\n    .then(s => {\n      let passed = false;\n      let detail = '';\n\n      try {\n        const results = s.data && s.data.results;\n        if (!Array.isArray(results)) {\n          detail = 'Response has no results array';\n        } else if (results.length !== 1) {\n          detail = `Expected 1 user, got ${results.length}`;\n        } else {\n          const user = results[0];\n          const hasName = !!(user.name && (user.name.first || user.name.last));\n          const hasEmail = !!user.email;\n          if (hasName && hasEmail) {\n            passed = true;\n            detail = `Found user ${user.name.first} ${user.name.last} <${user.email}>`;\n          } else {\n            detail = `Missing ${!hasName ? 'name' : ''}${!hasName && !hasEmail ? ' and ' : ''}${!hasEmail ? 'email' : ''}`;\n          }\n        }\n      } catch (e) {\n        detail = `Assertion error: ${e.message}`;\n      }\n\n      const qaResults = s.qaResults || [];\n      qaResults.push({ name, endpoint, passed, detail });\n      return { ...s, qaResults };\n    })\n    .catch(err => {\n      // Non-2xx response or network error: never throw, record the failure.\n      const response = err && err.response;\n      let detail;\n\n      if (response) {\n        const status = response.status ?? response.statusCode ?? '?';\n        const statusText = response.statusText ?? response.statusMessage ?? '';\n        const body = response.data ?? response.body;\n        const bodyStr =\n          body === undefined\n            ? ''\n            : ` - body: ${typeof body === 'string' ? body : JSON.stringify(body)}`;\n        detail = `HTTP ${status} ${statusText}${bodyStr}`;\n      } else {\n        detail = `Network error: ${err && err.message ? err.message : String(err)}`;\n      }\n\n      const qaResults = state.qaResults || [];\n      qaResults.push({ name, endpoint, passed: false, detail });\n      return { ...state, qaResults };\n    });\n});\n",
+          "project_credential_id": null,
+          "adaptor": "@openfn/language-http@latest"
+        },
+        "dog-image": {
+          "id": "dcd8a5d6-79f7-4a81-8387-cf7f9b3762ea",
+          "name": "dog-image",
+          "body": "// Node: dog-image\n// QA health-check for the Dog CEO random image API.\n// Sends GET https://dog.ceo/api/breeds/image/random\n// Verifies the response status is 'success' and message is a URL string.\n// Appends a result to state.qaResults without overwriting existing entries.\n// Never aborts the run: any HTTP/network failure is caught and recorded.\n\nfn(state => {\n  const endpoint = 'https://dog.ceo/api/breeds/image/random';\n  const qaResults = state.qaResults || [];\n\n  return get(endpoint)(state)\n    .then(nextState => {\n      const body = nextState.data || {};\n      const url = body.message;\n      const isUrl = typeof url === 'string' && /^https?:\\/\\//.test(url);\n      const passed = body.status === 'success' && isUrl;\n\n      qaResults.push({\n        name: 'dog-image',\n        endpoint,\n        passed,\n        detail: isUrl ? url : null,\n      });\n\n      return { ...nextState, qaResults };\n    })\n    .catch(error => {\n      const response = error.response;\n      let detail;\n\n      if (response) {\n        const status = response.status;\n        const statusText = response.statusText || '';\n        const bodyText =\n          response.data !== undefined\n            ? typeof response.data === 'string'\n              ? response.data\n              : JSON.stringify(response.data)\n            : '';\n        detail = `HTTP ${status} ${statusText}`.trim();\n        if (bodyText) detail += ` - ${bodyText}`;\n      } else {\n        detail = `Network error: ${error.message}`;\n      }\n\n      qaResults.push({\n        name: 'dog-image',\n        endpoint,\n        passed: false,\n        detail,\n      });\n\n      return { ...state, qaResults };\n    });\n});\n",
+          "project_credential_id": null,
+          "adaptor": "@openfn/language-http@latest"
+        },
+        "numbers-trivia": {
+          "id": "b6029f87-3a3d-4ded-8980-6c29c31ee3e6",
+          "name": "numbers-trivia",
+          "body": "// numbers-trivia QA health-check node\n// - Sends a GET request to http://numbersapi.com/random/trivia\n// - Verifies the response body is a non-empty text string of trivia\n// - Appends a result object to the shared state.qaResults array\n// - Never overwrites existing results; never throws on failure\n\nfn(state => {\n  const name = 'numbers-trivia';\n  const endpoint =\n    'https://uselessfacts.jsph.pl/api/v2/facts/random?language=en';\n\n  return get(endpoint)(state)\n    .then(nextState => {\n      // Success: response is JSON with a `text` field\n      const body = nextState.data;\n      const trivia =\n        body && typeof body.text === 'string' ? body.text.trim() : '';\n      const passed = trivia.length > 0;\n\n      const qaResults = nextState.qaResults || [];\n\n      return {\n        ...nextState,\n        qaResults: [\n          ...qaResults,\n          { name, endpoint, passed, detail: trivia },\n        ],\n      };\n    })\n    .catch(error => {\n      // Failure: never throw, append a passed:false entry\n      let detail;\n      if (error && error.statusCode) {\n        detail = `HTTP ${error.statusCode} ${error.statusMessage || ''}`.trim();\n        if (error.body) {\n          detail += `: ${\n            typeof error.body === 'string'\n              ? error.body\n              : JSON.stringify(error.body)\n          }`;\n        }\n      } else {\n        detail = (error && error.message) || String(error);\n      }\n\n      const qaResults = state.qaResults || [];\n\n      return {\n        ...state,\n        qaResults: [\n          ...qaResults,\n          { name, endpoint, passed: false, detail },\n        ],\n      };\n    });\n});\n",
+          "project_credential_id": null,
+          "adaptor": "@openfn/language-http@latest"
+        },
+        "public-holidays": {
+          "id": "1a09627a-fd4d-4c83-8d16-c4556e864447",
+          "name": "public-holidays",
+          "body": "// QA health-check node: public-holidays\n// Sends a GET request to the Nager.Date public holidays API for US 2024.\n// Verifies the response is a non-empty array where each holiday has a date and name.\n// Appends a pass/fail result to the shared state.qaResults array without overwriting existing entries.\n// Any HTTP or network failure is caught and recorded - it never aborts the run.\n\nfn(state => {\n  const endpoint = 'https://date.nager.at/api/v3/PublicHolidays/2024/US';\n\n  return get(endpoint)(state)\n    .then(s => {\n      const holidays = s.data;\n\n      const passed =\n        Array.isArray(holidays) &&\n        holidays.length > 0 &&\n        holidays.every(h => h && h.date && h.name);\n\n      const result = {\n        name: 'public-holidays',\n        endpoint,\n        passed,\n        detail: Array.isArray(holidays) ? holidays.length : 0,\n      };\n\n      const qaResults = s.qaResults || [];\n\n      return { ...s, qaResults: [...qaResults, result] };\n    })\n    .catch(error => {\n      const resp = error.response;\n      let detail;\n\n      if (resp) {\n        const status = resp.status ?? resp.statusCode ?? '';\n        const message = resp.statusText ?? resp.statusMessage ?? '';\n        const body = resp.data ?? resp.body;\n        const bodyStr =\n          body == null\n            ? ''\n            : typeof body === 'string'\n            ? body\n            : JSON.stringify(body);\n        detail = `HTTP ${status} ${message}`.trim();\n        if (bodyStr) detail += ` - ${bodyStr}`;\n      } else {\n        detail = error.message || String(error);\n      }\n\n      const result = {\n        name: 'public-holidays',\n        endpoint,\n        passed: false,\n        detail,\n      };\n\n      const qaResults = state.qaResults || [];\n\n      return { ...state, qaResults: [...qaResults, result] };\n    });\n});\n",
+          "project_credential_id": null,
+          "adaptor": "@openfn/language-http@latest"
+        },
+        "cat-fact": {
+          "id": "acd9d7cd-1a55-47ad-8011-d8f7acc98afa",
+          "name": "cat-fact",
+          "body": "// QA health-check: cat-fact\n// GET https://catfact.ninja/fact\n// Verifies the response contains a non-empty 'fact' string.\n// Appends a result object to state.qaResults (never overwrites existing entries).\n// Records passed:false on failure instead of throwing.\n\nfn(state => {\n  const name = 'cat-fact';\n  const endpoint = 'https://catfact.ninja/fact';\n\n  return get(endpoint)(state)\n    .then(nextState => {\n      const fact = nextState.data && nextState.data.fact;\n      const passed = typeof fact === 'string' && fact.trim().length > 0;\n\n      const result = {\n        name,\n        endpoint,\n        passed,\n        detail: passed ? fact.slice(0, 200) : 'No valid fact returned',\n      };\n\n      const qaResults = nextState.qaResults || [];\n      return { ...nextState, qaResults: [...qaResults, result] };\n    })\n    .catch(error => {\n      let detail;\n      if (error.response) {\n        const { status, statusText, data } = error.response;\n        const body =\n          data == null\n            ? ''\n            : ` - body: ${\n                typeof data === 'string' ? data : JSON.stringify(data)\n              }`;\n        detail = `HTTP ${status} ${statusText || ''}`.trim() + body;\n      } else {\n        detail = `Network error: ${error.message}`;\n      }\n\n      const result = { name, endpoint, passed: false, detail };\n      const qaResults = state.qaResults || [];\n      return { ...state, qaResults: [...qaResults, result] };\n    });\n});\n",
+          "project_credential_id": null,
+          "adaptor": "@openfn/language-http@latest"
+        },
+        "iss-location": {
+          "id": "eb89313d-7be8-4de2-8437-5db440f9da76",
+          "name": "iss-location",
+          "body": "// iss-location: QA health-check node\n// Sends a GET request to the Open Notify ISS location API\n// Verifies the response message is 'success' and includes an iss_position with latitude/longitude\n// Appends a pass/fail result to the shared state.qaResults array (never overwrites existing entries)\n// The request is wrapped so any failure (non-2xx or network error) is caught and recorded, never thrown\n\nfn(state => {\n  const endpoint = 'https://api.wheretheiss.at/v1/satellites/25544';\n  const qaResults = state.qaResults || [];\n\n  const appendResult = result => ({\n    ...state,\n    qaResults: [...qaResults, result],\n  });\n\n  return get(endpoint)(state)\n    .then(next => {\n      const body = next.data || {};\n\n      const passed = body.latitude != null && body.longitude != null;\n\n      return appendResult({\n        name: 'iss-location',\n        endpoint,\n        passed,\n        detail: `latitude=${body.latitude}, longitude=${body.longitude}`,\n      });\n    })\n    .catch(error => {\n      const response = error.response;\n      let detail;\n\n      if (response) {\n        // Non-2xx HTTP response: include status code, status message and body\n        const body =\n          typeof response.body === 'string'\n            ? response.body\n            : JSON.stringify(response.body);\n        detail = `HTTP ${response.statusCode} ${\n          response.statusMessage || ''\n        }`.trim();\n        if (body) detail += ` - ${body}`;\n      } else {\n        // Network / other failure: use the error message\n        detail = `Network error: ${error.message}`;\n      }\n\n      return appendResult({\n        name: 'iss-location',\n        endpoint,\n        passed: false,\n        detail,\n      });\n    });\n});\n",
+          "project_credential_id": null,
+          "adaptor": "@openfn/language-http@latest"
+        },
+        "bored-activity": {
+          "id": "586bdefd-dc3a-44d4-8f79-c3cb82e6d7df",
+          "name": "bored-activity",
+          "body": "// QA health-check node: bored-activity\n// - Sends a GET request to the Bored API activity endpoint\n// - Verifies the response contains a non-empty 'activity' string\n// - Appends a pass/fail result object to the shared state.qaResults array\n// - Never throws on request or assertion failure; records passed:false instead\n\nfn(state => {\n  const name = 'bored-activity';\n  const endpoint = 'https://bored-api.appbrewery.com/random';\n  const qaResults = state.qaResults || [];\n\n  return get(endpoint)(state)\n    .then(nextState => {\n      // Success: keep the existing check logic\n      const activity = nextState.data && nextState.data.activity;\n      const passed =\n        typeof activity === 'string' && activity.trim().length > 0;\n\n      return {\n        ...nextState,\n        qaResults: [\n          ...qaResults,\n          { name, endpoint, passed, detail: activity },\n        ],\n      };\n    })\n    .catch(error => {\n      // Failure: build a full explanation, never throw\n      let detail;\n      const response = error.response || (error.body && error);\n\n      if (response && (response.statusCode || response.status)) {\n        const statusCode = response.statusCode || response.status;\n        const statusMessage = response.statusMessage || '';\n        const body = response.body ?? response.data;\n        const bodyText =\n          body === undefined || body === null\n            ? ''\n            : typeof body === 'string'\n            ? body\n            : JSON.stringify(body);\n        detail = `HTTP ${statusCode} ${statusMessage}`.trim();\n        if (bodyText) detail += ` - ${bodyText}`;\n      } else {\n        // Network / non-HTTP failure\n        detail = error.message || String(error);\n      }\n\n      return {\n        ...state,\n        qaResults: [\n          ...qaResults,\n          { name, endpoint, passed: false, detail },\n        ],\n      };\n    });\n});\n",
+          "project_credential_id": null,
+          "adaptor": "@openfn/language-http@latest"
+        },
+        "intentional-fail": {
+          "id": "4aa1f1bb-fa57-46c0-83c7-91699cb052d5",
+          "name": "intentional-fail",
+          "body": "// QA health-check node: intentional-fail\n// A deliberately-failing check that proves the failure-reporting path works.\n// It performs no real request - it simply records a synthetic failure.\n// Does not throw and completes successfully so the chain continues on on_job_success.\n\nfn(state => {\n  const name = 'intentional-fail';\n  const endpoint = 'n/a - deliberate failure';\n  const qaResults = state.qaResults || [];\n\n  qaResults.push({\n    name,\n    endpoint,\n    passed: false,\n    detail:\n      'Intentional/synthetic failure. This check always reports passed:false ' +\n      'to verify that the QA failure-reporting and notification path works end to end. ' +\n      'No external system was called and no error was thrown.',\n  });\n\n  return { ...state, qaResults };\n});\n",
+          "project_credential_id": null,
+          "adaptor": "@openfn/language-http@latest"
+        }
+      },
+      "edges": {
+        "webhook->measure-and-strip-input": {
+          "enabled": true,
+          "id": "099d7ef4-aedb-4a95-8211-5774852757a6",
+          "target_job_id": "25258d2f-e49d-41fa-81a3-4da072c9a998",
+          "source_trigger_id": "f4e43f9a-d398-4359-8e1c-88d717b1f43f",
+          "condition_type": "always"
+        },
+        "measure-and-strip-input->httpbin-get": {
+          "enabled": true,
+          "id": "c1eabe6c-ec07-4d75-82d4-b8fb6942150e",
+          "target_job_id": "87b06b0e-c8d8-49cb-832a-886213e5cb53",
+          "source_job_id": "25258d2f-e49d-41fa-81a3-4da072c9a998",
+          "condition_type": "on_job_success"
+        },
+        "httpbin-get->httpbin-post": {
+          "enabled": true,
+          "id": "146f7306-89d4-4a9d-8d80-f4bc7f91eb6d",
+          "target_job_id": "03a41d63-0bcd-45a5-8967-30386a3d4efc",
+          "source_job_id": "87b06b0e-c8d8-49cb-832a-886213e5cb53",
+          "condition_type": "on_job_success"
+        },
+        "httpbin-post->httpbin-status": {
+          "enabled": true,
+          "id": "0bbe6dd0-03be-4942-8118-10b8bea455cd",
+          "target_job_id": "21a4456f-a6a7-4254-85d2-23906575ece8",
+          "source_job_id": "03a41d63-0bcd-45a5-8967-30386a3d4efc",
+          "condition_type": "on_job_success"
+        },
+        "httpbin-status->httpbin-headers": {
+          "enabled": true,
+          "id": "acf6d136-75ae-4359-8ede-33e108b9e42f",
+          "target_job_id": "ef6f3b48-de1f-4a10-8678-e0056ade006e",
+          "source_job_id": "21a4456f-a6a7-4254-85d2-23906575ece8",
+          "condition_type": "on_job_success"
+        },
+        "httpbin-headers->jsonplaceholder-list": {
+          "enabled": true,
+          "id": "2418586a-ef4f-4457-8d87-511a95958d9c",
+          "target_job_id": "a88c6e2e-b867-4a90-831d-1ce1341aa0d9",
+          "source_job_id": "ef6f3b48-de1f-4a10-8678-e0056ade006e",
+          "condition_type": "on_job_success"
+        },
+        "jsonplaceholder-list->jsonplaceholder-create": {
+          "enabled": true,
+          "id": "bdad8794-6e9a-4a4a-8eb7-e12892cad26a",
+          "target_job_id": "e8f972db-72a9-4ef1-88ca-65f4fa4444ce",
+          "source_job_id": "a88c6e2e-b867-4a90-831d-1ce1341aa0d9",
+          "condition_type": "on_job_success"
+        },
+        "jsonplaceholder-create->github-repo": {
+          "enabled": true,
+          "id": "8a9f0f06-2259-45a4-80b6-c48cf5c2d5ee",
+          "target_job_id": "bc3c6f31-abf3-4e7f-8611-e8f20c17c048",
+          "source_job_id": "e8f972db-72a9-4ef1-88ca-65f4fa4444ce",
+          "condition_type": "on_job_success"
+        },
+        "github-repo->random-user": {
+          "enabled": true,
+          "id": "f9dbb212-bec1-4ff3-8092-05aa79cb2223",
+          "target_job_id": "09f706bb-fc53-4001-8e9d-b5ec27edbf92",
+          "source_job_id": "bc3c6f31-abf3-4e7f-8611-e8f20c17c048",
+          "condition_type": "on_job_success"
+        },
+        "random-user->dog-image": {
+          "enabled": true,
+          "id": "3397971e-1862-4f54-8b19-28f4658253bd",
+          "target_job_id": "dcd8a5d6-79f7-4a81-8387-cf7f9b3762ea",
+          "source_job_id": "09f706bb-fc53-4001-8e9d-b5ec27edbf92",
+          "condition_type": "on_job_success"
+        },
+        "dog-image->cat-fact": {
+          "enabled": true,
+          "id": "fa52895f-06da-408a-83c6-29cb08446d15",
+          "target_job_id": "acd9d7cd-1a55-47ad-8011-d8f7acc98afa",
+          "source_job_id": "dcd8a5d6-79f7-4a81-8387-cf7f9b3762ea",
+          "condition_type": "on_job_success"
+        },
+        "cat-fact->numbers-trivia": {
+          "enabled": true,
+          "id": "c8d89c62-68ac-4c80-82ba-8a31baa8866e",
+          "target_job_id": "b6029f87-3a3d-4ded-8980-6c29c31ee3e6",
+          "source_job_id": "acd9d7cd-1a55-47ad-8011-d8f7acc98afa",
+          "condition_type": "on_job_success"
+        },
+        "numbers-trivia->iss-location": {
+          "enabled": true,
+          "id": "dc556d59-f247-4705-8f89-eee1c47d7b30",
+          "target_job_id": "eb89313d-7be8-4de2-8437-5db440f9da76",
+          "source_job_id": "b6029f87-3a3d-4ded-8980-6c29c31ee3e6",
+          "condition_type": "on_job_success"
+        },
+        "iss-location->crypto-price": {
+          "enabled": true,
+          "id": "c1658246-ffce-47c1-8a60-4149e55322ff",
+          "target_job_id": "b729c16e-0886-4a0f-8801-0ab9e3ae45ff",
+          "source_job_id": "eb89313d-7be8-4de2-8437-5db440f9da76",
+          "condition_type": "on_job_success"
+        },
+        "crypto-price->bored-activity": {
+          "enabled": true,
+          "id": "07df64ff-9b78-409d-89ac-a3da19746ddc",
+          "target_job_id": "586bdefd-dc3a-44d4-8f79-c3cb82e6d7df",
+          "source_job_id": "b729c16e-0886-4a0f-8801-0ab9e3ae45ff",
+          "condition_type": "on_job_success"
+        },
+        "bored-activity->public-holidays": {
+          "enabled": true,
+          "id": "4080fbb9-322c-4b7a-8072-87056971f7cc",
+          "target_job_id": "1a09627a-fd4d-4c83-8d16-c4556e864447",
+          "source_job_id": "586bdefd-dc3a-44d4-8f79-c3cb82e6d7df",
+          "condition_type": "on_job_success"
+        },
+        "public-holidays->advice-slip": {
+          "enabled": true,
+          "id": "6662e897-0dcc-4ca7-86a0-13ccff3ec5b3",
+          "target_job_id": "701fb52a-860e-4d14-8ced-228f46c4e45b",
+          "source_job_id": "1a09627a-fd4d-4c83-8d16-c4556e864447",
+          "condition_type": "on_job_success"
+        },
+        "advice-slip->universities-search": {
+          "enabled": true,
+          "id": "af11cea5-63c1-49e7-816a-cce0cb4f5c6b",
+          "target_job_id": "52e0961d-36b8-4f4c-8405-6b00ca0f58f7",
+          "source_job_id": "701fb52a-860e-4d14-8ced-228f46c4e45b",
+          "condition_type": "on_job_success"
+        },
+        "universities-search->intentional-fail": {
+          "enabled": true,
+          "id": "58ef279c-a043-4a7b-81e3-00e77a50afcd",
+          "target_job_id": "4aa1f1bb-fa57-46c0-83c7-91699cb052d5",
+          "source_job_id": "52e0961d-36b8-4f4c-8405-6b00ca0f58f7",
+          "condition_type": "on_job_success"
+        },
+        "intentional-fail->qa-summary": {
+          "enabled": true,
+          "id": "79450de1-6856-41b3-8b18-74110736dcc9",
+          "target_job_id": "df99f481-102e-4522-8d93-e504984fa0ae",
+          "source_job_id": "4aa1f1bb-fa57-46c0-83c7-91699cb052d5",
+          "condition_type": "on_job_success"
+        },
+        "qa-summary->notify-failures": {
+          "enabled": true,
+          "id": "3b680b7e-a44b-4985-8e03-211b3766154f",
+          "target_job_id": "a668f00a-3fbd-4baa-8dbf-4d37d7ea566d",
+          "source_job_id": "df99f481-102e-4522-8d93-e504984fa0ae",
+          "condition_type": "always"
+        }
+      }
+    },
+    "Event-based-workflow-1-rename": {
+      "id": "48eef5e9-5a5f-47e6-8fc4-b2687f5cc645",
+      "name": "Event-based workflow 1 rename",
+      "inserted_at": "2026-10-14T15:28:24.265366Z",
+      "lock_version": 9,
+      "triggers": {
+        "webhook": {
+          "enabled": true,
+          "id": "90155afa-8310-4479-8703-8255d0445700",
+          "type": "webhook",
+          "webhook_reply": "before_start"
+        }
+      },
+      "jobs": {
+        "Transform-data": {
+          "id": "9c5e0e48-15db-40e1-8af9-6d9932abd72b",
+          "name": "Transform data",
+          "body": "// Validate and transform the data you've received...\nfn(state => {\n  console.log(\"Do some data transformation here\");\n  return state;\n})\n",
+          "project_credential_id": null,
+          "adaptor": "@openfn/language-common@latest"
+        },
+        "Http": {
+          "id": "8d491805-fc76-4722-83b7-4a3045129f06",
+          "name": "Http",
+          "body": "// Check out the Job Writing Guide for help getting started:\n// https://docs.openfn.org/documentation/jobs/job-writing-guide\n",
+          "project_credential_id": "1b52d7e1-b526-48f7-a7ba-6376f82712de",
+          "adaptor": "@openfn/language-http@7.3.3"
+        },
+        "Http-2": {
+          "id": "6187242f-4b92-424c-87c3-fae2a143873d",
+          "name": "Http 2",
+          "body": "// Check out the Job Writing Guide for help getting started:\n// https://docs.openfn.org/documentation/jobs/job-writing-guide\n",
+          "project_credential_id": null,
+          "adaptor": "@openfn/language-http@7.3.3"
+        },
+        "Http-1": {
+          "id": "8c484b63-df93-4a58-89b5-f9470cd85379",
+          "name": "Http 1",
+          "body": "// Check out the Job Writing Guide for help getting started:\n// https://docs.openfn.org/documentation/jobs/job-writing-guide\n",
+          "project_credential_id": null,
+          "adaptor": "@openfn/language-http@7.3.3"
+        }
+      },
+      "edges": {
+        "webhook->Transform-data": {
+          "enabled": true,
+          "id": "9a8ce4b5-7cdf-4f87-8a40-85a25d870802",
+          "target_job_id": "9c5e0e48-15db-40e1-8af9-6d9932abd72b",
+          "source_trigger_id": "90155afa-8310-4479-8703-8255d0445700",
+          "condition_type": "always"
+        },
+        "Transform-data->Http": {
+          "enabled": true,
+          "id": "e577c020-3bef-4f06-8eb5-3ce7adee4d75",
+          "target_job_id": "8d491805-fc76-4722-83b7-4a3045129f06",
+          "source_job_id": "9c5e0e48-15db-40e1-8af9-6d9932abd72b",
+          "condition_type": "on_job_success"
+        },
+        "Http->Http-2": {
+          "enabled": true,
+          "id": "f03e65bf-27d1-41a7-8896-9e7bb1114e9f",
+          "target_job_id": "6187242f-4b92-424c-87c3-fae2a143873d",
+          "source_job_id": "8d491805-fc76-4722-83b7-4a3045129f06",
+          "condition_type": "on_job_failure"
+        },
+        "Http->Http-1": {
+          "enabled": true,
+          "id": "c5052da5-1bad-4108-84f2-95d0836b7e4f",
+          "target_job_id": "8c484b63-df93-4a58-89b5-f9470cd85379",
+          "source_job_id": "8d491805-fc76-4722-83b7-4a3045129f06",
+          "condition_type": "on_job_success"
         }
       }
     }
