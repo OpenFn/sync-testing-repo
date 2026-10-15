@@ -32,6 +32,9 @@ credentials:
   megan@openfn.org-megan-gmail:
     name: megan gmail
     owner: megan@openfn.org
+  "megan@openfn.org-quick-test-(15th-Oct)":
+    name: 'quick test (15th Oct)'
+    owner: megan@openfn.org
   megan@openfn.org-this-test:
     name: this test
     owner: megan@openfn.org

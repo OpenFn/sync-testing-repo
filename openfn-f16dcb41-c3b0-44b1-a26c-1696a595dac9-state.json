@@ -5,7 +5,7 @@
   "description": "This is Megan's testing space (testing)\n",
   "color": null,
   "inserted_at": "2026-06-25T07:29:24Z",
-  "updated_at": "2026-10-15T21:18:51Z",
+  "updated_at": "2026-10-15T22:27:49Z",
   "channels": {},
   "parent_id": null,
   "concurrency": 4,
@@ -64,6 +64,11 @@
     "megan@openfn.org-http-test-credential": {
       "id": "b8d76280-c89a-4016-a055-04790e1db8d6",
       "name": "http test credential",
+      "owner": "megan@openfn.org"
+    },
+    "megan@openfn.org-quick-test-(15th-Oct)": {
+      "id": "1e6155ac-628d-46ba-aaf3-cb30314ff7c0",
+      "name": "quick test (15th Oct)",
       "owner": "megan@openfn.org"
     }
   },
