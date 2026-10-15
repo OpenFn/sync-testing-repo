@@ -1,0 +1,21 @@
+on:
+  push:
+    branches:
+      - main
+
+concurrency:
+  group: openfn-deployment
+  cancel-in-progress: false
+
+jobs:
+  deploy-to-lightning:
+    runs-on: ubuntu-latest
+    name: A job to deploy to Lightning
+    permissions:
+      contents: write
+    steps:
+      - name: openfn deploy
+        uses: openfn/cli-deploy-action@v1
+        with:
+          secret_input: ${{ secrets.OPENFN_b4f43aec_33ea_4435_92a9_432884e44b26_API_KEY }}
+          config_path_input: 'openfn-b4f43aec-33ea-4435-92a9-432884e44b26-config.json'
