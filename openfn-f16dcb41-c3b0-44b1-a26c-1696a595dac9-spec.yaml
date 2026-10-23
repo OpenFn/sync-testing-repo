@@ -9666,6 +9666,7 @@ workflows:
           // - Verifies the response echoes back the request (args + url present)
           // - Appends a result object to the shared state.qaResults array
           // - Never throws on failure: records passed:false so later checks still run
+          // - where is this?
 
           // This line is purely for testing
           // Feel free to delete once testing is complete
@@ -10930,94 +10931,9 @@ workflows:
         cron_expression: '0 * * * *'
         enabled: false
     edges:
-      cron->httpbin-get:
-        source_trigger: cron
-        target_job: httpbin-get
-        condition_type: always
-        enabled: true
-      httpbin-get->httpbin-post:
-        source_job: httpbin-get
-        target_job: httpbin-post
-        condition_type: on_job_success
-        enabled: true
-      httpbin-post->httpbin-status:
-        source_job: httpbin-post
-        target_job: httpbin-status
-        condition_type: on_job_success
-        enabled: true
-      httpbin-status->httpbin-headers:
-        source_job: httpbin-status
-        target_job: httpbin-headers
-        condition_type: on_job_success
-        enabled: true
-      httpbin-headers->jsonplaceholder-list:
-        source_job: httpbin-headers
-        target_job: jsonplaceholder-list
-        condition_type: on_job_success
-        enabled: true
-      jsonplaceholder-list->jsonplaceholder-create:
-        source_job: jsonplaceholder-list
-        target_job: jsonplaceholder-create
-        condition_type: on_job_success
-        enabled: true
-      jsonplaceholder-create->github-repo:
-        source_job: jsonplaceholder-create
-        target_job: github-repo
-        condition_type: on_job_success
-        enabled: true
-      github-repo->random-user:
-        source_job: github-repo
-        target_job: random-user
-        condition_type: on_job_success
-        enabled: true
-      random-user->dog-image:
-        source_job: random-user
-        target_job: dog-image
-        condition_type: on_job_success
-        enabled: true
-      dog-image->cat-fact:
-        source_job: dog-image
-        target_job: cat-fact
-        condition_type: on_job_success
-        enabled: true
-      cat-fact->numbers-trivia:
-        source_job: cat-fact
-        target_job: numbers-trivia
-        condition_type: on_job_success
-        enabled: true
-      numbers-trivia->iss-location:
-        source_job: numbers-trivia
-        target_job: iss-location
-        condition_type: on_job_success
-        enabled: true
-      iss-location->crypto-price:
-        source_job: iss-location
-        target_job: crypto-price
-        condition_type: on_job_success
-        enabled: true
-      crypto-price->bored-activity:
-        source_job: crypto-price
-        target_job: bored-activity
-        condition_type: on_job_success
-        enabled: true
-      bored-activity->public-holidays:
-        source_job: bored-activity
-        target_job: public-holidays
-        condition_type: on_job_success
-        enabled: true
-      public-holidays->advice-slip:
-        source_job: public-holidays
-        target_job: advice-slip
-        condition_type: on_job_success
-        enabled: true
       advice-slip->universities-search:
         source_job: advice-slip
         target_job: universities-search
-        condition_type: on_job_success
-        enabled: true
-      universities-search->intentional-fail:
-        source_job: universities-search
-        target_job: intentional-fail
         condition_type: on_job_success
         enabled: true
       intentional-fail->qa-summary:
@@ -11025,10 +10941,95 @@ workflows:
         target_job: qa-summary
         condition_type: on_job_success
         enabled: true
+      universities-search->intentional-fail:
+        source_job: universities-search
+        target_job: intentional-fail
+        condition_type: on_job_success
+        enabled: true
+      public-holidays->advice-slip:
+        source_job: public-holidays
+        target_job: advice-slip
+        condition_type: on_job_success
+        enabled: true
+      bored-activity->public-holidays:
+        source_job: bored-activity
+        target_job: public-holidays
+        condition_type: on_job_success
+        enabled: true
+      crypto-price->bored-activity:
+        source_job: crypto-price
+        target_job: bored-activity
+        condition_type: on_job_success
+        enabled: true
+      iss-location->crypto-price:
+        source_job: iss-location
+        target_job: crypto-price
+        condition_type: on_job_success
+        enabled: true
+      numbers-trivia->iss-location:
+        source_job: numbers-trivia
+        target_job: iss-location
+        condition_type: on_job_success
+        enabled: true
+      cat-fact->numbers-trivia:
+        source_job: cat-fact
+        target_job: numbers-trivia
+        condition_type: on_job_success
+        enabled: true
+      dog-image->cat-fact:
+        source_job: dog-image
+        target_job: cat-fact
+        condition_type: on_job_success
+        enabled: true
+      random-user->dog-image:
+        source_job: random-user
+        target_job: dog-image
+        condition_type: on_job_success
+        enabled: true
+      github-repo->random-user:
+        source_job: github-repo
+        target_job: random-user
+        condition_type: on_job_success
+        enabled: true
+      jsonplaceholder-create->github-repo:
+        source_job: jsonplaceholder-create
+        target_job: github-repo
+        condition_type: on_job_success
+        enabled: true
+      httpbin-get->httpbin-post:
+        source_job: httpbin-get
+        target_job: httpbin-post
+        condition_type: on_job_success
+        enabled: true
+      cron->httpbin-get:
+        source_trigger: cron
+        target_job: httpbin-get
+        condition_type: always
+        enabled: true
+      httpbin-headers->jsonplaceholder-list:
+        source_job: httpbin-headers
+        target_job: jsonplaceholder-list
+        condition_type: on_job_success
+        enabled: true
+      httpbin-post->httpbin-status:
+        source_job: httpbin-post
+        target_job: httpbin-status
+        condition_type: on_job_success
+        enabled: true
       qa-summary->notify-failures:
         source_job: qa-summary
         target_job: notify-failures
         condition_type: always
+        enabled: true
+      jsonplaceholder-list->jsonplaceholder-create:
+        source_job: jsonplaceholder-list
+        target_job: jsonplaceholder-create
+        condition_type: on_job_success
+        enabled: true
+      httpbin-status->httpbin-headers:
+        source_job: httpbin-status
+        target_job: httpbin-headers
+        condition_type: on_job_success
         enabled: true
   Another-2.16.8-test---rename-4:
     name: Another 2.16.8 test - rename 4
