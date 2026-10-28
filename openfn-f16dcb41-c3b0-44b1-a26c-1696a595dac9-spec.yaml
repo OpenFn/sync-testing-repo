@@ -32,6 +32,9 @@ credentials:
   megan@openfn.org-megan-gmail:
     name: megan gmail
     owner: megan@openfn.org
+  megan@openfn.org-megan21:
+    name: megan21
+    owner: megan@openfn.org
   "megan@openfn.org-quick-test-(15th-Oct)":
     name: 'quick test (15th Oct)'
     owner: megan@openfn.org
@@ -132,12 +135,12 @@ workflows:
       webhook:
         type: webhook
         webhook_reply: before_start
-        enabled: true
+        enabled: false
     edges:
-      Dhis2->Dhis2-2:
-        source_job: Dhis2
-        target_job: Dhis2-2
-        condition_type: on_job_failure
+      webhook->Transform-data:
+        source_trigger: webhook
+        target_job: Transform-data
+        condition_type: always
         enabled: true
       Transform-data->Dhis2:
         source_job: Transform-data
@@ -149,6 +152,11 @@ workflows:
         target_job: Dhis2-1
         condition_type: on_job_success
         enabled: true
+      Dhis2->Dhis2-2:
+        source_job: Dhis2
+        target_job: Dhis2-2
+        condition_type: on_job_failure
+        enabled: true
       Dhis2-2->Dhis2-1:
         source_job: Dhis2-2
         target_job: Dhis2-1
@@ -158,11 +166,6 @@ workflows:
         source_job: Dhis2-2
         target_job: Dhis2-3
         condition_type: on_job_success
-        enabled: true
-      webhook->Transform-data:
-        source_trigger: webhook
-        target_job: Transform-data
-        condition_type: always
         enabled: true
       Dhis2-1->Test-job:
         source_job: Dhis2-1
@@ -216,7 +219,7 @@ workflows:
       webhook:
         type: webhook
         webhook_reply: before_start
-        enabled: true
+        enabled: false
     edges:
       webhook->Transform-data:
         source_trigger: webhook
@@ -1868,7 +1871,7 @@ workflows:
       cron:
         type: cron
         cron_expression: '0 0 * * *'
-        enabled: true
+        enabled: false
     edges:
       cron->Get-data:
         source_trigger: cron
@@ -6735,7 +6738,7 @@ workflows:
       webhook:
         type: webhook
         webhook_reply: before_start
-        enabled: true
+        enabled: false
     edges:
       webhook->Transform-data:
         source_trigger: webhook
@@ -8532,7 +8535,7 @@ workflows:
       webhook:
         type: webhook
         webhook_reply: before_start
-        enabled: true
+        enabled: false
     edges:
       webhook->Transform-data:
         source_trigger: webhook
@@ -8632,6 +8635,54 @@ workflows:
         source_trigger: cron
         target_job: Cron-Job
         condition_type: always
+        enabled: true
+  "2.20-rename-(can-delete)":
+    name: '2.20 rename (can delete)'
+    jobs:
+      Untitled-step:
+        name: Untitled step
+        adaptor: '@openfn/language-common@latest'
+        credential: null
+        body: |
+          // Check out the Job Writing Guide for help getting started:
+          // https://docs.openfn.org/documentation/jobs/job-writing-guide
+
+      Http:
+        name: Http
+        adaptor: '@openfn/language-http@7.3.3'
+        credential: megan@openfn.org-megan21
+        body: |
+          // Check out the Job Writing Guide for help getting started:
+          // https://docs.openfn.org/documentation/jobs/job-writing-guide
+
+      Http-1:
+        name: Http 1
+        adaptor: '@openfn/language-http@7.3.3'
+        credential: null
+        body: |
+          // Check out the Job Writing Guide for help getting started:
+          // https://docs.openfn.org/documentation/jobs/job-writing-guide
+
+    triggers:
+      webhook:
+        type: webhook
+        webhook_reply: before_start
+        enabled: true
+    edges:
+      webhook->Untitled-step:
+        source_trigger: webhook
+        target_job: Untitled-step
+        condition_type: always
+        enabled: true
+      Untitled-step->Http:
+        source_job: Untitled-step
+        target_job: Http
+        condition_type: on_job_success
+        enabled: true
+      Untitled-step->Http-1:
+        source_job: Untitled-step
+        target_job: Http-1
+        condition_type: on_job_failure
         enabled: true
   Self-Testing-QA-Health-Check-3-1:
     name: Self-Testing QA Health Check 3 1
@@ -14406,26 +14457,31 @@ workflows:
       webhook:
         type: webhook
         webhook_reply: before_start
-        enabled: true
+        enabled: false
     edges:
-      Process-Level-3C->Process-Level-4C:
-        source_job: Process-Level-3C
-        target_job: Process-Level-4C
+      webhook->Get-data:
+        source_trigger: webhook
+        target_job: Get-data
+        condition_type: always
+        enabled: true
+      Get-data->Common:
+        source_job: Get-data
+        target_job: Common
         condition_type: on_job_success
         enabled: true
-      Process-Level-3A->Fhir:
-        source_job: Process-Level-3A
-        target_job: Fhir
+      Common->whatsapp:
+        source_job: Common
+        target_job: whatsapp
+        condition_type: on_job_failure
+        enabled: true
+      Common->Send-data-to-Salesforce:
+        source_job: Common
+        target_job: Send-data-to-Salesforce
         condition_type: on_job_success
         enabled: true
-      Process-Level-3A->Process-Level-4A:
-        source_job: Process-Level-3A
-        target_job: Process-Level-4A
-        condition_type: on_job_success
-        enabled: true
-      Process-Level-3B->Process-Level-4B:
-        source_job: Process-Level-3B
-        target_job: Process-Level-4B
+      Send-data-to-Salesforce->step-3:
+        source_job: Send-data-to-Salesforce
+        target_job: step-3
         condition_type: on_job_success
         enabled: true
       step-3->Process-Level-2A:
@@ -14458,29 +14514,24 @@ workflows:
         target_job: Process-Level-3D
         condition_type: on_job_success
         enabled: true
-      webhook->Get-data:
-        source_trigger: webhook
-        target_job: Get-data
-        condition_type: always
-        enabled: true
-      Get-data->Common:
-        source_job: Get-data
-        target_job: Common
+      Process-Level-3A->Process-Level-4A:
+        source_job: Process-Level-3A
+        target_job: Process-Level-4A
         condition_type: on_job_success
         enabled: true
-      Common->whatsapp:
-        source_job: Common
-        target_job: whatsapp
-        condition_type: on_job_failure
-        enabled: true
-      Common->Send-data-to-Salesforce:
-        source_job: Common
-        target_job: Send-data-to-Salesforce
+      Process-Level-3B->Process-Level-4B:
+        source_job: Process-Level-3B
+        target_job: Process-Level-4B
         condition_type: on_job_success
         enabled: true
-      Send-data-to-Salesforce->step-3:
-        source_job: Send-data-to-Salesforce
-        target_job: step-3
+      Process-Level-3C->Process-Level-4C:
+        source_job: Process-Level-3C
+        target_job: Process-Level-4C
+        condition_type: on_job_success
+        enabled: true
+      Process-Level-3A->Fhir:
+        source_job: Process-Level-3A
+        target_job: Fhir
         condition_type: on_job_success
         enabled: true
   DING-DONG-Notification-Workflow:
@@ -14558,7 +14609,7 @@ workflows:
       webhook:
         type: webhook
         webhook_reply: before_start
-        enabled: true
+        enabled: false
     edges:
       webhook->Transform-data:
         source_trigger: webhook
@@ -14620,7 +14671,7 @@ workflows:
       webhook:
         type: webhook
         webhook_reply: before_start
-        enabled: true
+        enabled: false
     edges:
       webhook->Step-1:
         source_trigger: webhook
@@ -16256,7 +16307,7 @@ workflows:
       cron:
         type: cron
         cron_expression: '0 0 * * *'
-        enabled: true
+        enabled: false
     edges:
       cron->Get-data:
         source_trigger: cron
@@ -16344,6 +16395,28 @@ workflows:
         source_job: Dhis2-2
         target_job: Dhis2-3
         condition_type: on_job_success
+        enabled: true
+  Untitled-workflow:
+    name: Untitled workflow
+    jobs:
+      Untitled-step:
+        name: Untitled step
+        adaptor: '@openfn/language-common@latest'
+        credential: null
+        body: |
+          // Check out the Job Writing Guide for help getting started:
+          // https://docs.openfn.org/documentation/jobs/job-writing-guide
+
+    triggers:
+      webhook:
+        type: webhook
+        webhook_reply: before_start
+        enabled: false
+    edges:
+      webhook->Untitled-step:
+        source_trigger: webhook
+        target_job: Untitled-step
+        condition_type: always
         enabled: true
   Cat-Poem-Generator-1:
     name: Cat Poem Generator 1
@@ -19872,7 +19945,7 @@ workflows:
       webhook:
         type: webhook
         webhook_reply: before_start
-        enabled: true
+        enabled: false
     edges:
       webhook->Transform-data:
         source_trigger: webhook
@@ -21397,101 +21470,16 @@ workflows:
       webhook:
         type: webhook
         webhook_reply: before_start
-        enabled: true
+        enabled: false
     edges:
+      "webhook->Vérifier-l'état-du-dossier":
+        source_trigger: webhook
+        target_job: 'Vérifier-l''état-du-dossier'
+        condition_type: always
+        enabled: true
       "Vérifier-l'état-du-dossier->患者確認":
         source_job: 'Vérifier-l''état-du-dossier'
         target_job: '患者確認'
-        condition_type: on_job_success
-        enabled: true
-      qa-summary->notify-failures:
-        source_job: qa-summary
-        target_job: notify-failures
-        condition_type: always
-        enabled: true
-      intentional-fail->qa-summary:
-        source_job: intentional-fail
-        target_job: qa-summary
-        condition_type: on_job_success
-        enabled: true
-      universities-search->intentional-fail:
-        source_job: universities-search
-        target_job: intentional-fail
-        condition_type: on_job_success
-        enabled: true
-      advice-slip->universities-search:
-        source_job: advice-slip
-        target_job: universities-search
-        condition_type: on_job_success
-        enabled: true
-      public-holidays->advice-slip:
-        source_job: public-holidays
-        target_job: advice-slip
-        condition_type: on_job_success
-        enabled: true
-      bored-activity->public-holidays:
-        source_job: bored-activity
-        target_job: public-holidays
-        condition_type: on_job_success
-        enabled: true
-      crypto-price->bored-activity:
-        source_job: crypto-price
-        target_job: bored-activity
-        condition_type: on_job_success
-        enabled: true
-      iss-location->crypto-price:
-        source_job: iss-location
-        target_job: crypto-price
-        condition_type: on_job_success
-        enabled: true
-      numbers-trivia->iss-location:
-        source_job: numbers-trivia
-        target_job: iss-location
-        condition_type: on_job_success
-        enabled: true
-      cat-fact->numbers-trivia:
-        source_job: cat-fact
-        target_job: numbers-trivia
-        condition_type: on_job_success
-        enabled: true
-      dog-image->cat-fact:
-        source_job: dog-image
-        target_job: cat-fact
-        condition_type: on_job_success
-        enabled: true
-      random-user->dog-image:
-        source_job: random-user
-        target_job: dog-image
-        condition_type: on_job_success
-        enabled: true
-      github-repo->random-user:
-        source_job: github-repo
-        target_job: random-user
-        condition_type: on_job_success
-        enabled: true
-      jsonplaceholder-create->github-repo:
-        source_job: jsonplaceholder-create
-        target_job: github-repo
-        condition_type: on_job_success
-        enabled: true
-      jsonplaceholder-list->jsonplaceholder-create:
-        source_job: jsonplaceholder-list
-        target_job: jsonplaceholder-create
-        condition_type: on_job_success
-        enabled: true
-      httpbin-headers->jsonplaceholder-list:
-        source_job: httpbin-headers
-        target_job: jsonplaceholder-list
-        condition_type: on_job_success
-        enabled: true
-      "Test-\"Sync\"-v2.0-<PROD>-[EMEA]-@50%-—-cøst=$1,200-&-done≠true-🚀->httpbin-headers":
-        source_job: 'Test-"Sync"-v2.0-<PROD>-[EMEA]-@50%-—-cøst=$1,200-&-done≠true-🚀'
-        target_job: httpbin-headers
-        condition_type: on_job_success
-        enabled: true
-      "فحص-المريض->Test-\"Sync\"-v2.0-<PROD>-[EMEA]-@50%-—-cøst=$1,200-&-done≠true-🚀":
-        source_job: 'فحص-المريض'
-        target_job: 'Test-"Sync"-v2.0-<PROD>-[EMEA]-@50%-—-cøst=$1,200-&-done≠true-🚀'
         condition_type: on_job_success
         enabled: true
       "患者確認->فحص-المريض":
@@ -21499,9 +21487,94 @@ workflows:
         target_job: 'فحص-المريض'
         condition_type: on_job_success
         enabled: true
-      "webhook->Vérifier-l'état-du-dossier":
-        source_trigger: webhook
-        target_job: 'Vérifier-l''état-du-dossier'
+      "فحص-المريض->Test-\"Sync\"-v2.0-<PROD>-[EMEA]-@50%-—-cøst=$1,200-&-done≠true-🚀":
+        source_job: 'فحص-المريض'
+        target_job: 'Test-"Sync"-v2.0-<PROD>-[EMEA]-@50%-—-cøst=$1,200-&-done≠true-🚀'
+        condition_type: on_job_success
+        enabled: true
+      "Test-\"Sync\"-v2.0-<PROD>-[EMEA]-@50%-—-cøst=$1,200-&-done≠true-🚀->httpbin-headers":
+        source_job: 'Test-"Sync"-v2.0-<PROD>-[EMEA]-@50%-—-cøst=$1,200-&-done≠true-🚀'
+        target_job: httpbin-headers
+        condition_type: on_job_success
+        enabled: true
+      httpbin-headers->jsonplaceholder-list:
+        source_job: httpbin-headers
+        target_job: jsonplaceholder-list
+        condition_type: on_job_success
+        enabled: true
+      jsonplaceholder-list->jsonplaceholder-create:
+        source_job: jsonplaceholder-list
+        target_job: jsonplaceholder-create
+        condition_type: on_job_success
+        enabled: true
+      jsonplaceholder-create->github-repo:
+        source_job: jsonplaceholder-create
+        target_job: github-repo
+        condition_type: on_job_success
+        enabled: true
+      github-repo->random-user:
+        source_job: github-repo
+        target_job: random-user
+        condition_type: on_job_success
+        enabled: true
+      random-user->dog-image:
+        source_job: random-user
+        target_job: dog-image
+        condition_type: on_job_success
+        enabled: true
+      dog-image->cat-fact:
+        source_job: dog-image
+        target_job: cat-fact
+        condition_type: on_job_success
+        enabled: true
+      cat-fact->numbers-trivia:
+        source_job: cat-fact
+        target_job: numbers-trivia
+        condition_type: on_job_success
+        enabled: true
+      numbers-trivia->iss-location:
+        source_job: numbers-trivia
+        target_job: iss-location
+        condition_type: on_job_success
+        enabled: true
+      iss-location->crypto-price:
+        source_job: iss-location
+        target_job: crypto-price
+        condition_type: on_job_success
+        enabled: true
+      crypto-price->bored-activity:
+        source_job: crypto-price
+        target_job: bored-activity
+        condition_type: on_job_success
+        enabled: true
+      bored-activity->public-holidays:
+        source_job: bored-activity
+        target_job: public-holidays
+        condition_type: on_job_success
+        enabled: true
+      public-holidays->advice-slip:
+        source_job: public-holidays
+        target_job: advice-slip
+        condition_type: on_job_success
+        enabled: true
+      advice-slip->universities-search:
+        source_job: advice-slip
+        target_job: universities-search
+        condition_type: on_job_success
+        enabled: true
+      universities-search->intentional-fail:
+        source_job: universities-search
+        target_job: intentional-fail
+        condition_type: on_job_success
+        enabled: true
+      intentional-fail->qa-summary:
+        source_job: intentional-fail
+        target_job: qa-summary
+        condition_type: on_job_success
+        enabled: true
+      qa-summary->notify-failures:
+        source_job: qa-summary
+        target_job: notify-failures
         condition_type: always
         enabled: true
   GitHub-Customer-Bug-Workflow:
@@ -22954,11 +23027,16 @@ workflows:
       webhook:
         type: webhook
         webhook_reply: before_start
-        enabled: true
+        enabled: false
     edges:
-      "فحص-المريض->httpbin-status":
-        source_job: 'فحص-المريض'
-        target_job: httpbin-status
+      "webhook->Vérifier-l'état-du-dossier":
+        source_trigger: webhook
+        target_job: 'Vérifier-l''état-du-dossier'
+        condition_type: always
+        enabled: true
+      "Vérifier-l'état-du-dossier->患者確認":
+        source_job: 'Vérifier-l''état-du-dossier'
+        target_job: '患者確認'
         condition_type: on_job_success
         enabled: true
       "患者確認->فحص-المريض":
@@ -22966,19 +23044,9 @@ workflows:
         target_job: 'فحص-المريض'
         condition_type: on_job_success
         enabled: true
-      "Vérifier-l'état-du-dossier->患者確認":
-        source_job: 'Vérifier-l''état-du-dossier'
-        target_job: '患者確認'
-        condition_type: on_job_success
-        enabled: true
-      "webhook->Vérifier-l'état-du-dossier":
-        source_trigger: webhook
-        target_job: 'Vérifier-l''état-du-dossier'
-        condition_type: always
-        enabled: true
-      jsonplaceholder-list->jsonplaceholder-create:
-        source_job: jsonplaceholder-list
-        target_job: jsonplaceholder-create
+      "فحص-المريض->httpbin-status":
+        source_job: 'فحص-المريض'
+        target_job: httpbin-status
         condition_type: on_job_success
         enabled: true
       httpbin-status->httpbin-headers:
@@ -22986,24 +23054,14 @@ workflows:
         target_job: httpbin-headers
         condition_type: on_job_success
         enabled: true
-      cat-fact->numbers-trivia:
-        source_job: cat-fact
-        target_job: numbers-trivia
+      httpbin-headers->jsonplaceholder-list:
+        source_job: httpbin-headers
+        target_job: jsonplaceholder-list
         condition_type: on_job_success
         enabled: true
-      dog-image->cat-fact:
-        source_job: dog-image
-        target_job: cat-fact
-        condition_type: on_job_success
-        enabled: true
-      random-user->dog-image:
-        source_job: random-user
-        target_job: dog-image
-        condition_type: on_job_success
-        enabled: true
-      github-repo->random-user:
-        source_job: github-repo
-        target_job: random-user
+      jsonplaceholder-list->jsonplaceholder-create:
+        source_job: jsonplaceholder-list
+        target_job: jsonplaceholder-create
         condition_type: on_job_success
         enabled: true
       jsonplaceholder-create->github-repo:
@@ -23011,9 +23069,59 @@ workflows:
         target_job: github-repo
         condition_type: on_job_success
         enabled: true
-      httpbin-headers->jsonplaceholder-list:
-        source_job: httpbin-headers
-        target_job: jsonplaceholder-list
+      github-repo->random-user:
+        source_job: github-repo
+        target_job: random-user
+        condition_type: on_job_success
+        enabled: true
+      random-user->dog-image:
+        source_job: random-user
+        target_job: dog-image
+        condition_type: on_job_success
+        enabled: true
+      dog-image->cat-fact:
+        source_job: dog-image
+        target_job: cat-fact
+        condition_type: on_job_success
+        enabled: true
+      cat-fact->numbers-trivia:
+        source_job: cat-fact
+        target_job: numbers-trivia
+        condition_type: on_job_success
+        enabled: true
+      numbers-trivia->iss-location:
+        source_job: numbers-trivia
+        target_job: iss-location
+        condition_type: on_job_success
+        enabled: true
+      iss-location->crypto-price:
+        source_job: iss-location
+        target_job: crypto-price
+        condition_type: on_job_success
+        enabled: true
+      crypto-price->bored-activity:
+        source_job: crypto-price
+        target_job: bored-activity
+        condition_type: on_job_success
+        enabled: true
+      bored-activity->public-holidays:
+        source_job: bored-activity
+        target_job: public-holidays
+        condition_type: on_job_success
+        enabled: true
+      public-holidays->advice-slip:
+        source_job: public-holidays
+        target_job: advice-slip
+        condition_type: on_job_success
+        enabled: true
+      advice-slip->universities-search:
+        source_job: advice-slip
+        target_job: universities-search
+        condition_type: on_job_success
+        enabled: true
+      universities-search->intentional-fail:
+        source_job: universities-search
+        target_job: intentional-fail
         condition_type: on_job_success
         enabled: true
       intentional-fail->qa-summary:
@@ -23025,41 +23133,6 @@ workflows:
         source_job: qa-summary
         target_job: notify-failures
         condition_type: always
-        enabled: true
-      universities-search->intentional-fail:
-        source_job: universities-search
-        target_job: intentional-fail
-        condition_type: on_job_success
-        enabled: true
-      advice-slip->universities-search:
-        source_job: advice-slip
-        target_job: universities-search
-        condition_type: on_job_success
-        enabled: true
-      public-holidays->advice-slip:
-        source_job: public-holidays
-        target_job: advice-slip
-        condition_type: on_job_success
-        enabled: true
-      bored-activity->public-holidays:
-        source_job: bored-activity
-        target_job: public-holidays
-        condition_type: on_job_success
-        enabled: true
-      crypto-price->bored-activity:
-        source_job: crypto-price
-        target_job: bored-activity
-        condition_type: on_job_success
-        enabled: true
-      iss-location->crypto-price:
-        source_job: iss-location
-        target_job: crypto-price
-        condition_type: on_job_success
-        enabled: true
-      numbers-trivia->iss-location:
-        source_job: numbers-trivia
-        target_job: iss-location
-        condition_type: on_job_success
         enabled: true
   OpenFn-Platform-Self-Test-1:
     name: OpenFn Platform Self-Test 1
