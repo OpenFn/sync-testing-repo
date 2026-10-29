@@ -4,7 +4,7 @@ forked_from:
   10-node-data-pipeline-demo-1: cli:30fbc0c41eb0
   10-node-data-pipeline-demo-1-rename: cli:f5d6a9dc1440
   2-19-0-pre-rename: cli:b00f8146191b
-  2-20-rename-can-delete: app:da68c03aab91
+  2-20-rename-can-delete: cli:9a72acddfedc
   20-node-self-testing-workflow-1: cli:1cd7e49c3643
   a-2-18-test-workflow: cli:97e50a419376
   a-2-18-test-workflow-1: app:cfec95ab8b0a
@@ -65,7 +65,7 @@ forked_from:
 id: megan-is-qa-testing-here
 inserted_at: 2026-06-25T07:29:24Z
 name: megan-is-qa-testing-here
-updated_at: 2026-10-29T10:30:42Z
+updated_at: 2026-10-29T22:17:04Z
 uuid: f16dcb41-c3b0-44b1-a26c-1696a595dac9
 workflow_uuids:
   10-node-data-pipeline-demo-1: 23e4ccc4-0125-4b2b-bd8a-2f838867603e
