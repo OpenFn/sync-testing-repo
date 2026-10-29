@@ -1,0 +1,32 @@
+id: a-2-18-test-workflow-2
+name: A 2.18 test workflow 2
+start: webhook
+steps:
+  - id: step-1
+    name: Step 1
+    adaptor: '@openfn/language-common@latest'
+    expression: ./step-1.js
+    next:
+      step-2-if-fail:
+        disabled: false
+        condition: on_job_failure
+        label: fail step 1
+  - id: step-2-if-fail
+    name: Step 2 - if fail
+    adaptor: '@openfn/language-common@3.3.4'
+    expression: ./step-2-if-fail.js
+    next:
+      step-2-if-fail-test:
+        disabled: false
+        condition: on_job_success
+  - id: step-2-if-fail-test
+    name: Step 2 - if fail test
+    adaptor: '@openfn/language-common@3.3.4'
+    expression: ./step-2-if-fail-test.js
+  - id: webhook
+    type: webhook
+    webhook_reply: before_start
+    next:
+      step-1:
+        disabled: false
+        condition: always

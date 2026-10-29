@@ -1,0 +1,46 @@
+id: openfn-self-test-workflow
+name: OpenFn Self-Test Workflow
+start: webhook
+steps:
+  - id: handle-test-failure
+    name: Handle Test Failure
+    adaptor: '@openfn/language-common@latest'
+    expression: ./handle-test-failure.js
+  - id: handle-test-success
+    name: Handle Test Success
+    adaptor: '@openfn/language-common@latest'
+    expression: ./handle-test-success.js
+  - id: initialize-tests
+    name: Initialize Tests
+    adaptor: '@openfn/language-common@latest'
+    expression: ./initialize-tests.js
+    next:
+      test-data-transformation:
+        disabled: false
+        condition: on_job_success
+  - id: test-data-transformation
+    name: Test Data Transformation
+    adaptor: '@openfn/language-common@latest'
+    expression: ./test-data-transformation.js
+    next:
+      test-http-request:
+        disabled: false
+        condition: on_job_success
+  - id: test-http-request
+    name: Test HTTP Request
+    adaptor: '@openfn/language-http@latest'
+    expression: ./test-http-request.js
+    next:
+      handle-test-failure:
+        disabled: false
+        condition: on_job_failure
+      handle-test-success:
+        disabled: false
+        condition: on_job_success
+  - id: webhook
+    type: webhook
+    webhook_reply: before_start
+    next:
+      initialize-tests:
+        disabled: false
+        condition: always

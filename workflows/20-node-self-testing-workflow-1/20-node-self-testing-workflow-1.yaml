@@ -1,0 +1,167 @@
+id: 20-node-self-testing-workflow-1
+name: 20-Node Self-Testing Workflow 1
+start: webhook
+steps:
+  - id: compile-test-results
+    name: Compile Test Results
+    adaptor: '@openfn/language-common@latest'
+    expression: ./compile-test-results.js
+    next:
+      send-test-report:
+        disabled: false
+        condition: always
+  - id: initialize-test-suite
+    name: Initialize Test Suite
+    adaptor: '@openfn/language-common@latest'
+    expression: ./initialize-test-suite.js
+    next:
+      test-http-connectivity:
+        disabled: false
+        condition: on_job_success
+  - id: send-test-report
+    name: Send Test Report
+    adaptor: '@openfn/language-http@latest'
+    expression: ./send-test-report.js
+  - id: test-array-operations
+    name: Test Array Operations
+    adaptor: '@openfn/language-common@latest'
+    expression: ./test-array-operations.js
+    next:
+      test-object-mapping:
+        disabled: false
+        condition: on_job_success
+  - id: test-conditional-logic
+    name: Test Conditional Logic
+    adaptor: '@openfn/language-common@latest'
+    expression: ./test-conditional-logic.js
+    next:
+      test-data-aggregation:
+        disabled: false
+        condition: on_job_success
+  - id: test-data-aggregation
+    name: Test Data Aggregation
+    adaptor: '@openfn/language-common@latest'
+    expression: ./test-data-aggregation.js
+    next:
+      test-string-operations:
+        disabled: false
+        condition: on_job_success
+  - id: test-data-transformation
+    name: Test Data Transformation
+    adaptor: '@openfn/language-common@latest'
+    expression: ./test-data-transformation.js
+    next:
+      test-error-handling:
+        disabled: false
+        condition: always
+  - id: test-date-handling
+    name: Test Date Handling
+    adaptor: '@openfn/language-common@latest'
+    expression: ./test-date-handling.js
+    next:
+      test-number-formatting:
+        disabled: false
+        condition: on_job_success
+  - id: test-decoding
+    name: Test Decoding
+    adaptor: '@openfn/language-common@latest'
+    expression: ./test-decoding.js
+    next:
+      compile-test-results:
+        disabled: false
+        condition: always
+  - id: test-encoding
+    name: Test Encoding
+    adaptor: '@openfn/language-common@latest'
+    expression: ./test-encoding.js
+    next:
+      test-decoding:
+        disabled: false
+        condition: on_job_success
+  - id: test-error-handling
+    name: Test Error Handling
+    adaptor: '@openfn/language-common@latest'
+    expression: ./test-error-handling.js
+    next:
+      test-conditional-logic:
+        disabled: false
+        condition: always
+  - id: test-filtering
+    name: Test Filtering
+    adaptor: '@openfn/language-common@latest'
+    expression: ./test-filtering.js
+    next:
+      test-sorting:
+        disabled: false
+        condition: on_job_success
+  - id: test-http-connectivity
+    name: Test HTTP Connectivity
+    adaptor: '@openfn/language-http@latest'
+    expression: ./test-http-connectivity.js
+    next:
+      test-data-transformation:
+        disabled: false
+        condition: always
+  - id: test-merging-data
+    name: Test Merging Data
+    adaptor: '@openfn/language-common@latest'
+    expression: ./test-merging-data.js
+    next:
+      test-splitting-data:
+        disabled: false
+        condition: on_job_success
+  - id: test-number-formatting
+    name: Test Number Formatting
+    adaptor: '@openfn/language-common@latest'
+    expression: ./test-number-formatting.js
+    next:
+      test-validation-logic:
+        disabled: false
+        condition: on_job_success
+  - id: test-object-mapping
+    name: Test Object Mapping
+    adaptor: '@openfn/language-common@latest'
+    expression: ./test-object-mapping.js
+    next:
+      test-date-handling:
+        disabled: false
+        condition: on_job_success
+  - id: test-sorting
+    name: Test Sorting
+    adaptor: '@openfn/language-common@latest'
+    expression: ./test-sorting.js
+    next:
+      test-merging-data:
+        disabled: false
+        condition: on_job_success
+  - id: test-splitting-data
+    name: Test Splitting Data
+    adaptor: '@openfn/language-common@latest'
+    expression: ./test-splitting-data.js
+    next:
+      test-encoding:
+        disabled: false
+        condition: on_job_success
+  - id: test-string-operations
+    name: Test String Operations
+    adaptor: '@openfn/language-common@latest'
+    expression: ./test-string-operations.js
+    next:
+      test-array-operations:
+        disabled: false
+        condition: on_job_success
+  - id: test-validation-logic
+    name: Test Validation Logic
+    adaptor: '@openfn/language-common@latest'
+    expression: ./test-validation-logic.js
+    next:
+      test-filtering:
+        disabled: false
+        condition: on_job_success
+  - id: webhook
+    type: webhook
+    webhook_reply: before_start
+    next:
+      initialize-test-suite:
+        disabled: false
+        condition: always

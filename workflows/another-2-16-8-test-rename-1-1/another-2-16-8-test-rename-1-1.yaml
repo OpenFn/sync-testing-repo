@@ -1,0 +1,66 @@
+id: another-2-16-8-test-rename-1-1
+name: Another 2.16.8 test - rename 1 1
+start: webhook
+steps:
+  - id: dhis2
+    name: Dhis2
+    adaptor: '@openfn/language-dhis2@8.2.0'
+    expression: ./dhis2.js
+    next:
+      dhis2-2:
+        disabled: false
+        condition: on_job_failure
+        label: failed
+      dhis2-1:
+        disabled: false
+        condition: on_job_success
+  - id: dhis2-1
+    name: Dhis2 1
+    adaptor: '@openfn/language-dhis2@8.2.0'
+    expression: ./dhis2-1.js
+    next:
+      test-job:
+        disabled: false
+        condition: always
+  - id: dhis2-2
+    name: Dhis2 2
+    adaptor: '@openfn/language-dhis2@8.2.0'
+    expression: ./dhis2-2.js
+    next:
+      dhis2-3:
+        disabled: false
+        condition: on_job_success
+      dhis2-1:
+        disabled: false
+        condition: on_job_success
+  - id: dhis2-3
+    name: Dhis2 3
+    adaptor: '@openfn/language-dhis2@8.2.0'
+    expression: ./dhis2-3.js
+    next:
+      http:
+        disabled: false
+        condition: on_job_success
+  - id: http
+    name: Http
+    adaptor: '@openfn/language-common@3.3.4'
+    expression: ./http.js
+  - id: test-job
+    name: Test job
+    adaptor: '@openfn/language-common@latest'
+    expression: ./test-job.js
+  - id: transform-data
+    name: Transform data
+    adaptor: '@openfn/language-common@latest'
+    expression: ./transform-data.js
+    next:
+      dhis2:
+        disabled: false
+        condition: on_job_success
+  - id: webhook
+    type: webhook
+    webhook_reply: before_start
+    next:
+      transform-data:
+        disabled: false
+        condition: always

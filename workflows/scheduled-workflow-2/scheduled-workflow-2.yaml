@@ -1,0 +1,15 @@
+id: scheduled-workflow-2
+name: Scheduled workflow 2
+start: cron
+steps:
+  - id: cron
+    type: cron
+    cron_expression: 0 0 * * *
+    next:
+      get-data:
+        disabled: false
+        condition: always
+  - id: get-data
+    name: Get data
+    adaptor: '@openfn/language-http@latest'
+    expression: ./get-data.js

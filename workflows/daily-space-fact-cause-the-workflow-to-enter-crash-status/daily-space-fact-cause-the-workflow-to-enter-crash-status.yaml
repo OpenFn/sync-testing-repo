@@ -1,0 +1,31 @@
+id: daily-space-fact-cause-the-workflow-to-enter-crash-status
+name: Daily Space Fact (cause the workflow to enter crash status)
+start: cron
+steps:
+  - id: cron
+    type: cron
+    cron_expression: 0 0 * * *
+    next:
+      fetch-apod:
+        disabled: false
+        condition: always
+  - id: fetch-apod
+    name: fetch-apod
+    adaptor: '@openfn/language-http@7.3.3'
+    expression: ./fetch-apod.js
+    next:
+      format-message:
+        disabled: false
+        condition: on_job_success
+  - id: format-message
+    name: format-message
+    adaptor: '@openfn/language-common@3.3.5'
+    expression: ./format-message.js
+    next:
+      send-notification:
+        disabled: false
+        condition: on_job_success
+  - id: send-notification
+    name: send-notification
+    adaptor: '@openfn/language-http@7.3.3'
+    expression: ./send-notification.js

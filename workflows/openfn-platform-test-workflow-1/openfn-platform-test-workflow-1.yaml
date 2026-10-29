@@ -1,0 +1,53 @@
+id: openfn-platform-test-workflow-1
+name: OpenFn Platform Test Workflow 1
+start: webhook
+steps:
+  - id: final-summary-log
+    name: Final Summary Log
+    adaptor: '@openfn/language-common@latest'
+    expression: ./final-summary-log.js
+  - id: handle-http-failure
+    name: Handle HTTP Failure
+    adaptor: '@openfn/language-common@latest'
+    expression: ./handle-http-failure.js
+  - id: handle-validation-failure
+    name: Handle Validation Failure
+    adaptor: '@openfn/language-common@latest'
+    expression: ./handle-validation-failure.js
+  - id: make-http-request
+    name: Make HTTP Request
+    adaptor: '@openfn/language-http@latest'
+    expression: ./make-http-request.js
+    next:
+      process-http-response:
+        disabled: false
+        condition: on_job_success
+      handle-http-failure:
+        disabled: false
+        condition: on_job_failure
+  - id: process-http-response
+    name: Process HTTP Response
+    adaptor: '@openfn/language-common@latest'
+    expression: ./process-http-response.js
+    next:
+      final-summary-log:
+        disabled: false
+        condition: always
+  - id: validate-input
+    name: Validate Input
+    adaptor: '@openfn/language-common@latest'
+    expression: ./validate-input.js
+    next:
+      handle-validation-failure:
+        disabled: false
+        condition: on_job_failure
+      make-http-request:
+        disabled: false
+        condition: on_job_success
+  - id: webhook
+    type: webhook
+    webhook_reply: before_start
+    next:
+      validate-input:
+        disabled: false
+        condition: always

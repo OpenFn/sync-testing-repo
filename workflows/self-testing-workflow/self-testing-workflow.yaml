@@ -1,0 +1,167 @@
+id: self-testing-workflow
+name: Self-Testing Workflow
+start: webhook
+steps:
+  - id: generate-test-report
+    name: Generate Test Report
+    adaptor: '@openfn/language-common@latest'
+    expression: ./generate-test-report.js
+  - id: initialize-test-run
+    name: Initialize Test Run
+    adaptor: '@openfn/language-common@latest'
+    expression: ./initialize-test-run.js
+    next:
+      test-http-get-request:
+        disabled: false
+        condition: on_job_success
+  - id: test-authentication
+    name: Test Authentication
+    adaptor: '@openfn/language-http@latest'
+    expression: ./test-authentication.js
+    next:
+      test-pagination:
+        disabled: false
+        condition: on_job_success
+  - id: test-bulk-operations
+    name: Test Bulk Operations
+    adaptor: '@openfn/language-common@latest'
+    expression: ./test-bulk-operations.js
+    next:
+      test-error-handling:
+        disabled: false
+        condition: always
+  - id: test-conditional-logic
+    name: Test Conditional Logic
+    adaptor: '@openfn/language-common@latest'
+    expression: ./test-conditional-logic.js
+    next:
+      test-postgresql-read:
+        disabled: false
+        condition: on_job_success
+  - id: test-data-mapping
+    name: Test Data Mapping
+    adaptor: '@openfn/language-common@latest'
+    expression: ./test-data-mapping.js
+    next:
+      test-authentication:
+        disabled: false
+        condition: on_job_success
+  - id: test-data-transformation
+    name: Test Data Transformation
+    adaptor: '@openfn/language-common@latest'
+    expression: ./test-data-transformation.js
+    next:
+      test-conditional-logic:
+        disabled: false
+        condition: on_job_success
+  - id: test-data-validation
+    name: Test Data Validation
+    adaptor: '@openfn/language-common@latest'
+    expression: ./test-data-validation.js
+    next:
+      test-data-mapping:
+        disabled: false
+        condition: on_job_success
+  - id: test-error-handling
+    name: Test Error Handling
+    adaptor: '@openfn/language-common@latest'
+    expression: ./test-error-handling.js
+    next:
+      test-sftp-read:
+        disabled: false
+        condition: on_job_success
+  - id: test-google-sheets-read
+    name: Test Google Sheets Read
+    adaptor: '@openfn/language-googlesheets@latest'
+    expression: ./test-google-sheets-read.js
+    next:
+      test-google-sheets-write:
+        disabled: false
+        condition: on_job_success
+  - id: test-google-sheets-write
+    name: Test Google Sheets Write
+    adaptor: '@openfn/language-googlesheets@latest'
+    expression: ./test-google-sheets-write.js
+    next:
+      test-logging:
+        disabled: false
+        condition: on_job_success
+  - id: test-http-get-request
+    name: Test HTTP GET Request
+    adaptor: '@openfn/language-http@latest'
+    expression: ./test-http-get-request.js
+    next:
+      test-http-post-request:
+        disabled: false
+        condition: on_job_success
+  - id: test-http-post-request
+    name: Test HTTP POST Request
+    adaptor: '@openfn/language-http@latest'
+    expression: ./test-http-post-request.js
+    next:
+      test-data-transformation:
+        disabled: false
+        condition: on_job_success
+  - id: test-logging
+    name: Test Logging
+    adaptor: '@openfn/language-common@latest'
+    expression: ./test-logging.js
+    next:
+      test-notifications:
+        disabled: false
+        condition: on_job_success
+  - id: test-notifications
+    name: Test Notifications
+    adaptor: '@openfn/language-http@latest'
+    expression: ./test-notifications.js
+    next:
+      generate-test-report:
+        disabled: false
+        condition: always
+  - id: test-pagination
+    name: Test Pagination
+    adaptor: '@openfn/language-http@latest'
+    expression: ./test-pagination.js
+    next:
+      test-bulk-operations:
+        disabled: false
+        condition: on_job_success
+  - id: test-postgresql-read
+    name: Test PostgreSQL Read
+    adaptor: '@openfn/language-postgresql@latest'
+    expression: ./test-postgresql-read.js
+    next:
+      test-postgresql-write:
+        disabled: false
+        condition: on_job_success
+  - id: test-postgresql-write
+    name: Test PostgreSQL Write
+    adaptor: '@openfn/language-postgresql@latest'
+    expression: ./test-postgresql-write.js
+    next:
+      test-data-validation:
+        disabled: false
+        condition: on_job_success
+  - id: test-sftp-read
+    name: Test SFTP Read
+    adaptor: '@openfn/language-sftp@latest'
+    expression: ./test-sftp-read.js
+    next:
+      test-sftp-write:
+        disabled: false
+        condition: on_job_success
+  - id: test-sftp-write
+    name: Test SFTP Write
+    adaptor: '@openfn/language-sftp@latest'
+    expression: ./test-sftp-write.js
+    next:
+      test-google-sheets-read:
+        disabled: false
+        condition: on_job_success
+  - id: webhook
+    type: webhook
+    webhook_reply: before_start
+    next:
+      initialize-test-run:
+        disabled: false
+        condition: always

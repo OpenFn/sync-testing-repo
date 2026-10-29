@@ -1,0 +1,23 @@
+id: github-bug-report-email-notification
+name: GitHub Bug Report Email Notification
+start: webhook
+steps:
+  - id: process-github-bug-report
+    name: Process GitHub Bug Report
+    adaptor: '@openfn/language-common@latest'
+    expression: ./process-github-bug-report.js
+    next:
+      send-bug-report-email:
+        disabled: false
+        condition: on_job_success
+  - id: send-bug-report-email
+    name: Send Bug Report Email
+    adaptor: '@openfn/language-gmail@latest'
+    expression: ./send-bug-report-email.js
+  - id: webhook
+    type: webhook
+    webhook_reply: before_start
+    next:
+      process-github-bug-report:
+        disabled: false
+        condition: always

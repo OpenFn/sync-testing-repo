@@ -1,0 +1,32 @@
+id: 2-20-rename-can-delete
+name: 2.20 rename (can delete)
+start: webhook
+steps:
+  - id: http
+    name: Http
+    adaptor: '@openfn/language-http@7.3.3'
+    configuration: megan@openfn.org|megan21
+    expression: ./http.js
+  - id: http-1
+    name: Http 1
+    adaptor: '@openfn/language-http@7.3.3'
+    expression: ./http-1.js
+  - id: untitled-step
+    name: Untitled step
+    adaptor: '@openfn/language-common@latest'
+    expression: ./untitled-step.js
+    next:
+      http:
+        disabled: false
+        condition: on_job_success
+      http-1:
+        disabled: false
+        condition: on_job_failure
+        label: on failure test
+  - id: webhook
+    type: webhook
+    webhook_reply: before_start
+    next:
+      untitled-step:
+        disabled: false
+        condition: always

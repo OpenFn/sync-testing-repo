@@ -1,0 +1,15 @@
+id: cron-workflow
+name: Cron Workflow
+start: cron
+steps:
+  - id: cron
+    type: cron
+    cron_expression: 0 0 * * *
+    next:
+      cron-job:
+        disabled: false
+        condition: always
+  - id: cron-job
+    name: Cron Job
+    adaptor: '@openfn/language-common@latest'
+    expression: ./cron-job.js

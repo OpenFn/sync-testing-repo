@@ -1,0 +1,38 @@
+id: event-based-workflow-1-rename-2
+name: Event-based workflow 1 rename 2
+start: webhook
+steps:
+  - id: http
+    name: Http
+    adaptor: '@openfn/language-http@7.3.3'
+    expression: ./http.js
+    next:
+      http-1:
+        disabled: false
+        condition: on_job_success
+      http-2:
+        disabled: false
+        condition: on_job_failure
+  - id: http-1
+    name: Http 1
+    adaptor: '@openfn/language-http@7.3.3'
+    expression: ./http-1.js
+  - id: http-2
+    name: Http 2
+    adaptor: '@openfn/language-http@7.3.3'
+    expression: ./http-2.js
+  - id: transform-data
+    name: Transform data
+    adaptor: '@openfn/language-common@latest'
+    expression: ./transform-data.js
+    next:
+      http:
+        disabled: false
+        condition: on_job_success
+  - id: webhook
+    type: webhook
+    webhook_reply: before_start
+    next:
+      transform-data:
+        disabled: false
+        condition: always

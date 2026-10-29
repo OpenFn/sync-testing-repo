@@ -1,0 +1,23 @@
+id: cat-poem-generator
+name: Cat Poem Generator
+start: cron
+steps:
+  - id: cron
+    type: cron
+    cron_expression: 0 0 * * *
+    next:
+      generate-cat-poem:
+        disabled: false
+        condition: always
+  - id: generate-cat-poem
+    name: Generate Cat Poem
+    adaptor: '@openfn/language-gemini@latest'
+    expression: ./generate-cat-poem.js
+    next:
+      post-to-discord:
+        disabled: false
+        condition: on_job_success
+  - id: post-to-discord
+    name: Post to Discord
+    adaptor: '@openfn/language-http@latest'
+    expression: ./post-to-discord.js

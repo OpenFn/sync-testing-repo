@@ -1,0 +1,87 @@
+id: self-testing-workflow-10-nodes
+name: Self-Testing Workflow (10 Nodes)
+start: webhook
+steps:
+  - id: generate-test-report
+    name: Generate Test Report
+    adaptor: '@openfn/language-common@latest'
+    expression: ./generate-test-report.js
+  - id: handle-expected-failure
+    name: Handle Expected Failure
+    adaptor: '@openfn/language-common@latest'
+    expression: ./handle-expected-failure.js
+    next:
+      test-string-operations:
+        disabled: false
+        condition: on_job_success
+  - id: initialize-test-suite
+    name: Initialize Test Suite
+    adaptor: '@openfn/language-common@latest'
+    expression: ./initialize-test-suite.js
+    next:
+      test-data-transformation:
+        disabled: false
+        condition: on_job_success
+  - id: test-array-operations
+    name: Test Array Operations
+    adaptor: '@openfn/language-common@latest'
+    expression: ./test-array-operations.js
+    next:
+      validate-array-results:
+        disabled: false
+        condition: on_job_success
+  - id: test-data-transformation
+    name: Test Data Transformation
+    adaptor: '@openfn/language-common@latest'
+    expression: ./test-data-transformation.js
+    next:
+      validate-transformed-data:
+        disabled: false
+        condition: on_job_success
+  - id: test-numeric-calculations
+    name: Test Numeric Calculations
+    adaptor: '@openfn/language-common@latest'
+    expression: ./test-numeric-calculations.js
+    next:
+      generate-test-report:
+        disabled: false
+        condition: on_job_success
+  - id: test-string-operations
+    name: Test String Operations
+    adaptor: '@openfn/language-common@latest'
+    expression: ./test-string-operations.js
+    next:
+      test-numeric-calculations:
+        disabled: false
+        condition: on_job_success
+  - id: trigger-intentional-failure
+    name: Trigger Intentional Failure
+    adaptor: '@openfn/language-common@latest'
+    expression: ./trigger-intentional-failure.js
+    next:
+      handle-expected-failure:
+        disabled: false
+        condition: on_job_failure
+  - id: validate-array-results
+    name: Validate Array Results
+    adaptor: '@openfn/language-common@latest'
+    expression: ./validate-array-results.js
+    next:
+      trigger-intentional-failure:
+        disabled: false
+        condition: on_job_success
+  - id: validate-transformed-data
+    name: Validate Transformed Data
+    adaptor: '@openfn/language-common@latest'
+    expression: ./validate-transformed-data.js
+    next:
+      test-array-operations:
+        disabled: false
+        condition: on_job_success
+  - id: webhook
+    type: webhook
+    webhook_reply: before_start
+    next:
+      initialize-test-suite:
+        disabled: false
+        condition: always

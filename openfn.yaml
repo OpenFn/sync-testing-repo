@@ -1,0 +1,8 @@
+credentials: credentials.yaml
+dirs:
+  projects: .projects
+  workflows: workflows
+formats:
+  openfn: yaml
+  project: yaml
+  workflow: yaml

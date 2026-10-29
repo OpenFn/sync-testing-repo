@@ -1,0 +1,85 @@
+id: 10-node-data-pipeline-demo-1
+name: 10-Node Data Pipeline Demo 1
+start: webhook
+steps:
+  - id: archive-results
+    name: Archive Results
+    adaptor: '@openfn/language-http@latest'
+    expression: ./archive-results.js
+  - id: fetch-external-data
+    name: Fetch External Data
+    adaptor: '@openfn/language-http@latest'
+    expression: ./fetch-external-data.js
+    next:
+      transform-and-enrich-data:
+        disabled: false
+        condition: on_job_success
+  - id: generate-final-report
+    name: Generate Final Report
+    adaptor: '@openfn/language-common@latest'
+    expression: ./generate-final-report.js
+    next:
+      archive-results:
+        disabled: false
+        condition: on_job_success
+  - id: handle-db-error
+    name: Handle DB Error
+    adaptor: '@openfn/language-common@latest'
+    expression: ./handle-db-error.js
+  - id: handle-transform-error
+    name: Handle Transform Error
+    adaptor: '@openfn/language-common@latest'
+    expression: ./handle-transform-error.js
+  - id: post-to-reporting-api
+    name: Post to Reporting API
+    adaptor: '@openfn/language-http@latest'
+    expression: ./post-to-reporting-api.js
+    next:
+      generate-final-report:
+        disabled: false
+        condition: on_job_success
+  - id: read-back-and-verify
+    name: Read Back and Verify
+    adaptor: '@openfn/language-postgresql@latest'
+    expression: ./read-back-and-verify.js
+    next:
+      post-to-reporting-api:
+        disabled: false
+        condition: on_job_success
+  - id: transform-and-enrich-data
+    name: Transform and Enrich Data
+    adaptor: '@openfn/language-common@latest'
+    expression: ./transform-and-enrich-data.js
+    next:
+      write-to-database:
+        disabled: false
+        condition: on_job_success
+      handle-transform-error:
+        disabled: false
+        condition: on_job_failure
+  - id: validate-incoming-payload
+    name: Validate Incoming Payload
+    adaptor: '@openfn/language-common@latest'
+    expression: ./validate-incoming-payload.js
+    next:
+      fetch-external-data:
+        disabled: false
+        condition: on_job_success
+  - id: webhook
+    type: webhook
+    webhook_reply: before_start
+    next:
+      validate-incoming-payload:
+        disabled: false
+        condition: always
+  - id: write-to-database
+    name: Write to Database
+    adaptor: '@openfn/language-postgresql@latest'
+    expression: ./write-to-database.js
+    next:
+      read-back-and-verify:
+        disabled: false
+        condition: on_job_success
+      handle-db-error:
+        disabled: false
+        condition: on_job_failure

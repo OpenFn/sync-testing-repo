@@ -1,0 +1,15 @@
+id: merge-conflict-test-for-sandbox
+name: Merge conflict test for Sandbox
+start: webhook
+steps:
+  - id: transform-data
+    name: Transform data
+    adaptor: '@openfn/language-http@7.3.3'
+    expression: ./transform-data.js
+  - id: webhook
+    type: webhook
+    webhook_reply: before_start
+    next:
+      transform-data:
+        disabled: false
+        condition: always

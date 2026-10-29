@@ -1,0 +1,23 @@
+id: google-sheets-bugs-to-github-issues
+name: Google Sheets Bugs to GitHub Issues
+start: cron
+steps:
+  - id: create-github-issues
+    name: Create GitHub Issues
+    adaptor: '@openfn/language-http@latest'
+    expression: ./create-github-issues.js
+  - id: cron
+    type: cron
+    cron_expression: 0 0 * * *
+    next:
+      fetch-bugs-from-google-sheets:
+        disabled: false
+        condition: always
+  - id: fetch-bugs-from-google-sheets
+    name: Fetch bugs from Google Sheets
+    adaptor: '@openfn/language-googlesheets@latest'
+    expression: ./fetch-bugs-from-google-sheets.js
+    next:
+      create-github-issues:
+        disabled: false
+        condition: on_job_success

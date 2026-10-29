@@ -1,0 +1,24 @@
+id: cat-poem-generator-1
+name: Cat Poem Generator 1
+start: webhook
+steps:
+  - id: generate-cat-poem
+    name: generate-cat-poem
+    adaptor: '@openfn/language-gemini@latest'
+    configuration: megan@openfn.org|Gemini API
+    expression: ./generate-cat-poem.js
+    next:
+      post-to-discord:
+        disabled: false
+        condition: on_job_success
+  - id: post-to-discord
+    name: post-to-discord
+    adaptor: '@openfn/language-http@latest'
+    expression: ./post-to-discord.js
+  - id: webhook
+    type: webhook
+    webhook_reply: before_start
+    next:
+      generate-cat-poem:
+        disabled: false
+        condition: always

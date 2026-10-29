@@ -1,0 +1,175 @@
+id: self-testing-qa-health-check-2
+name: Self-Testing QA Health Check 2
+start: webhook
+steps:
+  - id: advice-slip
+    name: advice-slip
+    adaptor: '@openfn/language-http@latest'
+    expression: ./advice-slip.js
+    next:
+      universities-search:
+        disabled: false
+        condition: on_job_success
+  - id: bored-activity
+    name: bored-activity
+    adaptor: '@openfn/language-http@latest'
+    expression: ./bored-activity.js
+    next:
+      public-holidays:
+        disabled: false
+        condition: on_job_success
+  - id: cat-fact
+    name: cat-fact
+    adaptor: '@openfn/language-http@latest'
+    expression: ./cat-fact.js
+    next:
+      numbers-trivia:
+        disabled: false
+        condition: on_job_success
+  - id: crypto-price
+    name: crypto-price
+    adaptor: '@openfn/language-http@latest'
+    expression: ./crypto-price.js
+    next:
+      bored-activity:
+        disabled: false
+        condition: on_job_success
+  - id: dog-image
+    name: dog-image
+    adaptor: '@openfn/language-http@latest'
+    expression: ./dog-image.js
+    next:
+      cat-fact:
+        disabled: false
+        condition: on_job_success
+  - id: github-repo
+    name: github-repo
+    adaptor: '@openfn/language-http@latest'
+    expression: ./github-repo.js
+    next:
+      random-user:
+        disabled: false
+        condition: on_job_success
+  - id: httpbin-get
+    name: httpbin-get
+    adaptor: '@openfn/language-http@latest'
+    expression: ./httpbin-get.js
+    next:
+      httpbin-post:
+        disabled: false
+        condition: on_job_success
+  - id: httpbin-headers
+    name: httpbin-headers
+    adaptor: '@openfn/language-http@latest'
+    expression: ./httpbin-headers.js
+    next:
+      jsonplaceholder-list:
+        disabled: false
+        condition: on_job_success
+  - id: httpbin-post
+    name: httpbin-post
+    adaptor: '@openfn/language-http@latest'
+    expression: ./httpbin-post.js
+    next:
+      httpbin-status:
+        disabled: false
+        condition: on_job_success
+  - id: httpbin-status
+    name: httpbin-status
+    adaptor: '@openfn/language-http@latest'
+    expression: ./httpbin-status.js
+    next:
+      httpbin-headers:
+        disabled: false
+        condition: on_job_success
+  - id: intentional-fail
+    name: intentional-fail
+    adaptor: '@openfn/language-http@latest'
+    expression: ./intentional-fail.js
+    next:
+      qa-summary:
+        disabled: false
+        condition: on_job_success
+  - id: iss-location
+    name: iss-location
+    adaptor: '@openfn/language-http@latest'
+    expression: ./iss-location.js
+    next:
+      crypto-price:
+        disabled: false
+        condition: on_job_success
+  - id: jsonplaceholder-create
+    name: jsonplaceholder-create
+    adaptor: '@openfn/language-http@latest'
+    expression: ./jsonplaceholder-create.js
+    next:
+      github-repo:
+        disabled: false
+        condition: on_job_success
+  - id: jsonplaceholder-list
+    name: jsonplaceholder-list
+    adaptor: '@openfn/language-http@latest'
+    expression: ./jsonplaceholder-list.js
+    next:
+      jsonplaceholder-create:
+        disabled: false
+        condition: on_job_success
+  - id: measure-and-strip-input
+    name: measure-and-strip-input
+    adaptor: '@openfn/language-common@latest'
+    expression: ./measure-and-strip-input.js
+    next:
+      httpbin-get:
+        disabled: false
+        condition: on_job_success
+  - id: notify-failures
+    name: notify-failures
+    adaptor: '@openfn/language-gmail@latest'
+    expression: ./notify-failures.js
+  - id: numbers-trivia
+    name: numbers-trivia
+    adaptor: '@openfn/language-http@latest'
+    expression: ./numbers-trivia.js
+    next:
+      iss-location:
+        disabled: false
+        condition: on_job_success
+  - id: public-holidays
+    name: public-holidays
+    adaptor: '@openfn/language-http@latest'
+    expression: ./public-holidays.js
+    next:
+      advice-slip:
+        disabled: false
+        condition: on_job_success
+  - id: qa-summary
+    name: qa-summary
+    adaptor: '@openfn/language-http@latest'
+    expression: ./qa-summary.js
+    next:
+      notify-failures:
+        disabled: false
+        condition: always
+  - id: random-user
+    name: random-user
+    adaptor: '@openfn/language-http@latest'
+    expression: ./random-user.js
+    next:
+      dog-image:
+        disabled: false
+        condition: on_job_success
+  - id: universities-search
+    name: universities-search
+    adaptor: '@openfn/language-http@latest'
+    expression: ./universities-search.js
+    next:
+      intentional-fail:
+        disabled: false
+        condition: on_job_success
+  - id: webhook
+    type: webhook
+    webhook_reply: before_start
+    next:
+      measure-and-strip-input:
+        disabled: false
+        condition: always

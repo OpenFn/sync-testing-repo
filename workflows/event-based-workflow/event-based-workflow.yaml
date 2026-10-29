@@ -1,0 +1,55 @@
+id: event-based-workflow
+name: Event-based workflow
+start: webhook
+steps:
+  - id: common-commoner
+    name: Common commoner
+    adaptor: '@openfn/language-dhis2@8.2.0'
+    expression: ./common-commoner.js
+    next:
+      dhis2:
+        disabled: false
+        condition: on_job_success
+  - id: dhis2
+    name: Dhis2
+    adaptor: '@openfn/language-common@latest'
+    expression: ./dhis2.js
+  - id: googlesheets
+    name: Googlesheets
+    adaptor: '@openfn/language-googlesheets@4.1.2'
+    expression: ./googlesheets.js
+    next:
+      common-commoner:
+        disabled: false
+        condition: on_job_success
+  - id: http
+    name: Http
+    adaptor: '@openfn/language-http@7.3.2'
+    expression: ./http.js
+    next:
+      googlesheets:
+        disabled: false
+        condition: on_job_success
+  - id: quick-test
+    name: Quick test
+    adaptor: '@openfn/language-testing@1.0.10'
+    expression: ./quick-test.js
+    next:
+      http:
+        disabled: false
+        condition: on_job_success
+  - id: transform-data
+    name: Transform data
+    adaptor: '@openfn/language-common@latest'
+    expression: ./transform-data.js
+    next:
+      quick-test:
+        disabled: false
+        condition: on_job_success
+  - id: webhook
+    type: webhook
+    webhook_reply: before_start
+    next:
+      transform-data:
+        disabled: false
+        condition: always

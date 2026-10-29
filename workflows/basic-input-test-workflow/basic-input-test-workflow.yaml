@@ -1,0 +1,15 @@
+id: basic-input-test-workflow
+name: Basic Input Test Workflow
+start: webhook
+steps:
+  - id: process-input
+    name: Process Input
+    adaptor: '@openfn/language-common@latest'
+    expression: ./process-input.js
+  - id: webhook
+    type: webhook
+    webhook_reply: before_start
+    next:
+      process-input:
+        disabled: false
+        condition: always

@@ -1,0 +1,273 @@
+id: openfn-platform-self-test-workflow
+name: OpenFn Platform Self-Test Workflow
+start: webhook
+steps:
+  - id: aggregate-results-group-one
+    name: Aggregate Results Group One
+    adaptor: '@openfn/language-common@latest'
+    expression: ./aggregate-results-group-one.js
+    next:
+      final-validation:
+        disabled: false
+        condition: on_job_success
+  - id: aggregate-results-group-two
+    name: Aggregate Results Group Two
+    adaptor: '@openfn/language-common@latest'
+    expression: ./aggregate-results-group-two.js
+    next:
+      final-validation:
+        disabled: false
+        condition: on_job_success
+  - id: create-jsonplaceholder-post
+    name: Create JSONPlaceholder Post
+    adaptor: '@openfn/language-http@latest'
+    expression: ./create-jsonplaceholder-post.js
+    next:
+      update-jsonplaceholder-post:
+        disabled: false
+        condition: on_job_success
+  - id: delete-jsonplaceholder-post
+    name: Delete JSONPlaceholder Post
+    adaptor: '@openfn/language-http@latest'
+    expression: ./delete-jsonplaceholder-post.js
+    next:
+      aggregate-results-group-one:
+        disabled: false
+        condition: on_job_success
+  - id: execute-branch-a
+    name: Execute Branch A
+    adaptor: '@openfn/language-http@latest'
+    expression: ./execute-branch-a.js
+    next:
+      final-validation:
+        disabled: false
+        condition: on_job_success
+  - id: execute-branch-b
+    name: Execute Branch B
+    adaptor: '@openfn/language-http@latest'
+    expression: ./execute-branch-b.js
+    next:
+      final-validation:
+        disabled: false
+        condition: on_job_success
+  - id: fetch-cat-fact
+    name: Fetch Cat Fact
+    adaptor: '@openfn/language-http@latest'
+    expression: ./fetch-cat-fact.js
+    next:
+      fetch-dog-image:
+        disabled: false
+        condition: on_job_success
+  - id: fetch-dog-image
+    name: Fetch Dog Image
+    adaptor: '@openfn/language-http@latest'
+    expression: ./fetch-dog-image.js
+    next:
+      fetch-joke-api:
+        disabled: false
+        condition: on_job_success
+  - id: fetch-github-public-repos
+    name: Fetch GitHub Public Repos
+    adaptor: '@openfn/language-http@latest'
+    expression: ./fetch-github-public-repos.js
+    next:
+      process-github-data:
+        disabled: false
+        condition: on_job_success
+  - id: fetch-ip-geolocation
+    name: Fetch IP Geolocation
+    adaptor: '@openfn/language-http@latest'
+    expression: ./fetch-ip-geolocation.js
+    next:
+      process-ip-data:
+        disabled: false
+        condition: on_job_success
+  - id: fetch-joke-api
+    name: Fetch Joke API
+    adaptor: '@openfn/language-http@latest'
+    expression: ./fetch-joke-api.js
+    next:
+      aggregate-results-group-two:
+        disabled: false
+        condition: on_job_success
+  - id: fetch-jsonplaceholder-posts
+    name: Fetch JSONPlaceholder Posts
+    adaptor: '@openfn/language-http@latest'
+    expression: ./fetch-jsonplaceholder-posts.js
+    next:
+      create-jsonplaceholder-post:
+        disabled: false
+        condition: on_job_success
+  - id: fetch-jsonplaceholder-users
+    name: Fetch JSONPlaceholder Users
+    adaptor: '@openfn/language-http@latest'
+    expression: ./fetch-jsonplaceholder-users.js
+    next:
+      fetch-jsonplaceholder-posts:
+        disabled: false
+        condition: on_job_success
+  - id: fetch-open-library-books
+    name: Fetch Open Library Books
+    adaptor: '@openfn/language-http@latest'
+    expression: ./fetch-open-library-books.js
+    next:
+      process-book-data:
+        disabled: false
+        condition: on_job_success
+  - id: fetch-open-meteo-weather
+    name: Fetch Open-Meteo Weather
+    adaptor: '@openfn/language-http@latest'
+    expression: ./fetch-open-meteo-weather.js
+    next:
+      fetch-restcountries-data:
+        disabled: false
+        condition: on_job_success
+  - id: fetch-pokeapi-data
+    name: Fetch PokeAPI Data
+    adaptor: '@openfn/language-http@latest'
+    expression: ./fetch-pokeapi-data.js
+    next:
+      fetch-cat-fact:
+        disabled: false
+        condition: on_job_success
+  - id: fetch-random-user
+    name: Fetch Random User
+    adaptor: '@openfn/language-http@latest'
+    expression: ./fetch-random-user.js
+    next:
+      process-random-user:
+        disabled: false
+        condition: on_job_success
+  - id: fetch-restcountries-data
+    name: Fetch RestCountries Data
+    adaptor: '@openfn/language-http@latest'
+    expression: ./fetch-restcountries-data.js
+    next:
+      transform-country-data:
+        disabled: false
+        condition: on_job_success
+  - id: final-validation
+    name: Final Validation
+    adaptor: '@openfn/language-common@latest'
+    expression: ./final-validation.js
+    next:
+      log-workflow-summary:
+        disabled: false
+        condition: on_job_success
+  - id: handle-simulated-error
+    name: Handle Simulated Error
+    adaptor: '@openfn/language-common@latest'
+    expression: ./handle-simulated-error.js
+    next:
+      aggregate-results-group-two:
+        disabled: false
+        condition: on_job_success
+  - id: initialize-workflow
+    name: Initialize Workflow
+    adaptor: '@openfn/language-common@latest'
+    expression: ./initialize-workflow.js
+    next:
+      fetch-jsonplaceholder-users:
+        disabled: false
+        condition: on_job_success
+      fetch-open-meteo-weather:
+        disabled: false
+        condition: on_job_success
+      fetch-random-user:
+        disabled: false
+        condition: on_job_success
+      fetch-pokeapi-data:
+        disabled: false
+        condition: on_job_success
+      fetch-ip-geolocation:
+        disabled: false
+        condition: on_job_success
+      test-conditional-branching:
+        disabled: false
+        condition: on_job_success
+      simulate-job-error:
+        disabled: false
+        condition: on_job_success
+      fetch-open-library-books:
+        disabled: false
+        condition: on_job_success
+  - id: log-workflow-summary
+    name: Log Workflow Summary
+    adaptor: '@openfn/language-common@latest'
+    expression: ./log-workflow-summary.js
+  - id: process-book-data
+    name: Process Book Data
+    adaptor: '@openfn/language-common@latest'
+    expression: ./process-book-data.js
+    next:
+      aggregate-results-group-one:
+        disabled: false
+        condition: on_job_success
+  - id: process-github-data
+    name: Process GitHub Data
+    adaptor: '@openfn/language-common@latest'
+    expression: ./process-github-data.js
+    next:
+      aggregate-results-group-two:
+        disabled: false
+        condition: on_job_success
+  - id: process-ip-data
+    name: Process IP Data
+    adaptor: '@openfn/language-common@latest'
+    expression: ./process-ip-data.js
+    next:
+      final-validation:
+        disabled: false
+        condition: on_job_success
+  - id: process-random-user
+    name: Process Random User
+    adaptor: '@openfn/language-common@latest'
+    expression: ./process-random-user.js
+    next:
+      fetch-github-public-repos:
+        disabled: false
+        condition: on_job_success
+  - id: simulate-job-error
+    name: Simulate Job Error
+    adaptor: '@openfn/language-common@latest'
+    expression: ./simulate-job-error.js
+    next:
+      handle-simulated-error:
+        disabled: false
+        condition: on_job_failure
+  - id: test-conditional-branching
+    name: Test Conditional Branching
+    adaptor: '@openfn/language-common@latest'
+    expression: ./test-conditional-branching.js
+    next:
+      execute-branch-a:
+        disabled: false
+        condition: |
+          state.branch === "A"
+      execute-branch-b:
+        disabled: false
+        condition: |
+          state.branch !== "A"
+  - id: transform-country-data
+    name: Transform Country Data
+    adaptor: '@openfn/language-common@latest'
+    expression: ./transform-country-data.js
+    next:
+      aggregate-results-group-one:
+        disabled: false
+        condition: on_job_success
+  - id: update-jsonplaceholder-post
+    name: Update JSONPlaceholder Post
+    adaptor: '@openfn/language-http@latest'
+    expression: ./update-jsonplaceholder-post.js
+    next:
+      delete-jsonplaceholder-post:
+        disabled: false
+        condition: on_job_success
+  - id: webhook
+    type: webhook
+    webhook_reply: before_start
+    next:
+      initialize-workflow:
+        disabled: false
+        condition: always

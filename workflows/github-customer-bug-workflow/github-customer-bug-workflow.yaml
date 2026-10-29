@@ -1,0 +1,46 @@
+id: github-customer-bug-workflow
+name: GitHub Customer Bug Workflow
+start: webhook
+steps:
+  - id: add-row-to-bug-tracker-sheet
+    name: Add Row to Bug Tracker Sheet
+    adaptor: '@openfn/language-googlesheets@latest'
+    expression: ./add-row-to-bug-tracker-sheet.js
+  - id: lookup-customer-in-postgresql
+    name: Lookup Customer in PostgreSQL
+    adaptor: '@openfn/language-postgresql@latest'
+    expression: ./lookup-customer-in-postgresql.js
+    next:
+      add-row-to-bug-tracker-sheet:
+        disabled: false
+        condition: on_job_success
+      post-to-slack:
+        disabled: false
+        condition: on_job_success
+      send-enterprise-email-confirmation:
+        disabled: false
+        condition: |
+          state.customer.tier === "Enterprise"
+  - id: post-to-slack
+    name: Post to Slack
+    adaptor: '@openfn/language-http@latest'
+    expression: ./post-to-slack.js
+  - id: process-issue-details
+    name: Process Issue Details
+    adaptor: '@openfn/language-common@latest'
+    expression: ./process-issue-details.js
+    next:
+      lookup-customer-in-postgresql:
+        disabled: false
+        condition: on_job_success
+  - id: send-enterprise-email-confirmation
+    name: Send Enterprise Email Confirmation
+    adaptor: '@openfn/language-http@latest'
+    expression: ./send-enterprise-email-confirmation.js
+  - id: webhook
+    type: webhook
+    webhook_reply: before_start
+    next:
+      process-issue-details:
+        disabled: false
+        condition: always

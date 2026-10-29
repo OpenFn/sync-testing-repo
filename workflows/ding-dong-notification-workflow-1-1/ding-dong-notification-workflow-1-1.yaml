@@ -1,0 +1,23 @@
+id: ding-dong-notification-workflow-1-1
+name: DING DONG Notification Workflow 1 1
+start: cron
+steps:
+  - id: cron
+    type: cron
+    cron_expression: '*/15 * * * *'
+    next:
+      send-notification:
+        disabled: false
+        condition: always
+  - id: log-to-spreadsheet
+    name: Log to Spreadsheet
+    adaptor: '@openfn/language-googlesheets@latest'
+    expression: ./log-to-spreadsheet.js
+  - id: send-notification
+    name: Send Notification
+    adaptor: '@openfn/language-http@latest'
+    expression: ./send-notification.js
+    next:
+      log-to-spreadsheet:
+        disabled: false
+        condition: on_job_success

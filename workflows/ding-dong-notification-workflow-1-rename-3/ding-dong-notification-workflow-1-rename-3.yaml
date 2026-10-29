@@ -1,0 +1,30 @@
+id: ding-dong-notification-workflow-1-rename-3
+name: DING DONG Notification Workflow 1 rename 3
+start: cron
+steps:
+  - id: common
+    name: Common
+    adaptor: '@openfn/language-common@3.3.4'
+    expression: ./common.js
+  - id: cron
+    type: cron
+    cron_expression: '*/15 * * * *'
+    next:
+      send-notification:
+        disabled: false
+        condition: always
+  - id: log-to-spreadsheet
+    name: Log to Spreadsheet
+    adaptor: '@openfn/language-googlesheets@latest'
+    expression: ./log-to-spreadsheet.js
+  - id: send-notification
+    name: Send Notification
+    adaptor: '@openfn/language-http@latest'
+    expression: ./send-notification.js
+    next:
+      log-to-spreadsheet:
+        disabled: false
+        condition: on_job_success
+      common:
+        disabled: false
+        condition: on_job_success

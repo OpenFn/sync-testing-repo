@@ -1,0 +1,132 @@
+id: v2-15-13-pre
+name: v2.15.13-pre
+start: webhook
+steps:
+  - id: common
+    name: Common
+    adaptor: '@openfn/language-common@3.2.2'
+    expression: ./common.js
+    next:
+      send-data-to-salesforce:
+        disabled: false
+        condition: on_job_success
+        label: on success
+      whatsapp:
+        disabled: false
+        condition: on_job_failure
+        label: on failure
+  - id: dhis2
+    name: Dhis2
+    adaptor: '@openfn/language-dhis2@8.2.0'
+    expression: ./dhis2.js
+  - id: fhir
+    name: Fhir
+    adaptor: '@openfn/language-fhir@5.0.14'
+    expression: ./fhir.js
+  - id: get-data
+    name: Get data
+    adaptor: '@openfn/language-http@7.0.3'
+    expression: ./get-data.js
+    next:
+      common:
+        disabled: false
+        condition: on_job_success
+  - id: process-level-2a
+    name: Process Level 2A
+    adaptor: '@openfn/language-common@latest'
+    expression: ./process-level-2a.js
+    next:
+      process-level-3a:
+        disabled: false
+        condition: on_job_success
+      process-level-3b:
+        disabled: false
+        condition: on_job_success
+  - id: process-level-2b
+    name: Process Level 2B
+    adaptor: '@openfn/language-common@latest'
+    expression: ./process-level-2b.js
+    next:
+      process-level-3c:
+        disabled: false
+        condition: on_job_success
+      process-level-3d:
+        disabled: false
+        condition: on_job_success
+  - id: process-level-3a
+    name: Process Level 3A
+    adaptor: '@openfn/language-common@latest'
+    expression: ./process-level-3a.js
+    next:
+      process-level-4a:
+        disabled: false
+        condition: on_job_success
+      fhir:
+        disabled: false
+        condition: on_job_success
+  - id: process-level-3b
+    name: Process Level 3B
+    adaptor: '@openfn/language-common@latest'
+    expression: ./process-level-3b.js
+    next:
+      process-level-4b:
+        disabled: false
+        condition: on_job_success
+  - id: process-level-3c
+    name: Process Level 3C
+    adaptor: '@openfn/language-common@latest'
+    expression: ./process-level-3c.js
+    next:
+      process-level-4c:
+        disabled: false
+        condition: on_job_success
+  - id: process-level-3d
+    name: Process Level 3D
+    adaptor: '@openfn/language-common@latest'
+    expression: ./process-level-3d.js
+  - id: process-level-4a
+    name: Process Level 4A
+    adaptor: '@openfn/language-common@latest'
+    expression: ./process-level-4a.js
+  - id: process-level-4b
+    name: Process Level 4B
+    adaptor: '@openfn/language-common@latest'
+    expression: ./process-level-4b.js
+  - id: process-level-4c
+    name: Process Level 4C
+    adaptor: '@openfn/language-common@latest'
+    expression: ./process-level-4c.js
+    next:
+      dhis2:
+        disabled: false
+        condition: on_job_success
+  - id: send-data-to-salesforce
+    name: Send data to Salesforce
+    adaptor: '@openfn/language-salesforce@latest'
+    expression: ./send-data-to-salesforce.js
+    next:
+      step-3:
+        disabled: false
+        condition: on_job_success
+  - id: step-3
+    name: step 3
+    adaptor: '@openfn/language-common@latest'
+    expression: ./step-3.js
+    next:
+      process-level-2a:
+        disabled: false
+        condition: on_job_success
+      process-level-2b:
+        disabled: false
+        condition: on_job_success
+  - id: webhook
+    type: webhook
+    webhook_reply: before_start
+    next:
+      get-data:
+        disabled: false
+        condition: always
+  - id: whatsapp
+    name: whatsapp
+    adaptor: '@openfn/language-whatsapp@latest'
+    expression: ./whatsapp.js

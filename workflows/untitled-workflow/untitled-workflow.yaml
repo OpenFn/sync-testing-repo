@@ -1,0 +1,15 @@
+id: untitled-workflow
+name: Untitled workflow
+start: webhook
+steps:
+  - id: untitled-step
+    name: Untitled step
+    adaptor: '@openfn/language-common@latest'
+    expression: ./untitled-step.js
+  - id: webhook
+    type: webhook
+    webhook_reply: before_start
+    next:
+      untitled-step:
+        disabled: false
+        condition: always

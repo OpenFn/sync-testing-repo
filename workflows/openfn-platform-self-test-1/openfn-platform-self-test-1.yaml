@@ -1,0 +1,55 @@
+id: openfn-platform-self-test-1
+name: OpenFn Platform Self-Test 1
+start: webhook
+steps:
+  - id: test-data-transform
+    name: Test Data Transform
+    adaptor: '@openfn/language-common@latest'
+    expression: ./test-data-transform.js
+    next:
+      test-http-post:
+        disabled: false
+        condition: on_job_success
+  - id: test-deliberate-failure
+    name: Test Deliberate Failure
+    adaptor: '@openfn/language-common@latest'
+    expression: ./test-deliberate-failure.js
+    next:
+      test-failure-branch:
+        disabled: false
+        condition: on_job_failure
+  - id: test-failure-branch
+    name: Test Failure Branch
+    adaptor: '@openfn/language-common@latest'
+    expression: ./test-failure-branch.js
+  - id: test-http-get
+    name: Test HTTP GET
+    adaptor: '@openfn/language-http@latest'
+    expression: ./test-http-get.js
+    next:
+      test-data-transform:
+        disabled: false
+        condition: on_job_success
+  - id: test-http-post
+    name: Test HTTP POST
+    adaptor: '@openfn/language-http@latest'
+    expression: ./test-http-post.js
+    next:
+      test-success-branch:
+        disabled: false
+        condition: on_job_success
+  - id: test-success-branch
+    name: Test Success Branch
+    adaptor: '@openfn/language-common@latest'
+    expression: ./test-success-branch.js
+    next:
+      test-deliberate-failure:
+        disabled: false
+        condition: on_job_success
+  - id: webhook
+    type: webhook
+    webhook_reply: before_start
+    next:
+      test-http-get:
+        disabled: false
+        condition: always

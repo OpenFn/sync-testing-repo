@@ -1,0 +1,31 @@
+id: dalgo-comp
+name: dalgo-comp
+start: webhook
+steps:
+  - id: compare-data-from-sheets
+    name: compare data from sheets
+    adaptor: '@openfn/language-salesforce@4.6.5'
+    expression: ./compare-data-from-sheets.js
+    next:
+      mm:
+        disabled: false
+        condition: on_job_success
+  - id: goog
+    name: Goog
+    adaptor: '@openfn/language-googlesheets@latest'
+    expression: ./goog.js
+    next:
+      compare-data-from-sheets:
+        disabled: false
+        condition: on_job_success
+  - id: mm
+    name: mm
+    adaptor: '@openfn/language-common@latest'
+    expression: ./mm.js
+  - id: webhook
+    type: webhook
+    webhook_reply: before_start
+    next:
+      goog:
+        disabled: false
+        condition: always
