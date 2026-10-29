@@ -11,9 +11,6 @@ steps:
     adaptor: '@openfn/language-postgresql@latest'
     expression: ./lookup-customer-in-postgresql.js
     next:
-      add-row-to-bug-tracker-sheet:
-        disabled: false
-        condition: on_job_success
       post-to-slack:
         disabled: false
         condition: on_job_success
@@ -21,6 +18,9 @@ steps:
         disabled: false
         condition: |
           state.customer.tier === "Enterprise"
+      add-row-to-bug-tracker-sheet:
+        disabled: false
+        condition: on_job_success
   - id: post-to-slack
     name: Post to Slack
     adaptor: '@openfn/language-http@latest'

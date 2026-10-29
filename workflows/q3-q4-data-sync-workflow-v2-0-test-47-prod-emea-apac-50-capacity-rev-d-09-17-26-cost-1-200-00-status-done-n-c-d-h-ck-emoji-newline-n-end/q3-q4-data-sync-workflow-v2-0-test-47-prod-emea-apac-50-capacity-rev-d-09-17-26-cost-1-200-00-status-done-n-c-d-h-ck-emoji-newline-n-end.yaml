@@ -4,18 +4,18 @@ name: 'Q3/Q4 "Data-Sync" Workflow (v2.0) — Test #47 <PROD> [EMEA & APAC] @ 50%
   日本語 emoji 🚀✅ newline\n end?!'
 start: webhook
 steps:
-  - id: ''
-    name: 患者確認
+  - id: '1'
+    name: 患者確認 - 1
     adaptor: '@openfn/language-http@latest'
-    expression: ./.js
+    expression: ./1.js
     next:
-      '':
+      '2':
         disabled: false
         condition: on_job_success
-  - id: ''
-    name: فحص المريض
+  - id: '2'
+    name: فحص المريض - 2
     adaptor: '@openfn/language-http@latest'
-    expression: ./.js
+    expression: ./2.js
     next:
       test-sync-v2-0-prod-emea-50-c-st-1-200-done-true:
         disabled: false
@@ -165,7 +165,7 @@ steps:
     adaptor: '@openfn/language-common@latest'
     expression: ./v-rifier-l-tat-du-dossier.js
     next:
-      '':
+      '1':
         disabled: false
         condition: on_job_success
   - id: webhook
