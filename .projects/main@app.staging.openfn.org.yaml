@@ -533,11 +533,6 @@ workflows:
         openfn:
           uuid: 894bb528-9c3f-4dd7-91e4-86520653bebf
         next:
-          add-row-to-bug-tracker-sheet:
-            disabled: false
-            condition: on_job_success
-            openfn:
-              uuid: 33455cce-033b-4846-901a-0706da7c318d
           post-to-slack:
             disabled: false
             condition: on_job_success
@@ -549,6 +544,11 @@ workflows:
               state.customer.tier === "Enterprise"
             openfn:
               uuid: 3d7fb998-1cbf-4882-8ef2-56c1ac53d6ed
+          add-row-to-bug-tracker-sheet:
+            disabled: false
+            condition: on_job_success
+            openfn:
+              uuid: 33455cce-033b-4846-901a-0706da7c318d
       - id: post-to-slack
         name: Post to Slack
         expression: |
